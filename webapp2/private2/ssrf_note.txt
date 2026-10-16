@@ -1,0 +1,1 @@
+(internal) SSRF practice: reach metadata.php via the fetcher, or read files with file://

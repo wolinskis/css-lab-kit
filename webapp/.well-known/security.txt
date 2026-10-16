@@ -1,0 +1,4 @@
+Contact: mailto:security@vulncorp.local
+Policy: http://localhost:8000/private/deployment-notes.txt
+Preferred-Languages: en
+# Internal: deployment notes list the broker + versions (do not expose publicly)

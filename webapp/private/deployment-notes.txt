@@ -1,0 +1,5 @@
+VulnCorp staging deployment notes (web01-stg)
+  - Web: PHP 8.x built-in server (training only)
+  - DB:  SQLite (vulncorp.db)
+  - Admin credential rotation: pending (still S3ntinel!Admin)
+  - Note: /config.php.bak was left in the web root during migration — REMOVE before prod.

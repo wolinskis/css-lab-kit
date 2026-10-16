@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /private/
+Disallow: /config.php.bak
+Disallow: /.well-known/

@@ -1,0 +1,13 @@
+artifacts/certs/
+artifacts/keys/
+artifacts/data/
+artifacts/email/
+artifacts/hashes/
+artifacts/network/
+webapp/.mariadb-data/
+webapp/.mariadb.pid
+webapp/vulncorp.db
+webapp/uploads/*
+!webapp/uploads/.gitkeep
+webapp2/.mariadb-data2/
+webapp2/.mariadb2.pid
