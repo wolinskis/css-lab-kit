@@ -12,9 +12,15 @@ $state    = $_GET['state'] ?? '';
 //  expert : + no extra '.' in the host  -> same subdomain idea needs a parser differential (advanced)
 if ($redirect !== '') {
     $bad='';
-    if ($L!=='easy' && strpos($redirect,'http://localhost')!==0) $bad="must start with http://localhost";
-    if (!$bad && ($L==='hard'||$L==='expert') && strpos($redirect,'@')!==false) $bad="'@' is not allowed";
-    if (!$bad && $L==='expert') { $h=(string)parse_url($redirect,PHP_URL_HOST); if(substr_count($h,'.')>0 && strpos($h,'localhost')!==0) $bad="host must be localhost"; }
+    //  medium : must CONTAIN 'localhost'         -> http://attacker.test/?x=localhost
+    //  hard   : must START WITH http://localhost -> http://localhost.attacker.test/  (subdomain)
+    //  expert : start-with + NO dots             -> http://localhost@attacker/       (@ userinfo, dotless host)
+    if ($L==='medium' && strpos($redirect,'localhost')===false) $bad="must reference localhost";
+    if ($L==='hard'   && strpos($redirect,'http://localhost')!==0) $bad="must start with http://localhost";
+    if ($L==='expert') {
+        if (strpos($redirect,'http://localhost')!==0) $bad="must start with http://localhost";
+        elseif (strpos($redirect,'.')!==false) $bad="no '.' allowed in the redirect_uri";
+    }
     if ($bad) { header('Content-Type: text/plain'); echo "redirect_uri rejected (level $L): $bad\n"; exit; }
 }
 if ($redirect === '') {
