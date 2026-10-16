@@ -23,6 +23,7 @@ button.ghost{background:#1c2330;color:#8ab4ff}button:hover{filter:brightness(1.1
 .lvlbtn.on{background:#1f6feb;color:#fff}.note{color:var(--muted);font-size:.85em}
 .card.chal>.cbody{display:none}.card.chal.open>.cbody{display:block}.card.chal>h2{cursor:pointer}
 .card.chal>h2::before{content:"▸ ";opacity:.5;font-weight:400}.card.chal.open>h2::before{content:"▾ "}
+.urlprev{color:#79c0ff;font-size:.8em;font-family:ui-monospace,Consolas,monospace;margin:6px 0 0;word-break:break-all;opacity:.85}
 .res{width:100%;height:200px;border:1px solid var(--line);border-radius:8px;background:#fff;margin-top:8px;display:block}
 .rx{white-space:pre-wrap;background:#05070b;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:8px;font-family:ui-monospace,Consolas,monospace;font-size:.85em;display:block;max-height:200px;overflow:auto}
 .muted{color:var(--muted);font-size:.92em}a{color:#8ab4ff}
@@ -139,7 +140,7 @@ walkthroughs in <code>SOLUTIONS.md</code>. The real pages are still under <a hre
 </div>
 <footer>⚠️ <b>Intentionally vulnerable — training only.</b> Run locally / isolated lab; never expose it.</footer>
 <script>
-function fill(inputId, plId){ document.getElementById(inputId).value = document.getElementById(plId).textContent; }
+function fill(inputId, plId){ var i=document.getElementById(inputId); i.value=document.getElementById(plId).textContent; i.dispatchEvent(new Event('input')); }
 function show(frameId){ document.getElementById(frameId).style.display='block'; }
 const PAYLOADS = {
  q:{
@@ -193,6 +194,14 @@ document.querySelectorAll('.wrap > .card').forEach(function(card){
   });
 });
 var first=document.querySelector('.card.chal'); if(first) first.classList.add('open');  // open the first
+// Live URL preview under each GET form input (shows WHERE the payload goes).
+document.querySelectorAll('form[method="get"]').forEach(function(f){
+  var inp=f.querySelector('input[type="text"]'); if(!inp||!inp.name) return;
+  var pv=document.createElement('div'); pv.className='urlprev'; f.appendChild(pv);
+  var act=f.getAttribute('action')||'';
+  function upd(){ pv.textContent='→ GET '+act+'?'+inp.name+'='+inp.value; }
+  inp.addEventListener('input',upd); upd();
+});
 function doUpload(){
   var out=document.getElementById('r_up'); out.style.display='block'; out.textContent='uploading…';
   var lvl=(document.getElementById('lvl_up')||{}).value||'easy';

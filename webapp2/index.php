@@ -21,6 +21,7 @@ button.ghost{background:#eef2f9;color:var(--brand2)}button:hover{filter:brightne
 .levels{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap}.lvlbtn{background:#eef2f9;color:var(--muted);font-size:.8em;padding:4px 11px}.lvlbtn.on{background:#7a3df0;color:#fff}.note{color:var(--muted);font-size:.85em}
 .card.chal>.cbody{display:none}.card.chal.open>.cbody{display:block}.card.chal>h2{cursor:pointer}
 .card.chal>h2::before{content:"▸ ";opacity:.5;font-weight:400}.card.chal.open>h2::before{content:"▾ "}
+.urlprev{color:var(--brand2);font-size:.8em;font-family:ui-monospace,Consolas,monospace;margin:6px 0 0;word-break:break-all;opacity:.9}
 .res{width:100%;height:180px;border:1px solid var(--line);border-radius:8px;background:#fff;margin-top:8px;display:block}
 .rx{white-space:pre-wrap;background:#0f1622;color:#dfe6ee;border-radius:8px;padding:10px;margin-top:8px;font-family:ui-monospace,Consolas,monospace;font-size:.85em;display:block;max-height:220px;overflow:auto}
 .muted{color:var(--muted);font-size:.92em}.ok{border-color:var(--ok);background:#eafaf0}
@@ -127,7 +128,7 @@ Full walkthroughs are in <code>SOLUTIONS.md</code>.</p></div>
 <footer>⚠️ <b>Intentionally vulnerable — training only.</b> Run locally / isolated lab; never expose it. ·
 <a href="feedback.php">Report a bug / idea</a> · walkthroughs in <code>SOLUTIONS.md</code></footer>
 <script>
-function fill(inputId, plId){ document.getElementById(inputId).value = document.getElementById(plId).textContent; }
+function fill(inputId, plId){ var i=document.getElementById(inputId); i.value=document.getElementById(plId).textContent; i.dispatchEvent(new Event('input')); }
 function show(frameId){ document.getElementById(frameId).style.display='block'; }
 const PAYLOADS={
  q:{easy:{p:"zzz%' UNION SELECT k,v,3 FROM secrets-- -",n:"Easy — raw UNION."},medium:{p:"zzz%' UNIunionON SELselectECT k,v,3 FROM secrets-- -",n:"Medium — union/select stripped once → nest (UNIunionON)."},hard:{p:"zzz%'/**/UNIunionON/**/SELselectECT/**/k,v,3/**/FROM/**/secrets#",n:"Hard — + spaces stripped → /**/ and end with #."},expert:{p:"zzz' OR 1=1-- -",n:"Expert — BLIND (match/no match). Boolean-extract the flag char by char."}},
@@ -177,6 +178,14 @@ document.querySelectorAll('.wrap > .card').forEach(function(card){
   });
 });
 var first=document.querySelector('.card.chal'); if(first) first.classList.add('open');  // open the first
+// Live URL preview under each GET form input (shows WHERE the payload goes).
+document.querySelectorAll('form[method="get"]').forEach(function(f){
+  var inp=f.querySelector('input[type="text"]'); if(!inp||!inp.name) return;
+  var pv=document.createElement('div'); pv.className='urlprev'; f.appendChild(pv);
+  var act=f.getAttribute('action')||'';
+  function upd(){ pv.textContent='→ GET '+act+'?'+inp.name+'='+inp.value; }
+  inp.addEventListener('input',upd); upd();
+});
 function sendXml(){
   var out=document.getElementById('r_xml'); out.style.display='block'; out.textContent='sending…';
   fetch('import.php?level='+((document.getElementById('lvl_xml')||{}).value||'easy'),{method:'POST',headers:{'Content-Type':'application/xml'},body:document.getElementById('in_xml').value})
