@@ -144,12 +144,14 @@ PAYLOADS.jwt={
  hard:{p:"Tougher secret, still in rockyou -> crack it -> 'superman'. Re-sign role=admin.",n:"Hard — crack a stronger secret ('superman')."},
  expert:{p:"Secret is strong & uncrackable -- but it is in the DB. SQLi-dump secrets where k='jwt_sign_secret', then sign role=admin with that secret.",n:"Expert — secret leaked via SQLi (SQLi -> JWT chain)."}
 };
+var _ready=false;
 function setLvl(card,lvl){
   var Ld=document.getElementById('lvl_'+card); if(Ld) Ld.value=lvl;
   var L2=document.getElementById('lvl_'+card+'2'); if(L2) L2.value=lvl;
   var d=PAYLOADS[card][lvl];
   var pl=document.getElementById('pl_'+card); if(pl) pl.textContent=d.p;
   var nt=document.getElementById('note_'+card); if(nt) nt.textContent=d.n;
+  var _inp=document.getElementById('in_'+card); if(_ready && _inp && card!=='up'){ _inp.value=d.p; try{_inp.dispatchEvent(new Event('input'));}catch(e){} }
   document.querySelectorAll('#lv_'+card+' .lvlbtn').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-l')===lvl); });
 }
 PAYLOADS.rd={
@@ -165,6 +167,7 @@ PAYLOADS.xml={
  expert:{p:'(advanced) inline <!ENTITY is blocked → use an external DTD or parameter entities.',n:"Expert — inline entities blocked → external/parameter-entity DTD (advanced)."}
 };
 ['q','url','file','name','jwt','rd','xml'].forEach(function(c){ setLvl(c,'easy'); });
+_ready=true;
 // Accordion: collapse every challenge card; click a title to open it (closes the others).
 document.querySelectorAll('.wrap > .card').forEach(function(card){
   var h=card.querySelector('h2'); if(!h) return;
@@ -181,12 +184,15 @@ document.querySelectorAll('.wrap > .card').forEach(function(card){
 });
 var first=document.querySelector('.card.chal'); if(first) first.classList.add('open');  // open the first
 // Live URL preview under each GET form input (shows WHERE the payload goes).
-document.querySelectorAll('form[method="get"]').forEach(function(f){
-  var inp=f.querySelector('input[type="text"]'); if(!inp||!inp.name) return;
+document.querySelectorAll('form').forEach(function(f){
+  var named=[]; f.querySelectorAll('input[type="text"],textarea').forEach(function(i){ if(i.name) named.push(i); });
+  if(!named.length) return;
+  var method=(f.getAttribute('method')||'get').toUpperCase();
+  var act=(f.getAttribute('action')||'').split('?')[0]||'(this page)';
   var pv=document.createElement('div'); pv.className='urlprev'; f.appendChild(pv);
-  var act=f.getAttribute('action')||'';
-  function upd(){ pv.textContent='→ GET '+act+'?'+inp.name+'='+inp.value; }
-  inp.addEventListener('input',upd); upd();
+  function upd(){ var qs=named.map(function(i){return i.name+'='+i.value;}).join('&');
+    pv.textContent=(method==='GET')?('→ GET '+act+'?'+qs):('→ POST '+act+'   body: '+qs); }
+  named.forEach(function(i){ i.addEventListener('input',upd); }); upd();
 });
 function sendXml(){
   var out=document.getElementById('r_xml'); out.style.display='block'; out.textContent='sending…';

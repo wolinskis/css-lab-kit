@@ -1,4 +1,4 @@
-<?php require __DIR__.'/header.php'; $db = require __DIR__.'/db.php'; ?>
+<?php require __DIR__.'/header.php'; require __DIR__.'/levels.php'; $db = require __DIR__.'/db.php'; ?>
 <div class="card">
   <h2>Employee login</h2>
 <?php if(!isset($_REQUEST['embed'])): ?>
@@ -10,7 +10,10 @@
 <?php endif; ?>
 <?php
 if ($_SERVER['REQUEST_METHOD']==='POST') {
-    $u = $_POST['username'] ?? ''; $p = $_POST['password'] ?? '';
+    $L = lvl();
+    $u = f_login($_POST['username'] ?? '', $L);     // escalating filter per level
+    $p = f_login($_POST['password'] ?? '', $L);
+    echo "<div class='muted' style='opacity:.55'>level: $L</div>";
     // SQL injection auth bypass: credentials concatenated straight into the query.
     $sql = "SELECT * FROM users WHERE username='$u' AND password='$p'";
     try {

