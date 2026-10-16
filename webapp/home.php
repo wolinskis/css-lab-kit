@@ -1,6 +1,7 @@
 <?php require __DIR__.'/header.php'; require __DIR__.'/levels.php'; $db = require __DIR__.'/db.php'; ?>
 <?php if (isset($_GET['reset'])): ?><div class="card" style="border-color:#2e9b4f">✅ Lab reset to a clean state (DB reseeded, guestbook &amp; uploads cleared).</div><?php endif; ?>
 
+<?php if(!isset($_REQUEST['embed'])||isset($_GET['q'])): ?>
 <div class="card">
   <h2>Directory search</h2>
   <form method="get">
@@ -26,7 +27,9 @@ if (isset($_GET['q'])) {
 }
 ?>
 </div>
+<?php endif; ?>
 
+<?php if(!isset($_REQUEST['embed'])||$_SERVER['REQUEST_METHOD']==='POST'): ?>
 <div class="card">
   <h2>Guestbook <span class="flag-pill">🏁 stored XSS</span></h2>
   <details class="muted" style="margin-bottom:10px">
@@ -54,7 +57,9 @@ foreach ($db->query("SELECT author, body, created FROM comments ORDER BY id DESC
 }
 ?>
 </div>
+<?php endif; ?>
 
+<?php if(!isset($_REQUEST['embed'])||isset($_GET['page'])): ?>
 <div class="card">
   <h2>Page <span class="flag-pill">🏁 path traversal / LFI</span></h2>
   <details class="muted" style="margin-bottom:10px">
@@ -81,5 +86,6 @@ foreach ($db->query("SELECT author, body, created FROM comments ORDER BY id DESC
   }
 ?>
 </div>
+<?php endif; ?>
 
 <?php require __DIR__.'/footer.php';
