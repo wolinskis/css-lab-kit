@@ -1,4 +1,5 @@
 <?php require __DIR__.'/header.php'; $db = require __DIR__.'/db.php'; ?>
+<?php if (isset($_GET['reset'])): ?><div class="card" style="border-color:#2e9b4f">✅ Lab reset to a clean state (DB reseeded, guestbook &amp; uploads cleared).</div><?php endif; ?>
 
 <div class="card">
   <h2>Directory search</h2>

@@ -11,3 +11,5 @@ webapp/uploads/*
 !webapp/uploads/.gitkeep
 webapp2/.mariadb-data2/
 webapp2/.mariadb2.pid
+webapp/feedback.log
+webapp2/feedback.log

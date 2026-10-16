@@ -28,6 +28,8 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
   <a href="tools.php">Net Tools</a>
   <a href="upload.php">Upload</a>
   <a href="index.php?page=about">About</a>
+  <a href="reset.php" style="color:#f1a33c" title="wipe the DB, comments and uploads back to a clean state">↺ Reset</a>
+  <a href="feedback.php" style="color:#5fd38a">💬 Feedback</a>
  </nav>
 </header>
 <div class="wrap">
