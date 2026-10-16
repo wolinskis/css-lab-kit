@@ -19,6 +19,8 @@ textarea{min-height:92px;width:100%}
 button{background:var(--brand);color:#fff;border:0;border-radius:7px;padding:8px 13px;cursor:pointer;font-size:.88em}
 button.ghost{background:#eef2f9;color:var(--brand2)}button:hover{filter:brightness(1.06)}
 .levels{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap}.lvlbtn{background:#eef2f9;color:var(--muted);font-size:.8em;padding:4px 11px}.lvlbtn.on{background:#7a3df0;color:#fff}.note{color:var(--muted);font-size:.85em}
+.card.chal>.cbody{display:none}.card.chal.open>.cbody{display:block}.card.chal>h2{cursor:pointer}
+.card.chal>h2::before{content:"▸ ";opacity:.5;font-weight:400}.card.chal.open>h2::before{content:"▾ "}
 .res{width:100%;height:180px;border:1px solid var(--line);border-radius:8px;background:#fff;margin-top:8px;display:block}
 .rx{white-space:pre-wrap;background:#0f1622;color:#dfe6ee;border-radius:8px;padding:10px;margin-top:8px;font-family:ui-monospace,Consolas,monospace;font-size:.85em;display:block;max-height:220px;overflow:auto}
 .muted{color:var(--muted);font-size:.92em}.ok{border-color:var(--ok);background:#eafaf0}
@@ -160,6 +162,21 @@ PAYLOADS.xml={
  expert:{p:'(advanced) inline <!ENTITY is blocked → use an external DTD or parameter entities.',n:"Expert — inline entities blocked → external/parameter-entity DTD (advanced)."}
 };
 ['q','url','file','name','jwt','rd','xml'].forEach(function(c){ setLvl(c,'easy'); });
+// Accordion: collapse every challenge card; click a title to open it (closes the others).
+document.querySelectorAll('.wrap > .card').forEach(function(card){
+  var h=card.querySelector('h2'); if(!h) return;
+  if(!card.querySelector('form, .levels, textarea')) return;   // skip the intro card
+  card.classList.add('chal');
+  var body=document.createElement('div'); body.className='cbody';
+  while(h.nextSibling){ body.appendChild(h.nextSibling); }
+  card.appendChild(body);
+  h.addEventListener('click',function(){
+    var open=card.classList.contains('open');
+    document.querySelectorAll('.card.chal.open').forEach(function(c){ c.classList.remove('open'); });
+    if(!open) card.classList.add('open');
+  });
+});
+var first=document.querySelector('.card.chal'); if(first) first.classList.add('open');  // open the first
 function sendXml(){
   var out=document.getElementById('r_xml'); out.style.display='block'; out.textContent='sending…';
   fetch('import.php?level='+((document.getElementById('lvl_xml')||{}).value||'easy'),{method:'POST',headers:{'Content-Type':'application/xml'},body:document.getElementById('in_xml').value})

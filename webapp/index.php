@@ -21,6 +21,8 @@ button{background:var(--brand);color:#fff;border:0;border-radius:7px;padding:8px
 button.ghost{background:#1c2330;color:#8ab4ff}button:hover{filter:brightness(1.12)}
 .levels{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap}.lvlbtn{background:#1c2330;color:#8b98a5;font-size:.8em;padding:4px 11px}
 .lvlbtn.on{background:#1f6feb;color:#fff}.note{color:var(--muted);font-size:.85em}
+.card.chal>.cbody{display:none}.card.chal.open>.cbody{display:block}.card.chal>h2{cursor:pointer}
+.card.chal>h2::before{content:"▸ ";opacity:.5;font-weight:400}.card.chal.open>h2::before{content:"▾ "}
 .res{width:100%;height:200px;border:1px solid var(--line);border-radius:8px;background:#fff;margin-top:8px;display:block}
 .rx{white-space:pre-wrap;background:#05070b;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:8px;font-family:ui-monospace,Consolas,monospace;font-size:.85em;display:block;max-height:200px;overflow:auto}
 .muted{color:var(--muted);font-size:.92em}a{color:#8ab4ff}
@@ -177,6 +179,21 @@ function setLvl(card,lvl){
   document.querySelectorAll('#lv_'+card+' .lvlbtn').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-l')===lvl); });
 }
 ['q','cmd','pg','gb','id','up'].forEach(function(c){ setLvl(c,'easy'); });
+// Accordion: collapse every challenge card; click a title to open it (closes the others).
+document.querySelectorAll('.wrap > .card').forEach(function(card){
+  var h=card.querySelector('h2'); if(!h) return;
+  if(!card.querySelector('form, .levels, textarea')) return;   // skip the intro card
+  card.classList.add('chal');
+  var body=document.createElement('div'); body.className='cbody';
+  while(h.nextSibling){ body.appendChild(h.nextSibling); }
+  card.appendChild(body);
+  h.addEventListener('click',function(){
+    var open=card.classList.contains('open');
+    document.querySelectorAll('.card.chal.open').forEach(function(c){ c.classList.remove('open'); });
+    if(!open) card.classList.add('open');
+  });
+});
+var first=document.querySelector('.card.chal'); if(first) first.classList.add('open');  // open the first
 function doUpload(){
   var out=document.getElementById('r_up'); out.style.display='block'; out.textContent='uploading…';
   var lvl=(document.getElementById('lvl_up')||{}).value||'easy';

@@ -1,11 +1,13 @@
 <?php require __DIR__.'/header.php'; $db = require __DIR__.'/db.php'; ?>
 <div class="card">
   <h2>Employee login</h2>
+<?php if(!isset($_REQUEST['embed'])): ?>
   <form method="post">
     <input name="username" placeholder="username"><br><br>
     <input name="password" type="password" placeholder="password"><br><br>
     <button>Sign in</button>
   </form>
+<?php endif; ?>
 <?php
 if ($_SERVER['REQUEST_METHOD']==='POST') {
     $u = $_POST['username'] ?? ''; $p = $_POST['password'] ?? '';
