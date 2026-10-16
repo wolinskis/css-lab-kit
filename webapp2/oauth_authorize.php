@@ -1,8 +1,22 @@
 <?php
-// Mini OAuth 2.0 authorization endpoint. VULN: redirect_uri is NOT validated against a
-// registered value, so an attacker can make the victim's auth code redirect to any host.
+// Mini OAuth 2.0 authorization endpoint. VULN: redirect_uri validation is weak/absent, so an
+// attacker can make the victim's auth code redirect to a host they control.
+require __DIR__.'/levels.php';
+$L = lvl();
 $redirect = $_GET['redirect_uri'] ?? '';
 $state    = $_GET['state'] ?? '';
+// Escalating (and still-bypassable) redirect_uri validation:
+//  easy   : none.
+//  medium : must start with 'http://localhost'  -> bypass with the @ trick: http://localhost@attacker.test/cb
+//  hard   : + '@' blocked               -> bypass with a subdomain: http://localhost.attacker.test/cb
+//  expert : + no extra '.' in the host  -> same subdomain idea needs a parser differential (advanced)
+if ($redirect !== '') {
+    $bad='';
+    if ($L!=='easy' && strpos($redirect,'http://localhost')!==0) $bad="must start with http://localhost";
+    if (!$bad && ($L==='hard'||$L==='expert') && strpos($redirect,'@')!==false) $bad="'@' is not allowed";
+    if (!$bad && $L==='expert') { $h=(string)parse_url($redirect,PHP_URL_HOST); if(substr_count($h,'.')>0 && strpos($h,'localhost')!==0) $bad="host must be localhost"; }
+    if ($bad) { header('Content-Type: text/plain'); echo "redirect_uri rejected (level $L): $bad\n"; exit; }
+}
 if ($redirect === '') {
     header('Content-Type: text/plain');
     echo "VulnNexus OAuth — authorization endpoint\n";
