@@ -1,4 +1,5 @@
 <?php
+setrawcookie("flag","FLAG{xss_st34ls_the_c00kie}");  // flag cookie (deliberately NOT HttpOnly) — steal it via XSS
 // Weak/misconfigured CSP on purpose (CSP-bypass lab): allows 'unsafe-inline' for scripts.
 header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; img-src *");
 ?><!doctype html>
@@ -29,6 +30,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
   <a href="upload.php">Upload</a>
   <a href="index.php?page=about">About</a>
   <a href="reset.php" style="color:#f1a33c" title="wipe the DB, comments and uploads back to a clean state">↺ Reset</a>
+  <a href="progress.php" style="color:#9cc3ff">📊 Progress</a>
   <a href="feedback.php" style="color:#5fd38a">💬 Feedback</a>
  </nav>
 </header>

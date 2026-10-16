@@ -8,7 +8,7 @@ a{color:#58c7e6} code{background:#0a0d11;padding:1px 5px;border-radius:4px;color
 <header><strong style="color:#12a4c9">VulnNexus</strong> — API Portal (app 2 · medium→hard)</header>
 <div class="wrap">
 <?php if(isset($_GET['reset'])) echo "<div class='card' style='border-color:#2e9b4f'>✅ Lab reset to a clean state (DB reseeded).</div>"; ?>
-<div class="card"><a href="reset.php" style="color:#f1a33c" title="drop &amp; reseed the DB">↺ Reset lab</a> &nbsp;·&nbsp; <a href="feedback.php" style="color:#5fd38a">💬 Feedback</a></div>
+<div class="card"><a href="reset.php" style="color:#f1a33c" title="drop &amp; reseed the DB">↺ Reset lab</a> &nbsp;·&nbsp; <a href="progress.php" style="color:#58c7e6">📊 Progress</a> &nbsp;·&nbsp; <a href="feedback.php" style="color:#5fd38a">💬 Feedback</a></div>
 <div class="card"><h3>Endpoints</h3>
 <ul>
  <li><code>login.php</code> — POST <code>username,password</code> → issues a JWT (try <code>alice/alice123</code>). <em>JWT lab</em></li>

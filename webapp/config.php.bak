@@ -4,3 +4,4 @@ $DB   = 'sqlite:vulncorp.db';
 $ADMIN_USER = 'admin';
 $ADMIN_PASS = 'S3ntinel!Admin';
 $API_SIGNING_KEY = 'sk_live_9f2c1a77d4b0e5f6a1b2c3d4';
+// FLAG{c0nfig_backup_left_in_webroot}
