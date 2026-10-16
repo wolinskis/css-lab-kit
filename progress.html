@@ -1,0 +1,84 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CSS Lab Kit — Progress</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--ink:#1b2430;--muted:#5b6b7e;--line:#e3e8f0;--brand:#1f6feb;--ok:#1f9d57}
+*{box-sizing:border-box}body{font-family:system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink);margin:0;line-height:1.6}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px 60px}
+header{background:linear-gradient(120deg,#13264a,#1f6feb);color:#fff;padding:26px 16px}
+header .wrap{padding-bottom:0}h1{margin:0 0 4px;font-size:1.5em}header p{margin:0;opacity:.9}
+.bar{background:#dce3ee;border-radius:10px;height:14px;overflow:hidden;margin:14px 0 4px}
+.bar>i{display:block;height:100%;width:0;background:var(--ok);transition:width .3s}
+.count{font-weight:600}.section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 18px 14px;margin:18px 0;box-shadow:0 1px 3px rgba(20,40,80,.06)}
+.section h2{font-size:1.05em;margin:14px 0 6px;color:#13264a}.tag{font-size:.72em;font-weight:600;padding:2px 8px;border-radius:20px;background:#eef2f9;color:var(--brand);margin-left:6px}
+ul{list-style:none;padding:0;margin:0}li{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--line)}
+li:first-child{border-top:0}input[type=checkbox]{width:18px;height:18px;margin-top:3px;accent-color:var(--ok);cursor:pointer}
+label{cursor:pointer}.flag{font-family:ui-monospace,Consolas,monospace;font-size:.86em;color:var(--muted)}
+.done label{color:var(--muted)}.done .name{text-decoration:line-through}
+button{background:#eef2f9;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:.9em}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}.hint{color:var(--muted);font-size:.9em}
+</style></head><body>
+<header><div class="wrap"><h1>🏁 CSS Lab Kit — Progress</h1>
+<p>Tick each flag as you capture it. Saved in your browser (localStorage) — no account, fully offline.</p></div></header>
+<div class="wrap">
+<div class="section"><div class="bar"><i id="bar"></i></div>
+<p><span class="count" id="count">0 / 0</span> flags captured <span id="trophy"></span></p>
+<button onclick="reset()">Reset my progress</button></div>
+
+<div class="section" id="s-app1"><h2>App 1 — VulnCorp <span class="tag">web · easy</span> <span class="hint">(served at /progress.php too)</span></h2><ul></ul></div>
+<div class="section" id="s-app2"><h2>App 2 — VulnNexus <span class="tag">web · medium→hard</span></h2><ul></ul></div>
+<div class="section" id="s-artifacts"><h2>File-artifact labs <span class="tag">offline · forensics/PKI</span></h2>
+<p class="hint">Here the "flag" is the <b>recovered value</b> — the password you cracked, the key you found, the number you proved. Capture = you produced it yourself.</p><ul></ul></div>
+<div class="section" id="s-tls"><h2>TLS decryption lab <span class="tag">pcap + private key</span></h2><ul></ul></div>
+<div class="section" id="s-privesc"><h2>Privilege-escalation lab <span class="tag">post-exploitation</span></h2><ul></ul></div>
+</div>
+<script>
+const DATA={
+ "s-app1":[
+  ["SQLi — auth bypass + UNION","FLAG{sql1_auth_byp4ss_and_1dor}"],
+  ["Reflected XSS","alert() fires from ?q="],
+  ["Stored XSS — steal the cookie","FLAG{xss_st34ls_the_c00kie}"],
+  ["IDOR — read the admin profile","FLAG{sql1_auth_byp4ss_and_1dor}"],
+  ["Command injection","FLAG{c0mmand_1njection_rce_on_host}"],
+  ["LFI / path traversal","FLAG{lf1_path_tr4versal_reads_files_outside_webroot}"],
+  ["Insecure file upload → webshell","FLAG{w3bshell_upl0ad_to_rce}"],
+  ["Information disclosure (config.php.bak)","FLAG{c0nfig_backup_left_in_webroot}"]],
+ "s-app2":[
+  ["UNION SQLi — dump secrets","FLAG{un10n_sql1_dumps_the_secrets_table}"],
+  ["JWT forgery (alg:none / weak secret)","FLAG{jwt_4lg_none_or_w3ak_s3cret_forg3d_admin}"],
+  ["SSRF → internal metadata","FLAG{ssrf_reached_the_internal_metadata_service}"],
+  ["XXE (needs php-xml)","read /etc/passwd via external entity"],
+  ["Path traversal","FLAG{tr4versed_out_of_the_docs_directory}"],
+  ["Filtered XSS bypass","FLAG{xss_filter_byp4ss_c00kie}"],
+  ["OAuth — redirect_uri not validated","FLAG{oauth_redirect_uri_not_validated}"]],
+ "s-artifacts":[
+  ["certs/bad-webmail.crt — name the 3 flaws","self-signed · 1024-bit · expired / SAN mismatch"],
+  ["certs chain — openssl verify OK (root→int→leaf)","chain.pem verifies against root_ca.pem"],
+  ["certs/intermediate.crl — end-entity status","leaf serial appears in the CRL = revoked"],
+  ["keys/encrypted_rsa — crack the passphrase","Summer2024!"],
+  ["email/phishing.eml — recover the hidden key","OpenSSH key appended outside the MIME tree"],
+  ["network/http_login_cleartext.pcap — recover the login","cleartext user:pass via Follow TCP Stream"],
+  ["data/*.csv — re-identify by linkage","the non-k-anonymous rows (age+zip+gender)"],
+  ["data/kpi_audit.db — true DAU vs claimed","real DAU ≈130 (claim 24500); decoys excluded"],
+  ["hashes/*.txt — crack them all","password · dragon · summer · hunter2"]],
+ "s-tls":[
+  ["Decrypt the HTTPS session with the private key","FLAG{tls_rsa_no_pfs_is_decryptable}"],
+  ["Recover the login from the decrypted request","admin:Autumn#2025"]],
+ "s-privesc":[
+  ["Find all 5 privesc vectors + reach root","FLAG{r00t_via_sudo_find_suid_env_cron_cap_or_pkexec}"]]
+};
+const KEY='csslabkit_';let all=[];
+for(const sid in DATA){const ul=document.querySelector('#'+sid+' ul');
+ DATA[sid].forEach((row,i)=>{const id=KEY+sid+'_'+i;all.push(id);
+  const li=document.createElement('li');const cb=document.createElement('input');cb.type='checkbox';cb.id=id;
+  try{cb.checked=localStorage.getItem(id)==='1';}catch(e){}
+  cb.onchange=()=>{try{localStorage.setItem(id,cb.checked?'1':'0');}catch(e){}li.classList.toggle('done',cb.checked);render();};
+  const lb=document.createElement('label');lb.htmlFor=id;lb.innerHTML='<span class="name">'+row[0]+'</span><br><span class="flag">'+row[1]+'</span>';
+  li.classList.toggle('done',cb.checked);li.append(cb,lb);ul.append(li);});}
+function render(){let d=0;all.forEach(id=>{try{if(localStorage.getItem(id)==='1')d++;}catch(e){}});
+ document.getElementById('count').textContent=d+' / '+all.length;
+ document.getElementById('bar').style.width=(100*d/all.length)+'%';
+ document.getElementById('trophy').textContent=d===all.length?'🏆 everything captured!':'';}
+function reset(){if(confirm('Clear all progress?')){all.forEach(id=>{try{localStorage.removeItem(id);}catch(e){}});location.reload();}}
+render();
+</script></body></html>

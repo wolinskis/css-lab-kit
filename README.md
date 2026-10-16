@@ -57,6 +57,7 @@ weak-creds and JWT labs — everything else you attack unauthenticated. Flags ar
 - **keys/** — ed25519, RSA, and a passphrase-protected `encrypted_rsa`
 - **email/phishing.eml** — header/SPF/DKIM analysis + an OpenSSH key appended outside the MIME tree
 - **network/*.pcap** — cleartext HTTP login (Follow TCP Stream)
+- **tls_decrypt_lab/** — an **encrypted** HTTPS pcap + the server **private key**: decrypt it (static-RSA, no forward secrecy) to recover the login + flag
 - **data/** — a re-identification CSV pair + a KPI-audit SQLite DB
 - **hashes/** — md5 / sha1 / apr1 / sha512 (all crack from rockyou)
 
@@ -65,6 +66,17 @@ weak-creds and JWT labs — everything else you attack unauthenticated. Flags ar
 From a low-priv shell to **root**: analyse the provided enumeration (`privesc/enum/`), find all 5
 privesc vectors (GTFOBins), and turn a Meterpreter session into root via `local_exploit_suggester`.
 See `privesc/README.md` + `solution.md`.
+
+## TLS decryption lab (`tls_decrypt_lab/`)
+A captured HTTPS session + the server's recovered **RSA private key**. Add the key in Wireshark
+(*Preferences → Protocols → TLS → RSA keys list*) or
+`tshark -o 'uat:rsa_keys:"artifacts/server.key",""' -q -z follow,tls,ascii,0`, read the plaintext,
+and recover the login + flag. Teaches why static-RSA (no forward secrecy) is decryptable but ECDHE is not.
+
+## Progress tracker (`progress.html`)
+Open it in a browser (no server needed) — one **gamified checklist across every lab**: the web-app
+flags, the file-artifact recovered values (cracked passwords, the hidden OpenSSH key, the KPI finding…),
+TLS, and privesc. Progress is saved in your browser.
 
 ## Solutions
 Full **Answer / Command / Result** walkthroughs: [`webapp/SOLUTIONS.md`](webapp/SOLUTIONS.md) and
