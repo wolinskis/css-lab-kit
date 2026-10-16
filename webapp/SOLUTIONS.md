@@ -17,7 +17,7 @@ Try each vuln yourself first (checklist Phase 0 → detect → exploit). `U=http
 | File upload | `FLAG{w3bshell_upl0ad_to_rce}` | webshell → `cat private/upload_flag.txt` |
 | Info disclosure | `FLAG{c0nfig_backup_left_in_webroot}` | `GET /config.php.bak` |
 | Weak creds | admin's note (above) | log in as `admin` with the cracked/guessed password |
-| Weak CSP (+ cookie theft) | `FLAG{xss_st34ls_the_c00kie}` (via stored XSS) | `curl -sD - -o /dev/null $U/index.php | grep -i csp`; non-HttpOnly cookie + unsafe-inline |
+| Weak CSP (+ cookie theft) | `FLAG{xss_st34ls_the_c00kie}` (via stored XSS) | DevTools → Network → Response Headers (CSP) + Console `document.cookie`; non-HttpOnly cookie + unsafe-inline |
 
 ## 1. SQL injection — auth bypass + UNION  (`login.php`, `index.php?q=`)
 **Answer:** login is a string-concatenated query → bypass with a comment; search is injectable → UNION-dump every credential.
@@ -92,12 +92,12 @@ run, `img-src *` lets a beacon exfiltrate to any host, and the session/flag cook
 `HttpOnly`**, so JavaScript can read it. Chained with the stored XSS this steals the cookie:
 `FLAG{xss_st34ls_the_c00kie}`.
 
-**Command:**
+**Command (read the header/cookie in the browser — no terminal needed):**
 ```
-# read the RESPONSE headers (server -> you): the CSP and the Set-Cookie both live here
-curl -sD - -o /dev/null "$U/index.php" | grep -iE 'content-security-policy|set-cookie'
-#   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; img-src *
-#   Set-Cookie: flag=FLAG{xss_st34ls_the_c00kie}          <- note: no HttpOnly -> JS can read it
+# 1. See the CSP:  DevTools (F12) -> Network -> reload (Ctrl+R) -> click "index.php" -> Response Headers
+#      Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; img-src *
+# 2. See the cookie:  DevTools -> Console ->  document.cookie
+#      flag=FLAG{xss_st34ls_the_c00kie}    (it's visible -> cookie has NO HttpOnly -> JS can read it)
 
 # attacker listener (receives the stolen cookie in its access log)
 python3 -m http.server 9001
@@ -121,9 +121,10 @@ python3 -m http.server 9001
 to known hosts (and set `connect-src`); set the cookie **`HttpOnly; Secure; SameSite=Strict`** — `HttpOnly`
 alone would have stopped the theft even with the weak CSP.
 
-> Finding the headers: browser **DevTools → Network → click the document → Response Headers**, or
-> `curl -I` / `curl -sD -`. Request headers are what the browser sends; **CSP and Set-Cookie are response
-> headers** (server -> browser).
+> Finding the headers (all in the browser):
+> - **CSP:** DevTools (F12) → **Network** → reload (Ctrl+R) → click the document (`index.php`) → **Response Headers**.
+> - **Cookie:** DevTools → **Console** → type `document.cookie` (or **Application/Storage → Cookies**).
+> Request headers are what the browser sends; **CSP and Set-Cookie are response headers** (server → browser).
 
 ## 9. Information disclosure — exposed config backup leaks admin creds
 
