@@ -49,18 +49,18 @@ function f_xss($s,$l){
   return $s;
 }
 
-/* ---- Insecure upload (upload.php). Returns '' if allowed, else a rejection reason. ---- */
-// easy   : no checks.
-// medium : Content-Type must be image/* -> set a fake image content-type on the upload.
-// hard   : + content must start with image magic bytes -> prepend 'GIF89a' before <?php .
-// expert : + the word 'system' is blocked in the content -> use passthru()/shell_exec()/backticks.
+/* ---- Insecure upload (upload.php) — content filter. Returns '' if allowed, else a reason. ---- */
+// easy   : no checks                               -> a system() webshell
+// medium : 'system' blocked                        -> use passthru()
+// hard   : + exec/passthru/shell_exec/... blocked  -> use backticks
+// expert : + backticks blocked                     -> split the name:  $f='sy'.'stem'; $f(...)
 function upload_reject($name,$ctype,$content,$l){
   if($l==='easy') return '';
-  if(strpos((string)$ctype,'image/')!==0) return 'content-type must be image/*';
+  if(stripos($content,'system')!==false) return "'system' is blocked in the content";
   if($l==='medium') return '';
-  if(!preg_match('/^(GIF8|\xFF\xD8\xFF|\x89PNG)/',$content)) return 'content must start with image magic bytes';
+  if(preg_match('/\b(passthru|exec|shell_exec|popen|proc_open)\b/i',$content)) return 'exec-family functions are blocked';
   if($l==='hard') return '';
-  if(stripos($content,'system')!==false) return "the word 'system' is blocked";
+  if(strpos($content,'`')!==false) return 'backticks are blocked';
   return '';
 }
 

