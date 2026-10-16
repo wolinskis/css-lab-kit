@@ -1,9 +1,9 @@
 <?php require __DIR__.'/header.php'; require __DIR__.'/levels.php'; $db = require __DIR__.'/db.php';
 $L = lvl();
 // IDOR with escalating reference obfuscation — every level is still forgeable.
-if     ($L==='medium') { $id = $_COOKIE['uid'] ?? 2; $how = "id comes from the 'uid' cookie, not the URL — set a cookie uid=1 (DevTools) and reload"; }
-elseif ($L==='hard')   { $id = (int)(base64_decode($_GET['id'] ?? 'Mg==') ?: 2); $how = "id is base64-encoded — send ?id=".base64_encode('1')." (= base64 of 1)"; }
-elseif ($L==='expert') { $h=$_GET['id']??md5('2'); $id=2; for($i=1;$i<=50;$i++){ if(md5((string)$i)===$h){$id=$i;break;} } $how = "id is md5(real id) — send ?id=".md5('1')." (= md5 of 1)"; }
+if     ($L==='medium') { $id = (int)(base64_decode($_GET['id'] ?? 'Mg==') ?: 2); $how = "id is base64-encoded — send ?id=".base64_encode('1')." (= base64 of 1)"; }
+elseif ($L==='hard')   { $h=$_GET['id']??md5('2'); $id=2; for($i=1;$i<=50;$i++){ if(md5((string)$i)===$h){$id=$i;break;} } $how = "id is md5(real id) — send ?id=".md5('1')." (= md5 of 1)"; }
+elseif ($L==='expert') { $id = $_COOKIE['uid'] ?? 2; $how = "the ?id param is IGNORED — the server trusts a 'uid' cookie. Add cookie uid=1 (DevTools → Application → Cookies) and reload"; }
 else                   { $id = $_GET['id'] ?? 2; $how = "raw id — just change ?id="; }
 $st = $db->prepare("SELECT username,email,role,api_key,private_note FROM users WHERE id=?");
 $st->execute([$id]);
