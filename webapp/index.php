@@ -40,7 +40,7 @@ walkthroughs in <code>SOLUTIONS.md</code>. The real pages are still under <a hre
   <details><summary>💡 hint</summary><code class="pl" id="pl_lu">admin'-- -</code>
     <button type="button" class="ghost" onclick="document.getElementById('in_lu').value=document.getElementById('pl_lu').textContent;document.getElementById('in_lp').value='x'">use this ▶</button>
     <span class="muted"> · or weak creds <code>admin : S3ntinel!Admin</code></span></details>
-  <form method="post" action="login.php" target="r_login" onsubmit="show('r_login')">
+  <form method="post" action="login.php?embed=1" target="r_login" onsubmit="show('r_login')">
     <input type="text" id="in_lu" name="username" placeholder="username" style="min-width:140px">
     <input type="text" id="in_lp" name="password" placeholder="password" style="min-width:140px"><button>Login ▶</button></form>
   <iframe name="r_login" id="r_login" class="res"></iframe></div>
@@ -54,7 +54,7 @@ walkthroughs in <code>SOLUTIONS.md</code>. The real pages are still under <a hre
     <code class="pl" id="pl_q"></code><button type="button" class="ghost" onclick="fill('in_q','pl_q')">use SQLi ▶</button>
     <code class="pl" id="pl_qx"></code><button type="button" class="ghost" onclick="fill('in_q','pl_qx')">use XSS ▶</button></details>
   <form method="get" action="home.php" target="r_q" onsubmit="show('r_q')">
-    <input type="hidden" name="level" id="lvl_q" value="easy">
+    <input type="hidden" name="level" id="lvl_q" value="easy"><input type="hidden" name="embed" value="1">
     <input type="text" id="in_q" name="q" placeholder="your SQLi payload…"><button>Run ▶</button></form>
   <iframe name="r_q" id="r_q" class="res"></iframe></div>
 
@@ -65,7 +65,7 @@ walkthroughs in <code>SOLUTIONS.md</code>. The real pages are still under <a hre
   <details><summary>💡 hint — <span class="note" id="note_gb"></span></summary>
     <code class="pl" id="pl_gb"></code><button type="button" class="ghost" onclick="fill('in_gb','pl_gb')">use this ▶</button></details>
   <form method="post" action="home.php" target="r_gb" onsubmit="show('r_gb')">
-    <input type="hidden" name="level" id="lvl_gb" value="easy">
+    <input type="hidden" name="level" id="lvl_gb" value="easy"><input type="hidden" name="embed" value="1">
     <input type="text" name="author" placeholder="name" style="min-width:120px">
     <input type="text" id="in_gb" name="body" placeholder="message / payload…"><button>Post ▶</button></form>
   <iframe name="r_gb" id="r_gb" class="res"></iframe></div>
@@ -77,7 +77,7 @@ walkthroughs in <code>SOLUTIONS.md</code>. The real pages are still under <a hre
   <details><summary>💡 hint — <span class="note" id="note_id"></span></summary>
     <code class="pl" id="pl_id"></code><button type="button" class="ghost" onclick="fill('in_id','pl_id')">use this ▶</button></details>
   <form method="get" action="profile.php" target="r_id" onsubmit="show('r_id')">
-    <input type="hidden" name="level" id="lvl_id" value="easy">
+    <input type="hidden" name="level" id="lvl_id" value="easy"><input type="hidden" name="embed" value="1">
     <input type="text" id="in_id" name="id" placeholder="id (or encoded id)…" style="min-width:170px"><button>Run ▶</button></form>
   <iframe name="r_id" id="r_id" class="res"></iframe></div>
 
@@ -88,7 +88,7 @@ walkthroughs in <code>SOLUTIONS.md</code>. The real pages are still under <a hre
   <details><summary>💡 hint — <span class="note" id="note_cmd"></span></summary>
     <code class="pl" id="pl_cmd"></code><button type="button" class="ghost" onclick="fill('in_cmd','pl_cmd')">use this ▶</button></details>
   <form method="get" action="tools.php" target="r_cmd" onsubmit="show('r_cmd')">
-    <input type="hidden" name="level" id="lvl_cmd" value="easy">
+    <input type="hidden" name="level" id="lvl_cmd" value="easy"><input type="hidden" name="embed" value="1">
     <input type="text" id="in_cmd" name="host" placeholder="host; command…"><button>Run ▶</button></form>
   <iframe name="r_cmd" id="r_cmd" class="res"></iframe></div>
 
@@ -99,7 +99,7 @@ walkthroughs in <code>SOLUTIONS.md</code>. The real pages are still under <a hre
   <details><summary>💡 hint — <span class="note" id="note_pg"></span></summary>
     <code class="pl" id="pl_pg"></code><button type="button" class="ghost" onclick="fill('in_pg','pl_pg')">use this ▶</button></details>
   <form method="get" action="home.php" target="r_pg" onsubmit="show('r_pg')">
-    <input type="hidden" name="level" id="lvl_pg" value="easy">
+    <input type="hidden" name="level" id="lvl_pg" value="easy"><input type="hidden" name="embed" value="1">
     <input type="text" id="in_pg" name="page" placeholder="file path…"><button>Run ▶</button></form>
   <iframe name="r_pg" id="r_pg" class="res"></iframe></div>
 
@@ -182,7 +182,7 @@ function doUpload(){
   var lvl=(document.getElementById('lvl_up')||{}).value||'easy';
   var name=document.getElementById('up_name').value||'shell.php';
   var fd=new FormData(); fd.append('file', new Blob([document.getElementById('up_code').value],{type:'image/gif'}), name);
-  fetch('upload.php?level='+lvl,{method:'POST',body:fd}).then(r=>r.text()).then(t=>out.textContent=t.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim()).catch(e=>out.textContent='error: '+e);
+  fetch('upload.php?level='+lvl+'&embed=1',{method:'POST',body:fd}).then(r=>r.text()).then(t=>out.textContent=t.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim()).catch(e=>out.textContent='error: '+e);
 }
 </script>
 </body></html>

@@ -36,6 +36,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
  footer.foot{max-width:920px;margin:40px auto 24px;padding:14px 18px;border-top:1px solid var(--line);color:var(--muted);font-size:.82rem}
  footer.foot .warn{color:var(--warn)}
 </style></head><body>
+<?php if(!isset($_REQUEST['embed'])): ?>
 <header class="top">
  <span class="brand"><span class="dot"></span>VulnCorp <small>Intranet · training</small></span>
  <nav class="main">
@@ -51,5 +52,6 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
   <a href="feedback.php" class="act-fb">💬 Feedback</a>
  </nav>
 </header>
+<?php endif; ?>
 <div class="wrap">
 <!-- TODO(dev): remove the server-status link and the config backup before go-live. SRV: web01-stg -->
