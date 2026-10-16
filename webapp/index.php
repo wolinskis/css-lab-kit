@@ -50,7 +50,15 @@ foreach ($db->query("SELECT author, body, created FROM comments ORDER BY id DESC
 </div>
 
 <div class="card">
-  <h2>Page</h2>
+  <h2>Page <span class="flag-pill">🏁 path traversal / LFI</span></h2>
+  <details class="muted" style="margin-bottom:10px">
+    <summary style="cursor:pointer">💡 This card includes <code>pages/&lt;name&gt;</code> — escape it with <code>../</code> (click)</summary>
+    <ul style="line-height:1.8">
+      <li>Normal use: <code>?page=about.html</code></li>
+      <li>Traversal to the flag (outside the web root): <code>?page=../../lfi_secret/flag.txt</code> — only <b>2 ../</b> needed; extra <code>../</code> are harmless.</li>
+      <li>System file (bonus): <code>?page=../../../../../../../etc/passwd</code> — needs enough <code>../</code> to reach <code>/</code> for your install (depth varies).</li>
+    </ul>
+  </details>
 <?php
   $page = $_GET['page'] ?? 'home.html';
   // Local File Inclusion / path traversal: no sanitisation of the page name.

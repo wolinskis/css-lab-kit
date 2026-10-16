@@ -1,0 +1,3 @@
+VulnCorp server-side secrets (stored OUTSIDE the web root — not HTTP-reachable directly)
+db_password = S3ntinel!Admin
+FLAG{lf1_path_tr4versal_reads_files_outside_webroot}
