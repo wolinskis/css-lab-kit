@@ -21,15 +21,15 @@ button{background:var(--brand);color:#fff;border:0;border-radius:7px;padding:8px
 button.ghost{background:#1c2330;color:#8ab4ff}button:hover{filter:brightness(1.12)}
 .levels{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap}.lvlbtn{background:#1c2330;color:#8b98a5;font-size:.8em;padding:4px 11px}
 .lvlbtn.on{background:#1f6feb;color:#fff}.note{color:var(--muted);font-size:.85em}
-.res{width:100%;height:200px;border:1px solid var(--line);border-radius:8px;background:#fff;margin-top:8px;display:none}
-.rx{white-space:pre-wrap;background:#05070b;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:8px;font-family:ui-monospace,Consolas,monospace;font-size:.85em;display:none;max-height:200px;overflow:auto}
+.res{width:100%;height:200px;border:1px solid var(--line);border-radius:8px;background:#fff;margin-top:8px;display:block}
+.rx{white-space:pre-wrap;background:#05070b;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:8px;font-family:ui-monospace,Consolas,monospace;font-size:.85em;display:block;max-height:200px;overflow:auto}
 .muted{color:var(--muted);font-size:.92em}a{color:#8ab4ff}
 footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted);font-size:.85em;border-top:1px solid var(--line)}
 </style></head><body>
 <div class="topbar"><span class="brand">🛡 VulnCorp</span><span class="badge">app 1 · challenge hub</span>
 <nav class="nav"><a href="home.php">Home</a><a href="index.php">🎯 Hub</a><a href="progress.php">📊 Progress</a><a href="reset.php">↺ Reset</a><a href="feedback.php">💬 Feedback</a></nav></div>
 <div class="wrap">
-<div class="card"><h2>Challenge hub — fill &amp; run 🏁</h2>
+<div class="card"><h2>Challenge hub — fill &amp; run 🏁 <span style="float:right;opacity:.5;font-size:.6em;font-weight:400">loaded <?php echo date('H:i:s'); ?></span></h2>
 <p class="muted">Each card targets a live page. See the <b>vuln class</b>, work out the payload yourself; stuck?
 Click <b>💡 hint</b> → <b>use this</b> to drop it in the box → <b>Run</b> (the result loads right below). Full
 walkthroughs in <code>SOLUTIONS.md</code>. The real pages are still under <a href="home.php">Home</a>.</p></div>

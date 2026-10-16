@@ -19,8 +19,8 @@ textarea{min-height:92px;width:100%}
 button{background:var(--brand);color:#fff;border:0;border-radius:7px;padding:8px 13px;cursor:pointer;font-size:.88em}
 button.ghost{background:#eef2f9;color:var(--brand2)}button:hover{filter:brightness(1.06)}
 .levels{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap}.lvlbtn{background:#eef2f9;color:var(--muted);font-size:.8em;padding:4px 11px}.lvlbtn.on{background:#7a3df0;color:#fff}.note{color:var(--muted);font-size:.85em}
-.res{width:100%;height:180px;border:1px solid var(--line);border-radius:8px;background:#fff;margin-top:8px;display:none}
-.rx{white-space:pre-wrap;background:#0f1622;color:#dfe6ee;border-radius:8px;padding:10px;margin-top:8px;font-family:ui-monospace,Consolas,monospace;font-size:.85em;display:none;max-height:220px;overflow:auto}
+.res{width:100%;height:180px;border:1px solid var(--line);border-radius:8px;background:#fff;margin-top:8px;display:block}
+.rx{white-space:pre-wrap;background:#0f1622;color:#dfe6ee;border-radius:8px;padding:10px;margin-top:8px;font-family:ui-monospace,Consolas,monospace;font-size:.85em;display:block;max-height:220px;overflow:auto}
 .muted{color:var(--muted);font-size:.92em}.ok{border-color:var(--ok);background:#eafaf0}
 footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted);font-size:.85em;border-top:1px solid var(--line)}footer a{color:var(--brand2)}
 </style></head><body>
@@ -29,7 +29,7 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
 <div class="wrap">
 <?php if(isset($_GET['reset'])) echo "<div class='card ok'>✅ Lab reset to a clean state (DB reseeded).</div>"; ?>
 
-<div class="card"><h2>API endpoints — seven flags to capture 🏁</h2>
+<div class="card"><h2>API endpoints — seven flags to capture 🏁 <span style="float:right;opacity:.5;font-size:.6em;font-weight:400">loaded <?php echo date('H:i:s'); ?></span></h2>
 <p class="muted">An API-style target: responses are raw (JSON / text / XML). For each endpoint you see
 <b>what</b> it is and the <b>vuln class</b> — work out the payload yourself. Stuck? Click <b>💡 hint</b>,
 then <b>“use this”</b> to drop the example into the box and <b>Run</b> (encoding is handled for you).
