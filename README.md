@@ -66,5 +66,9 @@ Full **Answer / Command / Result** walkthroughs: [`webapp/SOLUTIONS.md`](webapp/
 
 ---
 
+## License
+MIT with an **educational / authorized-use clause** — see [LICENSE](LICENSE). This software is
+vulnerable by design; use it only for lawful, authorized, isolated training.
+
 ## Credits
 Built for Cyber Security Specialist (CSS) exam prep. **Special thanks to Mat.** 🙏

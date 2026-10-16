@@ -1,0 +1,40 @@
+MIT License
+
+Copyright (c) 2026 wolinskis
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+------------------------------------------------------------------------------
+Educational / Authorized-Use Clause (addendum)
+
+This Software contains DELIBERATELY VULNERABLE applications and components,
+provided solely for authorized, lawful, and educational security training
+(learning, teaching, and self-assessment in controlled environments).
+
+By using this Software you agree to:
+  1. Deploy and run it ONLY on systems and networks you own or are explicitly
+     authorized to test — on an isolated lab/VM or localhost, never exposed to
+     the public internet or any untrusted network.
+  2. NOT use it, or any technique learned from it, to attack, access, or
+     disrupt systems, data, or networks without the owner's prior written
+     authorization.
+
+The authors provide this Software for defensive and educational purposes only
+and accept no liability for any misuse or for any damage arising from its use.
+Any unauthorized or unlawful use is solely the responsibility of the user.
