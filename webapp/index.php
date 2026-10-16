@@ -1,4 +1,4 @@
-<?php require __DIR__.'/header.php'; $db = require __DIR__.'/db.php'; ?>
+<?php require __DIR__.'/header.php'; require __DIR__.'/levels.php'; $db = require __DIR__.'/db.php'; ?>
 <?php if (isset($_GET['reset'])): ?><div class="card" style="border-color:#2e9b4f">✅ Lab reset to a clean state (DB reseeded, guestbook &amp; uploads cleared).</div><?php endif; ?>
 
 <div class="card">
@@ -9,14 +9,20 @@
   </form>
 <?php
 if (isset($_GET['q'])) {
-    $q = $_GET['q'];
-    // SQL injection: raw concatenation into the query.
+    $L = lvl();
+    $q = f_sqli($_GET['q'], $L);           // escalating input filter per level
     $sql = "SELECT username, email, role FROM users WHERE username LIKE '%$q%'";
+    echo "<div class='muted' style='opacity:.55'>level: $L</div>";
     try {
-        foreach ($db->query($sql) as $row) {
-            echo "<div class='muted'>".$row['username']." &lt;".$row['email']."&gt; — ".$row['role']."</div>";
+        if ($L==='expert') {               // BLIND: reveal only match / no-match
+            $n=0; foreach ($db->query($sql) as $row) { $n++; }
+            echo "<div class='muted'>".($n>0?"✓ match":"✗ no match")." — blind, no data returned</div>";
+        } else {
+            foreach ($db->query($sql) as $row) {
+                echo "<div class='muted'>".$row['username']." &lt;".$row['email']."&gt; — ".$row['role']."</div>";
+            }
         }
-    } catch (Exception $e) { echo "<div class='muted'>DB error: ".$e->getMessage()."</div>"; }
+    } catch (Exception $e) { echo "<div class='muted'>DB error: ".htmlspecialchars($e->getMessage())."</div>"; }
 }
 ?>
 </div>
@@ -60,9 +66,19 @@ foreach ($db->query("SELECT author, body, created FROM comments ORDER BY id DESC
     </ul>
   </details>
 <?php
-  $page = $_GET['page'] ?? 'home.html';
-  // Local File Inclusion / path traversal: no sanitisation of the page name.
-  @include __DIR__ . '/pages/' . $page;
+  $L = lvl(); $raw = $_GET['page'] ?? 'home.html';
+  if (isset($_GET['page'])) echo "<div class='muted' style='opacity:.55'>level: $L</div>";
+  if ($L==='expert') {
+      // traversal blocked, but php:// wrappers allowed -> source disclosure via php://filter
+      if (preg_match('#^php://#i',$raw)) { @include($raw); }
+      else { @include(__DIR__.'/pages/'.str_replace('../','',$raw)); }
+  } elseif ($L==='hard') {
+      $p = f_lfi($raw,$L);                        // ../ stripped once
+      if (preg_match('/\.(html|txt)$/i',$p)) { @include(__DIR__.'/pages/'.$p); }
+      else { echo "<div class='muted'>only .html / .txt files allowed</div>"; }
+  } else {
+      @include(__DIR__.'/pages/'.f_lfi($raw,$L)); // easy raw; medium strips ../ once
+  }
 ?>
 </div>
 

