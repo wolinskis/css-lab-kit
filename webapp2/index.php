@@ -17,7 +17,8 @@ a{color:#58c7e6} code{background:#0a0d11;padding:1px 5px;border-radius:4px;color
  <li><code>fetch.php?url=</code> — server-side URL fetcher. <em>SSRF</em></li>
  <li><code>import.php</code> — POST an XML document (<code>Content-Type: application/xml</code>). <em>XXE</em></li>
  <li><code>download.php?file=</code> — download a doc from <code>docs/</code>. <em>Path traversal</em></li>
+ <li><code>oauth_authorize.php?redirect_uri=</code> — OAuth login flow. <em>redirect_uri not validated → auth-code theft</em></li>
  <li><code>greet.php?name=</code> — greeting (has a naive XSS filter). <em>Filtered reflected XSS</em></li>
 </ul>
-<p>Six flags to capture. Solutions in <code>SOLUTIONS.md</code>. Method: the Web Penetration Test Checklist.</p>
+<p>Seven flags to capture. Solutions in <code>SOLUTIONS.md</code>. Method: the Web Penetration Test Checklist.</p>
 </div></div></body></html>

