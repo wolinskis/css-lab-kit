@@ -26,4 +26,8 @@ if ($pdo->query("SELECT COUNT(*) FROM users")->fetchColumn()==0) {
       ('m.chen','m.chen@vulnnexus.local','8621ffdbc5698829397d97767ac13db3','user'),
       ('svc_api','svc_api@vulnnexus.local','0d107d09f5bbe40cade3de5c71e9e9b7','service')");
 }
+// expert JWT signing secret lives in the secrets table -> recover it via the SQLi, then sign admin.
+if ($pdo->query("SELECT COUNT(*) FROM secrets WHERE k='jwt_sign_secret'")->fetchColumn()==0) {
+    $pdo->exec("INSERT INTO secrets(k,v) VALUES ('jwt_sign_secret','Z3pk9_NexusJWT_s1gning_k3y_2026')");
+}
 return $pdo;
