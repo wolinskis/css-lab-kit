@@ -73,16 +73,18 @@ foreach ($db->query("SELECT author, body, created FROM comments ORDER BY id DESC
 <?php
   $L = lvl(); $raw = $_GET['page'] ?? 'home.html';
   if (isset($_GET['page'])) echo "<div class='muted' style='opacity:.55'>level: $L</div>";
-  if ($L==='expert') {
-      // traversal blocked, but php:// wrappers allowed -> source disclosure via php://filter
-      if (preg_match('#^php://#i',$raw)) { @include($raw); }
-      else { @include(__DIR__.'/pages/'.str_replace('../','',$raw)); }
-  } elseif ($L==='hard') {
-      $p = f_lfi($raw,$L);                        // ../ stripped once
-      if (preg_match('/\.(html|txt)$/i',$p)) { @include(__DIR__.'/pages/'.$p); }
-      else { echo "<div class='muted'>only .html / .txt files allowed</div>"; }
+  if ($L==='hard' || $L==='expert') {
+      // '../' is stripped recursively (so ....// also dies); php:// wrappers still work
+      if (preg_match('#^php://#i',$raw)) {
+          if ($L==='expert' && stripos($raw,'base64')!==false) { echo "<div class='muted'>the base64 filter is blocked — use another converter (e.g. string.rot13)</div>"; }
+          else { @include($raw); }
+      } else {
+          @include(__DIR__.'/pages/'.f_lfi($raw,$L)); // recursive strip -> no traversal
+      }
+  } elseif ($L==='medium') {
+      @include(__DIR__.'/pages/'.f_lfi($raw,$L));     // strips '../' once -> ....//
   } else {
-      @include(__DIR__.'/pages/'.f_lfi($raw,$L)); // easy raw; medium strips ../ once
+      @include(__DIR__.'/pages/'.$raw);               // easy: raw
   }
 ?>
 </div>

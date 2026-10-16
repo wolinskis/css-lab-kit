@@ -27,11 +27,12 @@ function f_cmd($h,$l){
 
 /* ---- LFI (?page=) ---- */
 // easy   : raw include of pages/<name>.
-// medium : strips '../' once  -> ....//  (collapses back to ../ after one pass)
-// hard   : strips '../' once AND requires a .html/.txt extension -> ....//….//lfi_secret/flag.txt
-// expert : traversal blocked, but php:// wrappers allowed -> php://filter source disclosure
+// medium : strips '../' ONCE   -> ....//  (collapses back to ../ after one pass)
+// hard   : strips '../' RECURSIVELY (....// dies) -> only a php://filter wrapper works (base64)
+// expert : recursive strip + 'base64' blocked in wrappers -> use another filter (e.g. string.rot13)
 function f_lfi($p,$l){
-  if($l==='medium' || $l==='hard') return str_replace('../','',$p);
+  if($l==='medium') return str_replace('../','',$p);
+  if($l==='hard' || $l==='expert'){ while(strpos($p,'../')!==false) $p=str_replace('../','',$p); return $p; }
   return $p;
 }
 

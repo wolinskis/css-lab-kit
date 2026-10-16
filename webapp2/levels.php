@@ -21,8 +21,9 @@ function f_xss($s,$l){
 
 /* ---- path traversal (download ?file=) ---- */
 function f_trav($p,$l){
-  if($l==='medium' || $l==='hard') return str_replace('../','',$p);
-  return $p;                                   // easy raw; expert via php://filter
+  if($l==='medium') return str_replace('../','',$p);                       // once -> ....//
+  if($l==='hard' || $l==='expert'){ while(strpos($p,'../')!==false) $p=str_replace('../','',$p); return $p; } // recursive
+  return $p;                                                                // easy raw
 }
 
 /* ---- SSRF (fetch ?url=) : returns TRUE if the URL is blocked at this level ---- */

