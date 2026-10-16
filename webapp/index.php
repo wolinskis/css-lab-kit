@@ -92,6 +92,7 @@ walkthroughs in <code>SOLUTIONS.md</code>. The real pages are still under <a hre
   <form method="get" action="tools.php" target="r_cmd" onsubmit="show('r_cmd')">
     <input type="hidden" name="level" id="lvl_cmd" value="easy"><input type="hidden" name="embed" value="1">
     <input type="text" id="in_cmd" name="host" placeholder="host; command…"><button>Run ▶</button></form>
+  <p class="muted">Expert (blind) → after you Run the write payload, read the file: <a href="uploads/pwn.txt" target="_blank">📄 open /uploads/pwn.txt</a></p>
   <iframe name="r_cmd" id="r_cmd" class="res"></iframe></div>
 
 <!-- Page: LFI (leveled) -->
