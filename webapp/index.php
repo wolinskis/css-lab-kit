@@ -214,6 +214,21 @@ function setLvl(card,lvl){
 PAYLOADS.login={easy:{p:"admin'-- -",n:"Easy — comment out the password check."},medium:{p:"admin' or '1'='1",n:"Medium — comments stripped -> self-closing OR (no comment)."},hard:{p:"admin' oorr '1'='1",n:"Hard — 'or' also stripped -> nest it (oorr -> or)."},expert:{p:"admin'/**/oorr/**/'1'='1",n:"Expert — spaces also stripped -> /**/ as spaces."}};
 ['q','cmd','pg','gb','id','up','login'].forEach(function(c){ setLvl(c,'easy'); });
 _ready=true;
+/* quick-pick: descriptive one-click shortcuts under each card (select the level + fill the input; reuses setLvl) */
+var QLV=['easy','medium','hard','expert'];
+var QLABELS={q:['fingerprint','tables','dump','blind'],cmd:['id','/etc/passwd','hostname','flag'],pg:['secret','/etc/passwd','source','flag'],gb:['<script>','<img>','<svg>','<animate>'],id:['raw id','base64','md5','cookie'],up:['system','passthru','backtick','split-name'],login:['comment','OR','nested OR','/**/']};
+Object.keys(QLABELS).forEach(function(card){
+  var lvd=document.getElementById('lv_'+card); if(!lvd) return;
+  var row=document.createElement('div'); row.style.cssText='margin:4px 0 2px';
+  var tag=document.createElement('span'); tag.className='muted'; tag.style.fontSize='.82em'; tag.textContent='quick pick: '; row.appendChild(tag);
+  QLABELS[card].forEach(function(lab,i){
+    var b=document.createElement('button'); b.type='button'; b.className='ghost';
+    b.style.cssText='font-size:.82em;padding:2px 7px;margin:1px'; b.textContent=lab;
+    b.addEventListener('click',(function(lv){return function(){setLvl(card,lv);};})(QLV[i]));
+    row.appendChild(b);
+  });
+  lvd.parentNode.insertBefore(row, lvd.nextSibling);
+});
 // Accordion: collapse every challenge card; click a title to open it (closes the others).
 document.querySelectorAll('.wrap > .card').forEach(function(card){
   var h=card.querySelector('h2'); if(!h) return;

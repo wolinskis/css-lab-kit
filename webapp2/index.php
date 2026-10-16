@@ -168,6 +168,21 @@ PAYLOADS.xml={
 };
 ['q','url','file','name','jwt','rd','xml'].forEach(function(c){ setLvl(c,'easy'); });
 _ready=true;
+/* quick-pick: descriptive one-click shortcuts under each card (select the level + fill the input; reuses setLvl) */
+var QLV=['easy','medium','hard','expert'];
+var QLABELS={q:['fingerprint','tables','dump','blind'],url:['localhost','127.1','decimal','octal'],file:['secret','/etc/passwd','source','rot13'],name:['<script>','<img>','<svg>','<animate>'],jwt:['alg:none','crack','crack+','SQLi-leak'],rd:['any host','query','subdomain','@userinfo'],xml:['SYSTEM','PUBLIC','php://filter','ext-DTD']};
+Object.keys(QLABELS).forEach(function(card){
+  var lvd=document.getElementById('lv_'+card); if(!lvd) return;
+  var row=document.createElement('div'); row.style.cssText='margin:4px 0 2px';
+  var tag=document.createElement('span'); tag.className='muted'; tag.style.fontSize='.82em'; tag.textContent='quick pick: '; row.appendChild(tag);
+  QLABELS[card].forEach(function(lab,i){
+    var b=document.createElement('button'); b.type='button'; b.className='ghost';
+    b.style.cssText='font-size:.82em;padding:2px 7px;margin:1px'; b.textContent=lab;
+    b.addEventListener('click',(function(lv){return function(){setLvl(card,lv);};})(QLV[i]));
+    row.appendChild(b);
+  });
+  lvd.parentNode.insertBefore(row, lvd.nextSibling);
+});
 // Accordion: collapse every challenge card; click a title to open it (closes the others).
 document.querySelectorAll('.wrap > .card').forEach(function(card){
   var h=card.querySelector('h2'); if(!h) return;
