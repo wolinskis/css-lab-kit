@@ -7,4 +7,4 @@ try { $p=new PDO($dsn,getenv('VC_DB_USER')?:'root',getenv('VC_DB_PASS')?:'',[PDO
 foreach (glob(__DIR__.'/uploads/*') as $f){ if(basename($f)!=='.gitkeep') @unlink($f); }
 require __DIR__.'/db.php';            // recreate + reseed
 header('Cache-Control: no-store, no-cache, must-revalidate');
-header('Location: index.php?reset=1');
+header('Location: home.php?reset=1');

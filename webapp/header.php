@@ -39,13 +39,13 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
 <header class="top">
  <span class="brand"><span class="dot"></span>VulnCorp <small>Intranet · training</small></span>
  <nav class="main">
-  <a href="index.php">Home</a>
-  <a href="hub.php">🎯 Hub</a>
+  <a href="home.php">Home</a>
+  <a href="index.php">🎯 Hub</a>
   <a href="login.php">Login</a>
   <a href="profile.php?id=2">My Profile</a>
   <a href="tools.php" class="tool">Net Tools</a>
   <a href="upload.php" class="tool">Upload</a>
-  <a href="index.php?page=about.html">About</a>
+  <a href="home.php?page=about.html">About</a>
   <a href="progress.php" class="act-prog">📊 Progress</a>
   <a href="reset.php" class="act-reset" title="wipe DB, comments and uploads to a clean state">↺ Reset</a>
   <a href="feedback.php" class="act-fb">💬 Feedback</a>
