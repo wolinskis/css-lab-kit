@@ -1,4 +1,4 @@
-<?php $self = $_SERVER['HTTP_HOST'] ?? 'localhost:8001'; ?><!doctype html><html lang="en"><head><meta charset="utf-8">
+<?php header('Cache-Control: no-store, max-age=0'); $self = $_SERVER['HTTP_HOST'] ?? 'localhost:8001'; ?><!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>VulnNexus — API Portal</title>
 <style>
 :root{--bg:#f4f6fb;--card:#fff;--ink:#1b2430;--muted:#5b6b7e;--line:#e3e8f0;--brand:#7a3df0;--brand2:#1f6feb;--ok:#1f9d57}

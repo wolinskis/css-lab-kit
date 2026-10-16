@@ -1,4 +1,4 @@
-<?php /* VulnCorp — interactive challenge hub (fill-and-run console). Targets the live pages. */ ?>
+<?php header('Cache-Control: no-store, max-age=0'); /* VulnCorp hub */ ?>
 <!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>VulnCorp — Challenges</title>
 <style>
