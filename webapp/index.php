@@ -33,9 +33,14 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
 <nav class="nav"><a href="home.php">Home</a><a href="index.php">🎯 Hub</a><a href="progress.php">📊 Progress</a><a href="reset.php">↺ Reset</a><a href="feedback.php">💬 Feedback</a></nav></div>
 <div class="wrap">
 <div class="card"><h2>Challenge hub — fill &amp; run 🏁 <span style="float:right;opacity:.5;font-size:.6em;font-weight:400">loaded <?php echo date('H:i:s'); ?></span></h2>
-<p class="muted">Each card targets a live page. See the <b>vuln class</b>, work out the payload yourself; stuck?
-Click <b>💡 hint</b> → <b>use this</b> to drop it in the box → <b>Run</b> (the result loads right below). Full
-walkthroughs in <code>SOLUTIONS.md</code>. The real pages are still under <a href="home.php">Home</a>.</p></div>
+<p class="muted">There are <b>two ways</b> to use this lab — same vulnerable code behind both:</p>
+<ul class="muted" style="margin:4px 0 8px;line-height:1.7">
+  <li>🎯 <b>Hub (this page)</b> — the <b>fancy, guided</b> console: pick a card, choose a level, click
+      <b>💡 hint → use this → Run</b>, and the answer shows in the panel. Best for <b>learning and comparing levels</b>.</li>
+  <li>🏠 <b><a href="home.php">Home</a></b> — the <b>plain</b> VulnCorp app (search, login, profile, upload…).
+      Less pretty, but <b>more direct/functional</b>: you drive the real pages and craft payloads in the URL yourself, like a real target. Use it when the hub feels fiddly.</li>
+</ul>
+<p class="muted">Work out the payload yourself; stuck → reveal the <b>💡 hint</b>. Full walkthroughs in <code>SOLUTIONS.md</code>.</p></div>
 
 <!-- Login: SQLi bypass + weak creds -->
 <div class="card"><h2><code>login.php</code> <span class="flag-pill">🏁 SQLi auth-bypass</span> <span class="flag-pill">weak creds</span></h2>

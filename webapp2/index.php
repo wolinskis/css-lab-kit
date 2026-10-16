@@ -36,7 +36,9 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
 <p class="muted">An API-style target: responses are raw (JSON / text / XML). For each endpoint you see
 <b>what</b> it is and the <b>vuln class</b> — work out the payload yourself. Stuck? Click <b>💡 hint</b>,
 then <b>“use this”</b> to drop the example into the box and <b>Run</b> (encoding is handled for you).
-Full walkthroughs are in <code>SOLUTIONS.md</code>.</p></div>
+Full walkthroughs are in <code>SOLUTIONS.md</code>.</p>
+<p class="muted">Two ways, same code: this <b>🎯 hub</b> is the guided console; or hit each <b>raw endpoint directly</b>
+in the URL (e.g. <code>fetch.php?url=…</code>, <code>search.php?q=…</code>) like a real API client — less pretty, more direct.</p></div>
 
 <!-- 1. SQLi -->
 <div class="card"><h2>1 · <code>search.php?q=</code> <span class="flag-pill">🏁 UNION SQLi</span></h2>
