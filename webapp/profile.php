@@ -1,6 +1,10 @@
-<?php require __DIR__.'/header.php'; $db = require __DIR__.'/db.php';
-// IDOR: the profile shown is taken straight from ?id= with no ownership / auth check.
-$id = $_GET['id'] ?? 2;
+<?php require __DIR__.'/header.php'; require __DIR__.'/levels.php'; $db = require __DIR__.'/db.php';
+$L = lvl();
+// IDOR with escalating reference obfuscation — every level is still forgeable.
+if     ($L==='medium') { $id = $_COOKIE['uid'] ?? 2; $how = "id comes from the 'uid' cookie, not the URL — set a cookie uid=1 (DevTools) and reload"; }
+elseif ($L==='hard')   { $id = (int)(base64_decode($_GET['id'] ?? 'Mg==') ?: 2); $how = "id is base64-encoded — send ?id=".base64_encode('1')." (= base64 of 1)"; }
+elseif ($L==='expert') { $h=$_GET['id']??md5('2'); $id=2; for($i=1;$i<=50;$i++){ if(md5((string)$i)===$h){$id=$i;break;} } $how = "id is md5(real id) — send ?id=".md5('1')." (= md5 of 1)"; }
+else                   { $id = $_GET['id'] ?? 2; $how = "raw id — just change ?id="; }
 $st = $db->prepare("SELECT username,email,role,api_key,private_note FROM users WHERE id=?");
 $st->execute([$id]);
 $u = $st->fetch(PDO::FETCH_ASSOC);
@@ -12,7 +16,7 @@ $u = $st->fetch(PDO::FETCH_ASSOC);
   <p class="muted">Email: <?php echo htmlspecialchars($u['email']); ?></p>
   <p>API key: <code><?php echo htmlspecialchars($u['api_key']); ?></code></p>
   <p>Private note: <?php echo htmlspecialchars($u['private_note']); ?></p>
-  <p class="muted">Tip: change the <code>id</code> in the URL to view another record.</p>
+  <p class="muted">Level <b><?php echo $L; ?></b>: <?php echo htmlspecialchars($how); ?></p>
 <?php else: ?>
   <p class="muted">No such user.</p>
 <?php endif; ?>

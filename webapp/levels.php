@@ -35,6 +35,33 @@ function f_lfi($p,$l){
   return $p;
 }
 
+/* ---- XSS (reflected search echo + stored guestbook render) ---- */
+// easy   : raw -> <script>alert(1)</script>
+// medium : strips '<script' once -> <img src=x onerror=alert(1)>
+// hard   : + strips onerror/onload -> <details open ontoggle=alert(1)>
+// expert : + strips ontoggle -> <input autofocus onfocus=alert(1)>   (blocklists always miss one)
+function f_xss($s,$l){
+  if($l==='medium') return str_ireplace('<script','',$s);
+  if($l==='hard')   return str_ireplace(['<script','onerror','onload'],'',$s);
+  if($l==='expert') return str_ireplace(['<script','onerror','onload','ontoggle'],'',$s);
+  return $s;
+}
+
+/* ---- Insecure upload (upload.php). Returns '' if allowed, else a rejection reason. ---- */
+// easy   : no checks.
+// medium : Content-Type must be image/* -> set a fake image content-type on the upload.
+// hard   : + content must start with image magic bytes -> prepend 'GIF89a' before <?php .
+// expert : + the word 'system' is blocked in the content -> use passthru()/shell_exec()/backticks.
+function upload_reject($name,$ctype,$content,$l){
+  if($l==='easy') return '';
+  if(strpos((string)$ctype,'image/')!==0) return 'content-type must be image/*';
+  if($l==='medium') return '';
+  if(!preg_match('/^(GIF8|\xFF\xD8\xFF|\x89PNG)/',$content)) return 'content must start with image magic bytes';
+  if($l==='hard') return '';
+  if(stripos($content,'system')!==false) return "the word 'system' is blocked";
+  return '';
+}
+
 /* ---- UI: a level selector button row for the hub (JS-driven) ---- */
 function level_row($card){
   $btns='';

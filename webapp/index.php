@@ -4,7 +4,7 @@
 <div class="card">
   <h2>Directory search</h2>
   <form method="get">
-    <input name="q" placeholder="search a colleague (e.g. alice)" value="<?php echo $_GET['q'] ?? ''; /* reflected XSS */ ?>">
+    <input name="q" placeholder="search a colleague (e.g. alice)" value="<?php echo f_xss($_GET['q'] ?? '', lvl()); /* reflected XSS (leveled) */ ?>">
     <br><br><button>Search</button>
   </form>
 <?php
@@ -49,8 +49,8 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['body'])) {
     $st->execute([$_POST['author'] ?? 'anon', $_POST['body']]);   // body stored raw
 }
 foreach ($db->query("SELECT author, body, created FROM comments ORDER BY id DESC") as $c) {
-    // Stored XSS: body echoed without encoding.
-    echo "<div class='card'><strong>".htmlspecialchars($c['author'])."</strong> <span class='muted'>".$c['created']."</span><br>".$c['body']."</div>";
+    // Stored XSS: body rendered through the level filter (easy = raw).
+    echo "<div class='card'><strong>".htmlspecialchars($c['author'])."</strong> <span class='muted'>".$c['created']."</span><br>".f_xss($c['body'], lvl())."</div>";
 }
 ?>
 </div>
