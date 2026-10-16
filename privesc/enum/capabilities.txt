@@ -1,0 +1,2 @@
+$ getcap -r / 2>/dev/null
+/usr/bin/python3.9 = cap_setuid+ep

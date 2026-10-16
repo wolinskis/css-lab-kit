@@ -1,0 +1,6 @@
+$ cat /etc/crontab
+# m h dom mon dow user  command
+*  *    * * *   root    /opt/scripts/backup.sh
+
+$ ls -l /opt/scripts/backup.sh
+-rwxrwxrwx 1 root root 112 /opt/scripts/backup.sh     # world-writable, runs as root every minute

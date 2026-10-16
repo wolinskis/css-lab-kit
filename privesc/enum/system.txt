@@ -1,0 +1,7 @@
+$ id
+uid=33(www-data) gid=33(www-data) groups=33(www-data)
+$ uname -a
+Linux web01 5.13.0-30-generic #33-Ubuntu x86_64 GNU/Linux
+$ cat /etc/os-release | head -1
+PRETTY_NAME="Ubuntu 21.10"
+# pkexec present + this version -> CVE-2021-4034 (PwnKit) territory

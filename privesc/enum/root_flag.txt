@@ -1,0 +1,2 @@
+# (what /root/flag.txt contains once you are root)
+FLAG{r00t_via_sudo_find_suid_env_cron_cap_or_pkexec}

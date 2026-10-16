@@ -1,0 +1,7 @@
+$ sudo -l
+Matching Defaults entries for www-data on web01:
+    env_reset, mail_badpass, secure_path=/usr/sbin\:/usr/bin\:/sbin\:/bin
+
+User www-data may run the following commands on web01:
+    (root) NOPASSWD: /usr/bin/find
+    (root) NOPASSWD: /usr/bin/less /var/log/syslog

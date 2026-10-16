@@ -60,6 +60,12 @@ weak-creds and JWT labs — everything else you attack unauthenticated. Flags ar
 - **data/** — a re-identification CSV pair + a KPI-audit SQLite DB
 - **hashes/** — md5 / sha1 / apr1 / sha512 (all crack from rockyou)
 
+
+## Privilege escalation lab (`privesc/`)
+From a low-priv shell to **root**: analyse the provided enumeration (`privesc/enum/`), find all 5
+privesc vectors (GTFOBins), and turn a Meterpreter session into root via `local_exploit_suggester`.
+See `privesc/README.md` + `solution.md`.
+
 ## Solutions
 Full **Answer / Command / Result** walkthroughs: [`webapp/SOLUTIONS.md`](webapp/SOLUTIONS.md) and
 [`webapp2/SOLUTIONS.md`](webapp2/SOLUTIONS.md). Try each vuln yourself first, then check.
