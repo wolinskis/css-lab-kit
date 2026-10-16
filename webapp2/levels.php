@@ -11,10 +11,11 @@ function f_sqli($q,$l){
 }
 
 /* ---- XSS filter (greet ?name=) ---- */
+// bypasses auto-fire on load: <script> / <img onerror> / <svg onload> / <svg><animate onbegin>
 function f_xss($s,$l){
   if($l==='medium') return str_ireplace('<script','',$s);
-  if($l==='hard')   return str_ireplace(['<script','onerror','onload'],'',$s);
-  if($l==='expert') return str_ireplace(['<script','onerror','onload','ontoggle'],'',$s);
+  if($l==='hard')   return str_ireplace(['<script','onerror'],'',$s);
+  if($l==='expert') return str_ireplace(['<script','onerror','onload'],'',$s);
   return $s;
 }
 

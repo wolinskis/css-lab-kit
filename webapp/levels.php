@@ -36,14 +36,15 @@ function f_lfi($p,$l){
 }
 
 /* ---- XSS (reflected search echo + stored guestbook render) ---- */
-// easy   : raw -> <script>alert(1)</script>
-// medium : strips '<script' once -> <img src=x onerror=alert(1)>
-// hard   : + strips onerror/onload -> <details open ontoggle=alert(1)>
-// expert : + strips ontoggle -> <input autofocus onfocus=alert(1)>   (blocklists always miss one)
+// All bypasses fire automatically on load (no user interaction needed):
+// easy   : raw                       -> <script>alert(1)</script>
+// medium : strips '<script'          -> <img src=x onerror=alert(1)>
+// hard   : + strips 'onerror'        -> <svg onload=alert(1)>
+// expert : + strips 'onload'         -> <svg><animate onbegin=alert(1) attributeName=x dur=1s>
 function f_xss($s,$l){
   if($l==='medium') return str_ireplace('<script','',$s);
-  if($l==='hard')   return str_ireplace(['<script','onerror','onload'],'',$s);
-  if($l==='expert') return str_ireplace(['<script','onerror','onload','ontoggle'],'',$s);
+  if($l==='hard')   return str_ireplace(['<script','onerror'],'',$s);
+  if($l==='expert') return str_ireplace(['<script','onerror','onload'],'',$s);
   return $s;
 }
 
