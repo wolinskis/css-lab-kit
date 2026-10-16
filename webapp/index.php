@@ -97,9 +97,11 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
   <form method="get" action="tools.php" target="r_cmd" onsubmit="show('r_cmd')">
     <input type="hidden" name="level" id="lvl_cmd" value="easy"><input type="hidden" name="embed" value="1">
     <input type="text" id="in_cmd" name="host" placeholder="host; command…"><button>Run ▶</button></form>
-  <p class="muted"><b>Expert is blind — 2 steps:</b> ① pick Expert, <b>use this</b> &amp; <b>Run</b> the write payload above (no output). ② type the file you wrote to and read it right here:</p>
-  <form onsubmit="document.getElementById('r_cmd').src=document.getElementById('readpath').value; show('r_cmd'); return false;">
-    <input type="text" id="readpath" value="uploads/pwn.txt" placeholder="path you wrote to, e.g. uploads/pwn.txt"><button class="ghost">📄 step 2 — read ▶</button></form>
+  <div id="cmd_step2" style="display:none">
+    <p class="muted"><b>Step 2 (blind exfil):</b> your payload redirected the flag into <code>uploads/pwn.txt</code> — a file under the web root. Read it at its full URL:</p>
+    <form onsubmit="document.getElementById('r_cmd').src=document.getElementById('readpath').value; show('r_cmd'); return false;">
+      <input type="text" id="readpath" value="http://<?php echo htmlspecialchars($_SERVER['HTTP_HOST'] ?? 'localhost:8000'); ?>/uploads/pwn.txt" placeholder="full URL of the file you wrote"><button class="ghost">📄 read ▶</button></form>
+  </div>
   <iframe name="r_cmd" id="r_cmd" class="res"></iframe></div>
 
 <!-- Page: LFI (leveled) -->
@@ -184,6 +186,7 @@ function setLvl(card,lvl){
   else { var pl=document.getElementById('pl_'+card); if(pl) pl.textContent=d.p; }
   var nt=document.getElementById('note_'+card); if(nt) nt.textContent=d.n;
   var plx=document.getElementById('pl_'+card+'x'); if(plx && d.x) plx.textContent=d.x;
+  if(card==='cmd'){ var s2=document.getElementById('cmd_step2'); if(s2) s2.style.display=(lvl==='expert')?'block':'none'; }
   document.querySelectorAll('#lv_'+card+' .lvlbtn').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-l')===lvl); });
 }
 ['q','cmd','pg','gb','id','up'].forEach(function(c){ setLvl(c,'easy'); });
