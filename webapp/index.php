@@ -190,7 +190,8 @@ echo '&lt;base64&gt;' | base64 -d        # Basic = base64(user:pass), not encryp
   <details><summary>🟠 Hard — decode the <code>Set-Cookie</code> session token</summary><code class="pl">tshark -r http_login_cleartext.pcap -Y http.response -T fields -e http.set_cookie
 echo '&lt;base64&gt;' | base64 -d        # unsigned JSON → forgeable</code></details>
   <details><summary>🔴 Expert — reconstruct the exchange + state the impact</summary><code class="pl">tshark -r http_login_cleartext.pcap -Y http.request -T fields -e ip.src -e ip.dst -e http.host -e http.request.uri</code></details>
-  <p class="muted">Full console + answers → <a href="/pcap/index.html">Network capture hub</a> · <a href="/pcap/solution.md">solution.md</a></p></div>
+  <p class="muted">Full console + answers → <a href="/pcap/index.html">Network capture hub</a> · <a href="/pcap/solution.md">solution.md</a></p>
+  <p class="muted">📂 3 more case studies (cleartext FTP in noise · DNS exfiltration · SSH brute force) → <a href="/pcap/cases/README.md">cases</a> · <a href="/pcap/cases/solution.md">answers</a></p></div>
 
 <div class="card"><h2>🔓 TLS decryption <span class="flag-pill">🏁 decrypt HTTPS</span></h2>
   <p class="muted">An encrypted HTTPS capture + the server's recovered <b>RSA private key</b>: add the key, decrypt the session, read the login and flag — then meet a second capture where the key is useless (forward secrecy).</p>

@@ -53,6 +53,11 @@ echo '&lt;the base64&gt;' | base64 -d        # base64 JSON, no signature → for
     <details><summary>💡 starter command</summary>
       <pre>tshark -r http_login_cleartext.pcap -Y http.request -T fields -e ip.src -e ip.dst -e http.host -e http.request.uri</pre></details></div>
 
+  <div class="card"><h2>📂 Case studies <span class="lvl l-med">3 scenarios</span></h2>
+    <p>Three small focused captures: a cleartext <b>FTP</b> login in a busy LAN, <b>DNS exfiltration</b> (base32), and an <b>SSH brute-force</b> (pattern analysis).</p>
+    <p class="muted">📥 <a href="cases/case1_busy_lan_ftp.pcap">case1_busy_lan_ftp.pcap</a> · <a href="cases/case2_dns_exfil.pcap">case2_dns_exfil.pcap</a> · <a href="cases/case3_ssh_bruteforce.pcap">case3_ssh_bruteforce.pcap</a></p>
+    <p class="muted">Scenarios → <a href="cases/README.md">cases/README.md</a> · answers → <a href="cases/solution.md">cases/solution.md</a></p></div>
+
   <div class="card"><h2>➕ Want more practice? <span class="lvl l-hard">real-world</span></h2>
     <p>This capture is synthetic and small. For large, realistic traffic (infection chains, C2, exfiltration):
     <a href="https://malware-traffic-analysis.net/" target="_blank" rel="noopener">malware-traffic-analysis.net</a>.</p>

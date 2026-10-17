@@ -49,6 +49,15 @@ one-line risk statement + the fix.
 wire in the clear (or in reversible base64), so anyone on-path has it all — the fix is TLS + a signed/opaque session token.
 </details>
 
+## Case studies — 3 more scenarios
+Once you've done the levels above, try **[`cases/`](cases/README.md)** — three small, focused captures,
+each teaching one classic move:
+1. **Busy LAN** — filter past the noise to a cleartext **FTP** login.
+2. **DNS exfiltration** — recover a base32 secret smuggled over DNS subdomains.
+3. **SSH brute force** — identify the attacker, count attempts, and spot the one that succeeded (pattern analysis — SSH is encrypted).
+
+Scenarios + hints in [`cases/README.md`](cases/README.md); answers in [`cases/solution.md`](cases/solution.md).
+
 ## Want more practice? (real-world captures)
 This lab's capture is synthetic and tiny. For large, realistic traffic to sharpen your filtering and
 analysis, a great free resource is **[malware-traffic-analysis.net](https://malware-traffic-analysis.net/)**
