@@ -1,6 +1,3 @@
----
-tags: [css-exam, labs, solution, web]
----
 # VulnCorp (app 1) — Solutions
 > ↑ Lab Kit · method: Web Penetration Test Checklist
 

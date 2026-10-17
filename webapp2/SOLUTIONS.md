@@ -1,6 +1,3 @@
----
-tags: [css-exam, labs, solution, web]
----
 # VulnNexus (app 2 — medium→hard) — Solutions
 > ↑ Lab Kit · method: Web Penetration Test Checklist
 
