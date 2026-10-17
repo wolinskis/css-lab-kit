@@ -56,7 +56,7 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
   <iframe name="r_login" id="r_login" class="res"></iframe></div>
 
 <!-- Search: UNION SQLi (leveled) -->
-<div class="card"><h2><code>home.php?q=</code> <span class="flag-pill">🏁 UNION SQLi</span></h2>
+<div class="card"><h2><code>home.php?q=</code> <span class="flag-pill">🏁 UNION SQLi</span> <span class="flag-pill">🏁 reflected XSS</span></h2>
   <p class="muted">Two bugs share this box. <b>SQLi</b> (use SQLi ▶) → read the <b>✓/✗ match</b> result below (expert is blind). <b>Reflected XSS</b> (use XSS ▶) → the payload breaks out of the search field and an <b>alert pops</b>; ignore the match line. Both filters escalate per level.</p>
   <div class="levels" id="lv_q"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('q','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('q','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('q','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('q','expert')">Expert</button></div>
   <details><summary>💡 hint — <span class="note" id="note_q"></span></summary>
