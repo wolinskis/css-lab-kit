@@ -2,23 +2,25 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>CSS Lab Kit — Progress</title>
 <style>
-:root{--bg:#f4f6fb;--card:#fff;--ink:#1b2430;--muted:#5b6b7e;--line:#e3e8f0;--brand:#1f6feb;--ok:#1f9d57}
+:root{--bg:#0e1016;--card:#171a22;--ink:#e6edf3;--muted:#9aa4b2;--line:#2a2f3a;--brand:#9a6bff;--brand2:#58a6ff;--ok:#3fb950}
 *{box-sizing:border-box}body{font-family:system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink);margin:0;line-height:1.6}
 .wrap{max-width:860px;margin:0 auto;padding:0 16px 60px}
-header{background:linear-gradient(120deg,#13264a,#1f6feb);color:#fff;padding:26px 16px}
+header{background:linear-gradient(120deg,#2a1457,#7a3df0);color:#fff;padding:26px 16px;box-shadow:0 2px 8px rgba(30,20,60,.18)}
 header .wrap{padding-bottom:0}h1{margin:0 0 4px;font-size:1.5em}header p{margin:0;opacity:.9}
-.bar{background:#dce3ee;border-radius:10px;height:14px;overflow:hidden;margin:14px 0 4px}
+header .home{display:inline-block;margin-bottom:8px;font-size:.82em;color:#fff;background:rgba(255,255,255,.14);padding:4px 10px;border-radius:7px}
+header .home:hover{background:rgba(255,255,255,.26);text-decoration:none}
+.bar{background:#2a2f3a;border-radius:10px;height:14px;overflow:hidden;margin:14px 0 4px}
 .bar>i{display:block;height:100%;width:0;background:var(--ok);transition:width .3s}
 .count{font-weight:600}.section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 18px 14px;margin:18px 0;box-shadow:0 1px 3px rgba(20,40,80,.06)}
-.section h2{font-size:1.05em;margin:14px 0 6px;color:#13264a}.tag{font-size:.72em;font-weight:600;padding:2px 8px;border-radius:20px;background:#eef2f9;color:var(--brand);margin-left:6px}
+.section h2{font-size:1.05em;margin:14px 0 6px;color:#c7b3ff}.tag{font-size:.72em;font-weight:600;padding:2px 8px;border-radius:20px;background:#20242e;color:var(--brand2);margin-left:6px}
 ul{list-style:none;padding:0;margin:0}li{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--line)}
 li:first-child{border-top:0}input[type=checkbox]{width:18px;height:18px;margin-top:3px;accent-color:var(--ok);cursor:pointer}
-label{cursor:pointer}.flag{font-family:ui-monospace,Consolas,monospace;font-size:.86em;color:var(--muted)}
-.done label{color:var(--muted)}.done .name{text-decoration:line-through}
-button{background:#eef2f9;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:.9em}
-a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}.hint{color:var(--muted);font-size:.9em}
+label{cursor:pointer}.flag{font-family:ui-monospace,Consolas,monospace;font-size:.86em;color:#e3b341}
+.done label{color:var(--muted)}.done .name{text-decoration:line-through}.done .flag{color:var(--muted)}
+button{background:#20242e;border:1px solid var(--line);color:var(--brand2);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:.9em}button:hover{background:#262b36}
+a{color:var(--brand2);text-decoration:none}a:hover{text-decoration:underline}.hint{color:var(--muted);font-size:.9em}
 </style></head><body>
-<header><div class="wrap"><h1>🏁 CSS Lab Kit — Progress</h1>
+<header><div class="wrap"><a class="home" href="index.html">← Lab Kit home</a><h1>🏁 CSS Lab Kit — Progress</h1>
 <p>Tick each flag as you capture it. Saved in your browser (localStorage) — no account, fully offline.</p></div></header>
 <div class="wrap">
 <div class="section"><div class="bar"><i id="bar"></i></div>

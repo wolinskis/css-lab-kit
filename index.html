@@ -1,0 +1,198 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CSS Lab Kit — hands-on web & forensics training</title>
+<style>
+:root{--bg:#0e1016;--card:#171a22;--ink:#e6edf3;--muted:#9aa4b2;--line:#2a2f3a;--brand:#9a6bff;--brand2:#58a6ff;--ok:#3fb950;--warn:#e3b341}
+*{box-sizing:border-box}
+body{font-family:system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink);margin:0;line-height:1.55}
+a{color:var(--brand2);text-decoration:none}a:hover{text-decoration:underline}
+code{background:#20242e;color:#b79cff;padding:2px 7px;border-radius:5px;font-family:ui-monospace,Consolas,monospace;font-size:.9em}
+/* top bar */
+.topbar{position:sticky;top:0;z-index:5;background:linear-gradient(120deg,#2a1457,#7a3df0);color:#fff;padding:12px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(30,20,60,.18)}
+.brand{font-weight:700;font-size:1.15em}
+.badge{font-size:.72em;background:rgba(255,255,255,.18);padding:2px 9px;border-radius:20px}
+.nav{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.nav a{color:#fff;font-size:.85em;background:rgba(255,255,255,.12);padding:5px 11px;border-radius:7px}
+.nav a:hover{background:rgba(255,255,255,.26);text-decoration:none}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px}
+/* hero */
+.hero{padding:34px 16px 10px}
+.hero h1{margin:0 0 8px;font-size:1.9em;letter-spacing:.2px}
+.hero p{margin:0;color:var(--muted);max-width:720px;font-size:1.02em}
+.cta{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 4px}
+.btn{background:var(--brand);color:#fff;border-radius:8px;padding:9px 15px;font-size:.92em;font-weight:600}
+.btn:hover{filter:brightness(1.12);text-decoration:none}
+.btn.ghost{background:#20242e;color:var(--brand2);border:1px solid var(--line)}
+/* disclaimer banner */
+.warn{display:flex;gap:10px;align-items:flex-start;background:#2a2411;border:1px solid #e3b34140;color:#f0d79a;border-radius:10px;padding:12px 14px;margin:18px 0;font-size:.9em}
+.warn b{color:var(--warn)}
+/* section + cards */
+h2.sec{font-size:1.1em;color:#c7b3ff;margin:26px 0 8px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.grid{grid-template-columns:1fr}.hero h1{font-size:1.5em}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(20,40,80,.06)}
+.card h3{margin:0 0 6px;font-size:1.05em;color:#e6edf3;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card h3 .port{font-size:.72em;font-weight:600;background:#101a2e;color:var(--brand2);border:1px solid #58a6ff33;padding:2px 8px;border-radius:20px}
+.lvl{font-size:.7em;font-weight:600;background:#122017;color:var(--ok);border:1px solid #3fb95033;padding:2px 8px;border-radius:20px}
+.card p{margin:6px 0 10px;color:var(--muted);font-size:.9em}
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 12px}
+.pill{font-size:.7em;font-weight:600;background:#2a2411;color:var(--warn);border:1px solid #e3b34140;padding:2px 8px;border-radius:20px}
+.links{display:flex;gap:8px;flex-wrap:wrap}
+.links a{font-size:.85em;background:#20242e;border:1px solid var(--line);padding:6px 11px;border-radius:7px;color:var(--brand2)}
+.links a:hover{background:#262b36;text-decoration:none}
+.links a.primary{background:var(--brand);color:#fff;border-color:transparent}
+.flat{list-style:none;padding:0;margin:0}
+.flat li{padding:7px 0;border-top:1px solid var(--line);color:var(--muted);font-size:.9em}
+.flat li:first-child{border-top:0}
+.flat b{color:var(--ink)}
+footer{color:var(--muted);font-size:.85em;border-top:1px solid var(--line);margin:34px 0 50px;padding:16px 0}
+footer a{color:var(--brand2)}
+</style></head><body>
+
+<div class="topbar">
+  <span class="brand">🏁 CSS Lab Kit</span>
+  <span class="badge">web · forensics · PKI</span>
+  <span class="badge">self-contained</span>
+  <nav class="nav">
+    <a href="#apps">Web apps</a>
+    <a href="#artifacts">Artifacts</a>
+    <a href="#labs">Labs</a>
+    <a href="progress.html">Progress</a>
+    <a href="README.md">Docs</a>
+  </nav>
+</div>
+
+<header class="hero wrap">
+  <h1>Hands-on web &amp; forensics training</h1>
+  <p>Two intentionally vulnerable web apps plus a set of offline file-artifact labs — certificates,
+  keys, email, PCAPs, TLS decryption and privilege escalation. Everything runs locally, no VM or
+  internet required. Capture every <code>FLAG{…}</code>.</p>
+  <div class="cta">
+    <a class="btn" href="#apps">Start the web apps</a>
+    <a class="btn ghost" href="START_HERE.md">START_HERE</a>
+    <a class="btn ghost" href="progress.html">Track my progress</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="warn">
+    <span>⚠️</span>
+    <div><b>Intentionally vulnerable — training only.</b> Command injection, file upload and LFI give
+    real code/file access on the host. Run on a VM / isolated lab box, on <code>localhost</code> or an
+    isolated classroom LAN. <b>Never expose it to the internet.</b> Use at your own risk.</div>
+  </div>
+
+  <!-- WEB APPS -->
+  <h2 class="sec" id="apps">The two web apps</h2>
+  <p class="card" style="color:var(--muted);font-size:.9em">Same vulnerable code behind two views: the
+  guided <b>Hub</b> (<code>index.php</code>) to learn and compare difficulty levels, or the plain
+  <b>Home/Store</b> (<code>home.php</code>) to drive the real pages and craft payloads yourself. Start
+  with app 1 for fundamentals, then app 2 to level up.</p>
+  <div class="grid">
+    <div class="card">
+      <h3>VulnCorp <span class="port">:8000</span> <span class="lvl">easy · foundations</span></h3>
+      <p>The fundamentals: one vulnerable intranet with the classic web bugs, each solvable at four
+      escalating difficulty levels.</p>
+      <div class="pills">
+        <span class="pill">SQLi</span><span class="pill">reflected XSS</span>
+        <span class="pill">stored XSS</span><span class="pill">IDOR</span>
+        <span class="pill">cmd injection</span><span class="pill">LFI / traversal</span>
+        <span class="pill">file upload</span><span class="pill">weak CSP</span>
+        <span class="pill">info disclosure</span>
+      </div>
+      <div class="links">
+        <a class="primary" href="webapp/index.php">Open Hub</a>
+        <a href="webapp/home.php">Plain app</a>
+        <a href="webapp/run.sh">run.sh</a>
+      </div>
+    </div>
+    <div class="card">
+      <h3>VulnNexus <span class="port">:8001</span> <span class="lvl" style="background:#2a1620;color:#ff8bb0;border-color:#ff8bb033">medium → hard</span></h3>
+      <p>Level up: modern API/store bugs — forge tokens, reach internal services, and bypass input
+      filters. Same four-level ladder per challenge.</p>
+      <div class="pills">
+        <span class="pill">UNION SQLi</span><span class="pill">JWT forgery</span>
+        <span class="pill">SSRF</span><span class="pill">XXE</span>
+        <span class="pill">path traversal</span><span class="pill">filtered XSS</span>
+        <span class="pill">OAuth redirect</span>
+      </div>
+      <div class="links">
+        <a class="primary" href="webapp2/index.php">Open Hub</a>
+        <a href="webapp2/home.php">Plain store</a>
+        <a href="webapp2/run.sh">run.sh</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILE ARTIFACTS -->
+  <h2 class="sec" id="artifacts">File-artifact labs <span style="font-size:.7em;color:var(--muted)">— offline · forensics / PKI</span></h2>
+  <p class="card" style="color:var(--muted);font-size:.9em">Run <code>./build_all.sh</code> to
+  materialise the artifacts (nothing sensitive is committed). Here the "flag" is the <b>recovered
+  value</b> — the password you crack, the key you find, the number you prove.</p>
+  <div class="grid">
+    <div class="card">
+      <h3>🔐 Certificates &amp; keys</h3>
+      <ul class="flat">
+        <li><b>certs/</b> — flawed cert (self-signed / 1024-bit / expired / SAN mismatch) + a
+        root→intermediate→leaf chain, <code>chain.pem</code> and a CRL.</li>
+        <li><b>keys/</b> — ed25519, RSA, and a passphrase-protected <code>encrypted_rsa</code>.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>📧 Email &amp; network</h3>
+      <ul class="flat">
+        <li><b>email/phishing.eml</b> — header / SPF / DKIM analysis + an OpenSSH key appended outside
+        the MIME tree.</li>
+        <li><b>network/*.pcap</b> — cleartext HTTP login (Follow TCP Stream).</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>📊 Data</h3>
+      <ul class="flat">
+        <li><b>data/</b> — a re-identification CSV pair and a KPI-audit SQLite DB.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>#️⃣ Hashes</h3>
+      <ul class="flat">
+        <li><b>hashes/</b> — md5 / sha1 / apr1 / sha512, all crackable from rockyou.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- DEDICATED LABS -->
+  <h2 class="sec" id="labs">Dedicated labs</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>🔓 TLS decryption</h3>
+      <p>An encrypted HTTPS PCAP + the server's RSA private key. Decrypt it (static-RSA, no forward
+      secrecy) to recover the login and flag — and learn why ECDHE would not be decryptable.</p>
+      <div class="links"><a href="tls_decrypt_lab/">Open lab</a></div>
+    </div>
+    <div class="card">
+      <h3>⬆️ Privilege escalation</h3>
+      <p>From a low-priv shell to root: analyse the provided enumeration, find all five privesc vectors
+      (GTFOBins), and chain a Meterpreter session with <code>local_exploit_suggester</code>.</p>
+      <div class="links"><a href="privesc/">Open lab</a></div>
+    </div>
+    <div class="card">
+      <h3>🏁 Progress tracker</h3>
+      <p>One gamified checklist across every lab — web flags, recovered values, TLS and privesc. Opens
+      in a browser, saved locally, no account.</p>
+      <div class="links"><a href="progress.html">Open tracker</a></div>
+    </div>
+    <div class="card">
+      <h3>📖 Solutions &amp; cheat-sheet</h3>
+      <p>Full walkthroughs in Answer / Command / Result style, plus a cracking cheat-sheet
+      (identify → mode). Work the payload out first; peek when stuck.</p>
+      <div class="links"><a href="webapp/SOLUTIONS.md">App 1 solutions</a><a href="webapp2/SOLUTIONS.md">App 2 solutions</a><a href="README.md">README</a></div>
+    </div>
+  </div>
+
+  <footer>
+    ⚠️ <b>Intentionally vulnerable — training only.</b> Run locally / isolated lab; never expose it. ·
+    Walkthroughs in <code>SOLUTIONS.md</code> · MIT + educational-use license.
+  </footer>
+</div>
+
+</body></html>
