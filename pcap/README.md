@@ -49,5 +49,20 @@ one-line risk statement + the fix.
 wire in the clear (or in reversible base64), so anyone on-path has it all — the fix is TLS + a signed/opaque session token.
 </details>
 
+## Want more practice? (real-world captures)
+This lab's capture is synthetic and tiny. For large, realistic traffic to sharpen your filtering and
+analysis, a great free resource is **[malware-traffic-analysis.net](https://malware-traffic-analysis.net/)**
+(Brad Duncan's PCAP exercises — infection chains, C2, exfiltration, etc.).
+
+> ⚠️ **Safety — read before you touch it.** That is an **external, third-party** site hosting **real
+> malicious traffic and malware samples**. Only open its PCAPs inside an **isolated analysis VM** (no
+> internet access, no sensitive data on it); **never execute** any payload you extract, and don't open the
+> samples on your normal machine. This kit is not affiliated with that site — it's just a good place to
+> practise once you're comfortable with the basics here.
+
+**Skills to practise next (what real captures add over this one):** using **display filters** to cut
+through background noise (mDNS/SSDP/NBNS/QUIC/DNS), spotting cleartext creds in **Telnet/FTP/SMTP**, DNS
+tunnelling/exfiltration, and recognising C2 beacons.
+
 ---
 > ⚠️ Training only — synthetic capture with lab credentials.

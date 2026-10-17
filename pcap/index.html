@@ -53,6 +53,14 @@ echo '&lt;the base64&gt;' | base64 -d        # base64 JSON, no signature → for
     <details><summary>💡 starter command</summary>
       <pre>tshark -r http_login_cleartext.pcap -Y http.request -T fields -e ip.src -e ip.dst -e http.host -e http.request.uri</pre></details></div>
 
+  <div class="card"><h2>➕ Want more practice? <span class="lvl l-hard">real-world</span></h2>
+    <p>This capture is synthetic and small. For large, realistic traffic (infection chains, C2, exfiltration):
+    <a href="https://malware-traffic-analysis.net/" target="_blank" rel="noopener">malware-traffic-analysis.net</a>.</p>
+    <p class="muted">⚠️ External third-party site hosting <b>real malware traffic &amp; samples</b> — only open its
+    PCAPs inside an <b>isolated analysis VM</b> (no internet, no sensitive data); never execute extracted
+    payloads. Not affiliated with this kit. Next skills: display filters to cut through mDNS/SSDP/QUIC noise,
+    cleartext creds in Telnet/FTP/SMTP, DNS tunnelling, C2 beacons.</p></div>
+
   <footer>⚠️ <b>Training only</b> — synthetic capture with lab credentials.</footer>
 </div>
 </body></html>
