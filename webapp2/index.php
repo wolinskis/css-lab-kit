@@ -99,7 +99,7 @@ in the URL (e.g. <code>fetch.php?url=…</code>, <code>search.php?q=…</code>) 
 
 <!-- 5. Path traversal -->
 <div class="card"><h2>5 · <code>download.php?file=</code> <span class="flag-pill">🏁 path traversal</span></h2>
-  <p class="muted">Downloads a file from <code>docs/</code>. Escape it with <code>../</code>.</p>
+  <p class="muted">Downloads a file from <code>docs/</code>. Escape it with <code>../</code>. The target dir also holds <code>secret_config.b64</code> (base64) and <code>secret_config.sha1salt</code> (salted SHA-1 → <code>hashcat -m 110</code> → shadow) — grab them with the same traversal to practice decoding/cracking.</p>
   <div class="levels" id="lv_file"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('file','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('file','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('file','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('file','expert')">Expert</button></div>
   <details><summary>💡 hint — <span class="note" id="note_file"></span></summary><code class="pl" id="pl_file"></code>
     <button type="button" class="ghost" onclick="fill('in_file','pl_file')">use this ▶</button></details>

