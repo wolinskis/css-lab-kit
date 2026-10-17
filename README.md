@@ -82,8 +82,16 @@ Same vulnerable code behind both views — pick whichever fits. (Both apps are *
 Work out the payload yourself; stuck → reveal the **💡 hint**. Full walkthroughs in
 [`SOLUTIONS.md`](SOLUTIONS.md).
 
+## Ready-to-use exercises (committed — no build step)
+Two offline labs ship with their files already in the repo, each with a `README.md` (tasks + hints) and
+`solution.md`:
+- **[`certificates/`](certificates/README.md)** — Certificates & PKI: inspect a flawed cert (self-signed /
+  1024-bit / expired / bad SAN), validate a `root→intermediate→leaf` chain, and check a **CRL**. `openssl` only.
+- **[`pcap/`](pcap/README.md)** — Network capture: recover a **cleartext HTTP login** from a `.pcap`
+  (Wireshark *Follow TCP Stream* / `tshark`).
+
 ## File artifacts (`artifacts/`, after `build_all.sh`)
-- **certs/** — a flawed cert (self-signed / 1024-bit / expired / SAN mismatch) + a `root→intermediate→leaf` chain + `chain.pem` + a **CRL**
+- **certs/** — a flawed cert (self-signed / 1024-bit / expired / SAN mismatch) + a `root→intermediate→leaf` chain + `chain.pem` + a **CRL**  *(full set incl. keys; the `certificates/` exercise above is a ready-made subset)*
 - **keys/** — ed25519, RSA, and a passphrase-protected `encrypted_rsa`
 - **email/phishing.eml** — header/SPF/DKIM analysis + an OpenSSH key appended outside the MIME tree
 - **network/*.pcap** — cleartext HTTP login (Follow TCP Stream)
