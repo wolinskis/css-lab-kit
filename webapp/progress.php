@@ -1,36 +1,9 @@
-<?php /* VulnCorp — standalone gamified progress tracker (dark theme, offline, localStorage) */ ?>
-<!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>Progress — VulnCorp</title>
-<style>
-:root{--bg:#0e1016;--card:#171a22;--ink:#e6edf3;--muted:#9aa4b2;--line:#2a2f3a;--brand:#9a6bff;--brand2:#58a6ff;--ok:#3fb950}
-*{box-sizing:border-box}body{font-family:system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink);margin:0;line-height:1.6}
-.wrap{max-width:760px;margin:0 auto;padding:0 16px 60px}
-header{background:linear-gradient(120deg,#2a1457,#7a3df0);color:#fff;padding:24px 16px;box-shadow:0 2px 8px rgba(30,20,60,.18)}
-header .wrap{padding-bottom:0}h1{margin:0 0 4px;font-size:1.5em}header p{margin:0;opacity:.9}
-header .home{display:inline-block;margin-bottom:8px;font-size:.82em;color:#fff;background:rgba(255,255,255,.14);padding:4px 10px;border-radius:7px;text-decoration:none}
-header .home:hover{background:rgba(255,255,255,.26)}
-.bar{background:#2a2f3a;border-radius:10px;height:14px;overflow:hidden;margin:14px 0 4px}
-.bar>i{display:block;height:100%;width:0;background:var(--ok);transition:width .3s}
-.count{font-weight:600}
-.section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 18px 14px;margin:18px 0;box-shadow:0 1px 3px rgba(20,40,80,.06)}
-.section h2{font-size:1.05em;margin:14px 0 6px;color:#c7b3ff}
-ul{list-style:none;padding:0;margin:0}li{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--line)}
-li:first-child{border-top:0}input[type=checkbox]{width:18px;height:18px;margin-top:3px;accent-color:var(--ok);cursor:pointer}
-label{cursor:pointer}.done label{color:var(--muted)}.done .name{text-decoration:line-through}
-button{background:#20242e;border:1px solid var(--line);color:var(--brand2);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:.9em}button:hover{background:#262b36}
-a{color:var(--brand2);text-decoration:none}a:hover{text-decoration:underline}
-</style></head><body>
-<header><div class="wrap"><a class="home" href="index.php">← back to VulnCorp</a><h1>🏁 VulnCorp — Progress</h1>
-<p>Tick each vuln as you capture it. Saved in your browser (localStorage) — no account, fully offline.</p></div></header>
-<div class="wrap">
-<div class="section"><div class="bar"><i id="bar"></i></div>
-<p><span class="count" id="count">0 / 0</span> captured <span id="trophy"></span></p>
-<button onclick="reset()">Reset my progress</button></div>
-<div class="section"><h2>App 1 — VulnCorp <span style="font-size:.72em;color:var(--muted)">web · easy · foundations</span></h2>
-<ul id="tasks"></ul></div>
-</div>
-<script>
-const tasks=[
+<?php
+/* VulnCorp progress tracker — context-aware:
+ *   progress.php          -> plain Home chrome (header.php/footer.php), full Home nav   [the "ugly" app]
+ *   progress.php?hub=1     -> dark gamified page with a hub nav bar                      [the fancy Hub]
+ * Same task list + localStorage keys (vulncorp_) either way. */
+$TASKS = [
  "SQL injection — auth bypass / UNION dump",
  "Reflected XSS (search box)",
  "Stored XSS (guestbook)",
@@ -42,6 +15,40 @@ const tasks=[
  "Information disclosure (config.php.bak / security.txt)",
  "Weak / default credentials (login)"
 ];
+$HUB = isset($_REQUEST['hub']);
+
+if ($HUB):  /* ---------- dark Hub-styled tracker ---------- */ ?>
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Progress — VulnCorp Hub</title>
+<style>
+:root{--bg:#0e1016;--card:#171a22;--ink:#e6edf3;--muted:#9aa4b2;--line:#2a2f3a;--brand:#9a6bff;--brand2:#58a6ff;--ok:#3fb950}
+*{box-sizing:border-box}body{font-family:system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink);margin:0;line-height:1.6}
+.topbar{position:sticky;top:0;z-index:5;background:linear-gradient(120deg,#2a1457,#7a3df0);color:#fff;padding:12px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(30,20,60,.18)}
+.brand{font-weight:700;font-size:1.15em}.badge{font-size:.72em;background:rgba(255,255,255,.18);padding:2px 9px;border-radius:20px}
+.nav{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}.nav a{color:#fff;text-decoration:none;font-size:.85em;background:rgba(255,255,255,.12);padding:5px 11px;border-radius:7px}.nav a:hover{background:rgba(255,255,255,.26)}
+.wrap{max-width:760px;margin:22px auto;padding:0 16px 60px}
+.bar{background:#2a2f3a;border-radius:10px;height:14px;overflow:hidden;margin:4px 0}
+.bar>i{display:block;height:100%;width:0;background:var(--ok);transition:width .3s}
+.count{font-weight:600}
+.section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 18px 14px;margin:14px 0;box-shadow:0 1px 3px rgba(20,40,80,.06)}
+.section h2{font-size:1.05em;margin:8px 0 6px;color:#c7b3ff}
+ul{list-style:none;padding:0;margin:0}li{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--line)}
+li:first-child{border-top:0}input[type=checkbox]{width:18px;height:18px;margin-top:3px;accent-color:var(--ok);cursor:pointer}
+label{cursor:pointer}.done .name{text-decoration:line-through;color:var(--muted)}
+button{background:#20242e;border:1px solid var(--line);color:var(--brand2);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:.9em}button:hover{background:#262b36}
+</style></head><body>
+<div class="topbar"><span class="brand">🏁 VulnCorp</span><span class="badge">web · easy · hub</span>
+  <nav class="nav"><a href="home.php">Home</a><a href="index.php">🎯 Hub</a><a href="progress.php?hub=1">📊 Progress</a><a href="reset.php">↺ Reset</a><a href="feedback.php">💬 Feedback</a></nav></div>
+<div class="wrap">
+  <div class="section"><h2>📊 Your progress</h2>
+    <div class="bar"><i id="bar"></i></div>
+    <p><span class="count" id="count">0 / 0</span> captured <span id="trophy"></span></p>
+    <button onclick="reset()">Reset my progress</button></div>
+  <div class="section"><h2>App 1 — VulnCorp <span style="font-size:.72em;color:var(--muted)">web · easy · foundations</span></h2>
+    <ul id="tasks"></ul></div>
+</div>
+<script>
+const tasks=<?= json_encode($TASKS) ?>;
 const ul=document.getElementById('tasks');
 tasks.forEach((t,i)=>{const key='vulncorp_'+i,li=document.createElement('li');
  const cb=document.createElement('input');cb.type='checkbox';cb.id=key;
@@ -56,3 +63,26 @@ function render(){let d=0;tasks.forEach((t,i)=>{try{if(localStorage.getItem('vul
 function reset(){if(confirm('Clear your checklist?')){Object.keys(localStorage).filter(k=>k.startsWith('vulncorp_')).forEach(k=>localStorage.removeItem(k));location.reload();}}
 render();
 </script></body></html>
+<?php else:  /* ---------- plain Home-styled tracker ---------- */
+require __DIR__.'/header.php'; ?>
+<div class="card">
+  <h2>📊 Your progress</h2>
+  <p class="muted">Tick each vuln as you capture it. Saved in your browser (localStorage) — survives reloads.</p>
+  <p id="count" style="font-size:1.2em"></p>
+  <ul id="tasks" style="list-style:none;padding:0;line-height:2"></ul>
+  <button onclick="if(confirm('Clear your checklist?')){Object.keys(localStorage).filter(k=>k.startsWith('vulncorp_')).forEach(k=>localStorage.removeItem(k));location.reload();}">Reset checklist</button>
+</div>
+<script>
+const tasks=<?= json_encode($TASKS) ?>;
+const ul=document.getElementById('tasks');
+tasks.forEach((t,i)=>{const key='vulncorp_'+i,li=document.createElement('li');
+ const cb=document.createElement('input');cb.type='checkbox';cb.id=key;cb.checked=localStorage.getItem(key)==='1';
+ cb.onchange=()=>{localStorage.setItem(key,cb.checked?'1':'0');render();};
+ const lb=document.createElement('label');lb.htmlFor=key;lb.textContent=' '+t;
+ li.append(cb,lb);ul.append(li);});
+function render(){const d=tasks.filter((t,i)=>localStorage.getItem('vulncorp_'+i)==='1').length;
+ document.getElementById('count').innerHTML='<strong>'+d+' / '+tasks.length+'</strong> captured'+(d===tasks.length?' 🏆 all done!':'');}
+render();
+</script>
+<?php require __DIR__.'/footer.php';
+endif;

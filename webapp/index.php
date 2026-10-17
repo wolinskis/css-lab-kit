@@ -30,7 +30,7 @@ button.ghost{background:#1c2330;color:#8ab4ff}button:hover{filter:brightness(1.1
 footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted);font-size:.85em;border-top:1px solid var(--line)}
 </style></head><body>
 <div class="topbar"><span class="brand">🛡 VulnCorp</span><span class="badge">app 1 · challenge hub</span>
-<nav class="nav"><a href="home.php">Home</a><a href="index.php">🎯 Hub</a><a href="progress.php">📊 Progress</a><a href="reset.php">↺ Reset</a><a href="feedback.php">💬 Feedback</a></nav></div>
+<nav class="nav"><a href="home.php">Home</a><a href="index.php">🎯 Hub</a><a href="progress.php?hub=1">📊 Progress</a><a href="reset.php">↺ Reset</a><a href="feedback.php">💬 Feedback</a></nav></div>
 <div class="wrap">
 <div class="card"><h2>Challenge hub — fill &amp; run 🏁 <span style="float:right;opacity:.5;font-size:.6em;font-weight:400">loaded <?php echo date('H:i:s'); ?></span></h2>
 <p class="muted">There are <b>two ways</b> to use this lab — same vulnerable code behind both:</p>
