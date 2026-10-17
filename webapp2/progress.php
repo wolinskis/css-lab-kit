@@ -29,7 +29,7 @@ label{cursor:pointer}.done .name{text-decoration:line-through;color:var(--muted)
 button{background:#20242e;border:1px solid var(--line);color:var(--brand2);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:.9em}button:hover{background:#262b36}
 </style></head><body>
 <div class="topbar"><span class="brand">◎ VulnNexus</span><span class="badge">app 2 · medium→hard</span>
-  <nav class="nav"><a href="index.php">🎯 Hub</a><a href="home.php">🏪 Store</a><a href="progress.php">📊 Progress</a><a href="reset.php">↺ Reset</a><a href="feedback.php">💬 Feedback</a></nav></div>
+  <nav class="nav"><a href="/index.html">🏁 Lab Kit</a><a href="index.php">🎯 Hub</a><a href="home.php">🏪 Store</a><a href="progress.php">📊 Progress</a><a href="reset.php">↺ Reset</a><a href="feedback.php">💬 Feedback</a></nav></div>
 <div class="wrap">
   <div class="section"><h2>📊 Your progress</h2>
     <div class="bar"><i id="bar"></i></div>

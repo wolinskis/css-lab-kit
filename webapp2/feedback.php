@@ -17,4 +17,5 @@ button{background:#12a4c9;color:#fff;border:0;border-radius:5px;padding:8px 14px
  <button>Send feedback</button>
 </form>
 <p>Prefer GitHub? <a href="https://github.com/wolinskis/css-lab-kit/issues/new?title=Lab%20feedback" target="_blank">Open an issue / suggest a lab</a></p>
+<p>Or email: <a href="mailto:github.com.destiny581@passmail.com">github.com.destiny581@passmail.com</a></p>
 </body></html>

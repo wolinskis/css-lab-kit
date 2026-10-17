@@ -153,3 +153,5 @@ vulnerable by design; use it only for lawful, authorized, isolated training.
 
 ## Credits
 Built for Cyber Security Specialist (CSS) exam prep. **Special thanks to Mat.** 🙏
+
+Questions / feedback: open a [css-lab-kit issue](https://github.com/wolinskis/css-lab-kit/issues) or email `github.com.destiny581@passmail.com`.

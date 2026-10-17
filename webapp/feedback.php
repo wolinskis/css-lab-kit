@@ -17,5 +17,6 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && trim($_POST['message']??'')!=='') {
   </form>
   <p class="muted">Prefer GitHub? Open an issue / suggest a lab →
     <a href="https://github.com/wolinskis/css-lab-kit/issues/new?title=Lab%20feedback" target="_blank">css-lab-kit issues</a></p>
+  <p class="muted">Or email: <a href="mailto:github.com.destiny581@passmail.com">github.com.destiny581@passmail.com</a></p>
 </div>
 <?php require __DIR__.'/footer.php';

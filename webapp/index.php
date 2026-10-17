@@ -30,7 +30,7 @@ button.ghost{background:#1c2330;color:#8ab4ff}button:hover{filter:brightness(1.1
 footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted);font-size:.85em;border-top:1px solid var(--line)}
 </style></head><body>
 <div class="topbar"><span class="brand">🛡 VulnCorp</span><span class="badge">app 1 · challenge hub</span>
-<nav class="nav"><a href="home.php">Home</a><a href="index.php">🎯 Hub</a><a href="progress.php?hub=1">📊 Progress</a><a href="reset.php">↺ Reset</a><a href="feedback.php">💬 Feedback</a></nav></div>
+<nav class="nav"><a href="/index.html">🏁 Lab Kit</a><a href="home.php">Home</a><a href="index.php">🎯 Hub</a><a href="progress.php?hub=1">📊 Progress</a><a href="reset.php">↺ Reset</a><a href="feedback.php">💬 Feedback</a></nav></div>
 <div class="wrap">
 <div class="card"><h2>Challenge hub — fill &amp; run 🏁 <span style="float:right;opacity:.5;font-size:.6em;font-weight:400">loaded <?php echo date('H:i:s'); ?></span></h2>
 <p class="muted">There are <b>two ways</b> to use this lab — same vulnerable code behind both:</p>
@@ -165,6 +165,45 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
   <p class="muted">This page ships a <code>Content-Security-Policy</code> — but is it actually protective? Inspect the
   response headers and the cookie flags in your browser's DevTools. <b>Goal:</b> judge whether this CSP really
   prevents the stored-XSS cookie theft from the guestbook, and explain why or why not. (Analysis — no flag.)</p></div>
+
+<!-- Forensics / offline labs -->
+<h2 style="margin:26px 0 6px;color:#8ab4ff;font-size:1.15em">🔬 Forensics &amp; offline labs</h2>
+<p class="muted" style="margin:0 0 4px">No web form here — these run in your <b>terminal</b> against files you download. Each has 4 levels; full answers are in each lab's <code>solution.md</code>.</p>
+
+<div class="card"><h2>🔐 Certificates &amp; PKI <span class="flag-pill">offline · openssl</span></h2>
+  <p class="muted">You're handed certificates from a lab environment: a flawed cert, a CA chain, and a CRL. Inspect, validate and check revocation.</p>
+  <p class="muted">📥 <b>Download:</b> <a href="/certificates/bad-webmail.crt">bad-webmail.crt</a> · <a href="/certificates/root_ca.pem">root_ca.pem</a> · <a href="/certificates/intermediate_ca.pem">intermediate_ca.pem</a> · <a href="/certificates/server.pem">server.pem</a> · <a href="/certificates/chain.pem">chain.pem</a> · <a href="/certificates/revoked.pem">revoked.pem</a> · <a href="/certificates/intermediate.crl">intermediate.crl</a></p>
+  <details><summary>🟢 Easy — inspect <code>bad-webmail.crt</code>, name the 4 flaws</summary><code class="pl">openssl x509 -in bad-webmail.crt -noout -text</code></details>
+  <details><summary>🟡 Medium — validate the chain</summary><code class="pl">openssl verify -CAfile root_ca.pem -untrusted intermediate_ca.pem server.pem</code></details>
+  <details><summary>🟠 Hard — check revocation (which serial? is server.pem?)</summary><code class="pl">openssl crl -in intermediate.crl -noout -text | grep -A1 'Serial Number'
+openssl x509 -in server.pem -noout -serial ; openssl x509 -in revoked.pem -noout -serial</code></details>
+  <details><summary>🔴 Expert — CA constraints, fingerprint, hostname match</summary><code class="pl">openssl x509 -in intermediate_ca.pem -noout -ext basicConstraints,keyUsage
+openssl x509 -in server.pem -noout -fingerprint -sha256</code></details>
+  <p class="muted">Full console + answers → <a href="/certificates/index.html">Certificates hub</a> · <a href="/certificates/solution.md">solution.md</a></p></div>
+
+<div class="card"><h2>📡 Network capture <span class="flag-pill">offline · wireshark/tshark</span></h2>
+  <p class="muted">One plaintext HTTP capture that leaks <b>three</b> secrets, each a level harder to read.</p>
+  <p class="muted">📥 <b>Download:</b> <a href="/pcap/http_login_cleartext.pcap">http_login_cleartext.pcap</a></p>
+  <details><summary>🟢 Easy — recover the cleartext form login</summary><code class="pl">tshark -r http_login_cleartext.pcap -z follow,tcp,ascii,0 -q</code></details>
+  <details><summary>🟡 Medium — decode the <code>Authorization: Basic</code> header</summary><code class="pl">tshark -r http_login_cleartext.pcap -Y http.request -T fields -e http.authorization
+echo '&lt;base64&gt;' | base64 -d        # Basic = base64(user:pass), not encryption</code></details>
+  <details><summary>🟠 Hard — decode the <code>Set-Cookie</code> session token</summary><code class="pl">tshark -r http_login_cleartext.pcap -Y http.response -T fields -e http.set_cookie
+echo '&lt;base64&gt;' | base64 -d        # unsigned JSON → forgeable</code></details>
+  <details><summary>🔴 Expert — reconstruct the exchange + state the impact</summary><code class="pl">tshark -r http_login_cleartext.pcap -Y http.request -T fields -e ip.src -e ip.dst -e http.host -e http.request.uri</code></details>
+  <p class="muted">Full console + answers → <a href="/pcap/index.html">Network capture hub</a> · <a href="/pcap/solution.md">solution.md</a></p></div>
+
+<div class="card"><h2>🔓 TLS decryption <span class="flag-pill">🏁 decrypt HTTPS</span></h2>
+  <p class="muted">An encrypted HTTPS capture + the server's recovered <b>RSA private key</b>: add the key, decrypt the session, read the login and flag — then meet a second capture where the key is useless (forward secrecy).</p>
+  <p class="muted">📥 <b>Download:</b> <a href="/tls_decrypt_lab/portal_tls.pcap">portal_tls.pcap</a> · <a href="/tls_decrypt_lab/server.key">server.key</a> · <a href="/tls_decrypt_lab/server.crt">server.crt</a> · <a href="/tls_decrypt_lab/portal_pfs.pcap">portal_pfs.pcap</a> · <a href="/tls_decrypt_lab/portal_pfs.keys">portal_pfs.keys</a> <span class="muted">(run the commands from the folder you saved them in)</span></p>
+  <details><summary>🟢 Easy — which cipher / key exchange? why decryptable?</summary><code class="pl">tshark -r portal_tls.pcap -Y "tls.handshake.type==2" -T fields -e tls.handshake.ciphersuite
+# 0x003c = TLS_RSA_WITH_AES_128_CBC_SHA256 → static RSA, no forward secrecy</code></details>
+  <details><summary>🟡 Medium — add the key, decrypt, read the login + flag</summary><code class="pl">tshark -r portal_tls.pcap -o 'uat:rsa_keys:"server.key",""' -q -z follow,tls,ascii,0
+# Wireshark: Prefs → Protocols → TLS → RSA keys list → add server.key → Follow → TLS Stream</code></details>
+  <details><summary>🟠 Hard — the same key FAILS on <code>portal_pfs.pcap</code> — why?</summary><code class="pl">tshark -r portal_pfs.pcap -Y "tls.handshake.type==2" -T fields -e tls.handshake.ciphersuite
+# 0xc02f = ECDHE → forward secrecy → the private key can't recover the session keys</code></details>
+  <details><summary>🔴 Expert — decrypt the ECDHE capture with the key log</summary><code class="pl">tshark -r portal_pfs.pcap -o 'tls.keylog_file:portal_pfs.keys' -q -z follow,tls,ascii,0
+# the SSLKEYLOGFILE holds the per-session secrets — the only way against ECDHE</code></details>
+  <p class="muted">Answers → <a href="/tls_decrypt_lab/README.md">README</a> · <a href="/tls_decrypt_lab/solution.md">solution.md</a> · <a href="/tls_decrypt_lab/solution_pfs.md">solution (PFS)</a></p></div>
 
 </div>
 <footer>⚠️ <b>Intentionally vulnerable — training only.</b> Run locally / isolated lab; never expose it.</footer>

@@ -23,7 +23,7 @@ a{color:var(--brand2)}
 pre.out{white-space:pre-wrap;background:#0b0f16;border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:8px;font-family:ui-monospace,Consolas,monospace;font-size:.85em;max-height:220px;overflow:auto;display:none}
 </style></head><body>
 <div class="topbar"><span class="brand">⬡ VulnNexus</span><span class="badge">store · plain view</span>
-<nav class="nav"><a href="index.php">🎯 Hub</a><a href="home.php">🏪 Store</a><a href="progress.php">📊 Progress</a><a href="reset.php" title="drop &amp; reseed the DB">↺ Reset</a><a href="feedback.php">💬 Feedback</a></nav></div>
+<nav class="nav"><a href="/index.html">🏁 Lab Kit</a><a href="index.php">🎯 Hub</a><a href="home.php">🏪 Store</a><a href="progress.php">📊 Progress</a><a href="reset.php" title="drop &amp; reseed the DB">↺ Reset</a><a href="feedback.php">💬 Feedback</a></nav></div>
 <div class="wrap">
 
 <div class="card"><p class="muted">This is the <b>plain</b> VulnNexus app — drive each endpoint <b>directly in the URL / forms</b>, like a real target (no guided payloads, no hints). Prefer the fancy, guided console with level buttons and examples? → <a href="index.php">🎯 Hub</a>. <b>Same vulnerable code behind both.</b> Responses are raw (text / JSON / XML).</p></div>

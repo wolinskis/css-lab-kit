@@ -20,4 +20,4 @@ trap 'kill "$MPID" 2>/dev/null; wait "$MPID" 2>/dev/null' EXIT INT TERM
 for i in $(seq 1 40); do mariadb-admin --socket="$SOCK" ping >/dev/null 2>&1 && break; sleep 0.5; done
 
 echo "[*] VulnCorp Intranet → http://localhost:$WEBPORT   (admin / S3ntinel!Admin)  Ctrl+C to stop"
-PHP_CLI_SERVER_WORKERS=4 php -S 0.0.0.0:"$WEBPORT"
+PHP_CLI_SERVER_WORKERS=4 php -S 0.0.0.0:"$WEBPORT" ../labkit_router.php

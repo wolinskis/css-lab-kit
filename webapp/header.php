@@ -40,6 +40,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
 <header class="top">
  <span class="brand"><span class="dot"></span>VulnCorp <small>Intranet · training</small></span>
  <nav class="main">
+  <a href="/index.html">🏁 Lab Kit</a>
   <a href="home.php">Home</a>
   <a href="index.php">🎯 Hub</a>
   <a href="login.php">Login</a>
