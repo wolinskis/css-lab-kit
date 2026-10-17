@@ -100,6 +100,31 @@ Open it in a browser (no server needed) — one **gamified checklist across ever
 flags, the file-artifact recovered values (cracked passwords, the hidden OpenSSH key, the KPI finding…),
 TLS, and privesc. Progress is saved in your browser.
 
+## Cracking cheat-sheet (identify → mode)
+1. **Identify** the hash: `hashid '<hash>'`, `hashcat --identify h.txt`, `name-that-hash`, or by shape —
+   32 hex = MD5/NTLM · 40 = SHA-1 · 64 = SHA-256 · `$2y$…` = bcrypt · `$6$…` = sha512crypt · `$apr1$…` = md5crypt.
+2. **Pick the hashcat mode** (`-m`):
+
+   | algorithm | raw | salt **after** `h($pass.$salt)` | salt **before** `h($salt.$pass)` |
+   |---|---|---|---|
+   | MD5 | `-m 0` | `-m 10` | `-m 20` |
+   | SHA-1 | `-m 100` | `-m 110` | `-m 120` |
+   | SHA-256 | `-m 1400` | `-m 1410` | `-m 1420` |
+   | NTLM | `-m 1000` | — | — |
+   | bcrypt `$2y$` | `-m 3200` | salt is built-in | |
+   | md5crypt `$apr1$` | `-m 1600` | built-in | |
+   | sha512crypt `$6$` | `-m 1800` | built-in | |
+
+3. **File format = what the mode expects:** raw → `hash`; salted → `hash:salt` (one per line). A dump line
+   `user:hash[:salt]` → for **hashcat** strip the user (`cut -d: -f2- dump > h.txt`) or add `--username`;
+   **john** keeps `user:hash`.
+4. **Salt position unknown?** It's cheap — try the `…10` mode then the `…20` mode. Homegrown PHP usually
+   **appends** the salt, so try `-m 10/110/1410` first. (If you can read the app source, it states the exact
+   construction — no guessing.)
+5. **Run it:** `hashcat -m <n> h.txt /usr/share/wordlists/rockyou.txt` (add `-a 0`), or
+   `john --format=<fmt> --wordlist=/usr/share/wordlists/rockyou.txt h.txt`. Slow algos (bcrypt/`$6$`) take
+   longer by design; raw MD5/SHA fall in seconds.
+
 ## Solutions
 Full **Answer / Command / Result** walkthroughs: [`webapp/SOLUTIONS.md`](webapp/SOLUTIONS.md) and
 [`webapp2/SOLUTIONS.md`](webapp2/SOLUTIONS.md). Try each vuln yourself first, then check.
