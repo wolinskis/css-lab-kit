@@ -81,7 +81,7 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
 
 <!-- Profile: IDOR (leveled) -->
 <div class="card"><h2><code>profile.php?id=</code> <span class="flag-pill">🏁 IDOR</span></h2>
-  <p class="muted">No ownership check. The id reference gets more obfuscated each level — all still forgeable. (1 = admin)</p>
+  <p class="muted">No ownership check. The id reference gets more obfuscated each level — all still forgeable. (1 = admin.) Each record's <b>note is encoded harder</b>: id 1 plaintext flag · id 2 base64 · id 3 unsalted sha1 · id 4 salted md5 — read them all and decode/crack each.</p>
   <div class="levels" id="lv_id"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('id','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('id','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('id','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('id','expert')">Expert</button></div>
   <details><summary>💡 hint — <span class="note" id="note_id"></span></summary>
     <code class="pl" id="pl_id"></code><button type="button" class="ghost" onclick="fill('in_id','pl_id')">use this ▶</button></details>

@@ -43,8 +43,9 @@ in the URL (e.g. <code>fetch.php?url=…</code>, <code>search.php?q=…</code>) 
 <!-- 1. SQLi -->
 <div class="card"><h2>1 · <code>search.php?q=</code> <span class="flag-pill">🏁 UNION SQLi</span></h2>
   <p class="muted">Product search. The query has 3 columns. Enumerate <code>information_schema</code> → dump
-     the <code>secrets</code> table (flag) and the <code>users</code> table (mixed password hashes +
-     salts — identify each with <code>hashid</code>, then crack: md5/sha1/sha256/bcrypt).</p>
+     the <code>secrets</code> table (flags in escalating forms: plaintext, base64, unsalted sha256, salted md5)
+     and the <code>users</code> table (mixed password hashes + salts — <code>hashid</code> each, then crack:
+     md5/sha1/sha256/bcrypt).</p>
   <div class="levels" id="lv_q"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('q','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('q','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('q','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('q','expert')">Expert</button></div>
   <details><summary>💡 hint — <span class="note" id="note_q"></span></summary><code class="pl" id="pl_q"></code>
     <button type="button" class="ghost" onclick="fill('in_q','pl_q')">use this ▶</button>

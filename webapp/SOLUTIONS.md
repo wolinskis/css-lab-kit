@@ -70,6 +70,9 @@ Per level the reference is obfuscated but always forgeable: `?id=1` (easy) · ba
 md5 `?id=c4ca4238a0b923820dcc509a6f75849b` (hard) · **expert** the `?id` is ignored and the server trusts a
 `uid` **cookie** — set `uid=1` (the Hub's "become uid=1" button sets it scoped to `/profile.php`, or add it
 by hand in DevTools → Application → Cookies) and reload → admin.
+Decode/crack reps: each record's `private_note` is encoded harder — id 1 plaintext flag · id 2 base64
+(`base64 -d`) · id 3 unsalted sha1 (`hashcat -m 100` → `pepper`) · id 4 salted md5 `hash:salt`
+(`hashcat -m 10` → `cookie`). Read all four via the IDOR.
 
 ## 5. Command injection  (`tools.php?host=`)
 **Answer:** `host` is concatenated into a shell `ping`. The filter escalates the operator you need, and the

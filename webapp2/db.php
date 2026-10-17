@@ -14,7 +14,10 @@ if ($pdo->query("SELECT COUNT(*) FROM products")->fetchColumn()==0) {
       ('Nexus Firewall Pro','security',1299.00),('Nexus AP Mini','wireless',89.00)");
     $pdo->exec("INSERT INTO secrets(k,v) VALUES
       ('db_flag','FLAG{un10n_sql1_dumps_the_secrets_table}'),
-      ('admin_pw','Nexus!Adm1n#2026')");
+      ('admin_pw','Nexus!Adm1n#2026'),
+      ('flag_b64','RkxBR3t1bjEwbl9zcWwxX2I2NF9sb290fQ=='),
+      ('flag_sha256','3a120dc1589bb2f0cb023b28ec75328be3fc5333ef0707285b31f47ad268dfd3'),
+      ('flag_md5_salted','98e138db3697701ec6464a1200393c32:Vs8r')");
 }
 // users table: MIXED hash algorithms — this is a hash-IDENTIFICATION + cracking lab. Dump it via the
 // SQLi, then `hashid`/`hash-identifier` each hash, pick the right hashcat/john mode, and crack:

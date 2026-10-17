@@ -27,9 +27,9 @@ if ($n == 0) {
     // rows: [username, plaintext, salt, role, email, api_key, private_note]
     $users = [
         ['admin','S3ntinel!Admin','a7Fk2','admin','admin@vulncorp.local','AK-9f2c1a77d4b0','FLAG{sql1_auth_byp4ss_and_1dor}'],
-        ['alice','password123','Lm9xQ','user','alice@vulncorp.local','AK-3b7e55','Quarterly review notes — nothing secret.'],
-        ['bob','letmein','Zq4Wp','user','bob@vulncorp.local','AK-6611aa','Remember to rotate the VPN cert.'],
-        ['svc_backup','Backup2024!','Rt6Nv','user','backup@vulncorp.local','AK-backup','Cron runs /opt/backup.sh nightly.'],
+        ['alice','password123','Lm9xQ','user','alice@vulncorp.local','AK-3b7e55','note(base64): RkxBR3tpZG9yX2I2NF9sZWFrZWRfbm90ZX0='],
+        ['bob','letmein','Zq4Wp','user','bob@vulncorp.local','AK-6611aa','note(sha1): 64356bcfae350c970263c1ce575185b289f7b836'],
+        ['svc_backup','Backup2024!','Rt6Nv','user','backup@vulncorp.local','AK-backup','note(md5 pw+salt): c78b83df83c379fb396bdbc90e1be1c3:Rk2d'],
     ];
     $st = $pdo->prepare("INSERT INTO users(username,password,salt,role,email,api_key,private_note) VALUES (?,?,?,?,?,?,?)");
     foreach ($users as $u) { $st->execute([$u[0], md5($u[1].$u[2]), $u[2], $u[3], $u[4], $u[5], $u[6]]); }

