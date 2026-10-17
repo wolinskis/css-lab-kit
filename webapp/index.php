@@ -201,14 +201,15 @@ function setLvl(card,lvl){
     var uc=PAYLOADS.upcmd[lvl];
     var plu=document.getElementById('pl_up'); if(plu) plu.textContent=uc.cmd;
     var cap=document.getElementById('cap_up'); if(cap) cap.textContent='goal: '+uc.why;
-    if(_ready){ var iu=document.getElementById('in_up'); if(iu){ iu.value=uc.cmd; try{iu.dispatchEvent(new Event('input'));}catch(e){} } }
+    // step-2 command is NOT auto-filled — use the "use this ▶" button under the suggested command
   }
   else { var pl=document.getElementById('pl_'+card); if(pl) pl.textContent=d.p; }
   var nt=document.getElementById('note_'+card); if(nt) nt.textContent=d.n;
   var plx=document.getElementById('pl_'+card+'x'); if(plx && d.x) plx.textContent=d.x;
   if(card==='cmd'){ var s2=document.getElementById('cmd_step2'); if(s2) s2.style.display=(lvl==='expert')?'block':'none'; }
-  var _inp=document.getElementById('in_'+card); if(_ready && _inp && card!=='up'){ _inp.value=d.p; try{_inp.dispatchEvent(new Event('input'));}catch(e){} }
-  if(card==='login' && _ready){ var lu=document.getElementById('in_lu'); if(lu){ lu.value=d.p; document.getElementById('in_lp').value='x'; lu.dispatchEvent(new Event('input')); } }
+  // no auto-fill on level change: the payload enters the input only via "use this ▶" (explicit ask);
+  // collapse the hint on each switch so changing level never reveals the next level's answer.
+  var _pl=document.getElementById('pl_'+card); if(_pl){ var _det=_pl.closest('details'); if(_det) _det.open=false; }
   document.querySelectorAll('#lv_'+card+' .lvlbtn').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-l')===lvl); });
 }
 PAYLOADS.login={easy:{p:"admin'-- -",n:"Easy — comment out the password check."},medium:{p:"admin' or '1'='1",n:"Medium — comments stripped -> self-closing OR (no comment)."},hard:{p:"admin' oorr '1'='1",n:"Hard — 'or' also stripped -> nest it (oorr -> or)."},expert:{p:"admin'/**/oorr/**/'1'='1",n:"Expert — spaces also stripped -> /**/ as spaces."}};
