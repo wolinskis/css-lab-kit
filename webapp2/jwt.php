@@ -8,7 +8,7 @@ require_once __DIR__.'/levels.php';
 //                (dump it via the SQLi, then sign your own admin token). SQLi -> JWT chain.
 function jwt_secret($l){
   if($l==='hard')   return 'superman';
-  if($l==='expert') return 'Z3pk9_NexusJWT_s1gning_k3y_2026';
+  if($l==='expert') return '$Z3pk9_NexusJWT_s1gning_k3y_2026';
   return 'secret';
 }
 function b64url($d){ return rtrim(strtr(base64_encode($d),'+/','-_'),'='); }

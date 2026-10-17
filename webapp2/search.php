@@ -5,7 +5,7 @@ $raw = $_GET['q'] ?? '';
 $q = f_sqli($raw, $L);                         // escalating input filter per level
 echo "Product search for: $raw\n(level: $L)\n\n";
 if ($raw!=='') {
-    $sql = "SELECT name, category, price FROM products WHERE name LIKE '%$q%'";  // 3 columns
+    $sql = "SELECT name, category, price FROM products WHERE name LIKE '$q%'";   // 3 cols; prefix-match so a plain ' UNION ...-- - needs no filler
     try {
         if ($L==='expert') {                    // BLIND: only match / no-match
             $n=0; foreach ($db->query($sql) as $r) { $n++; }

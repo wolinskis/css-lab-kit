@@ -12,7 +12,7 @@
 if (isset($_GET['q'])) {
     $L = lvl();
     $q = f_sqli($_GET['q'], $L);           // escalating input filter per level
-    $sql = "SELECT username, email, role FROM users WHERE username LIKE '%$q%'";
+    $sql = "SELECT username, email, role FROM users WHERE username LIKE '$q%'";  // prefix-match: a plain ' UNION ...-- - needs no filler
     echo "<div class='muted' style='opacity:.55'>level: $L</div>";
     try {
         if ($L==='expert') {               // BLIND: reveal only match / no-match

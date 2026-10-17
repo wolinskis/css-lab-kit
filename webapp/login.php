@@ -15,7 +15,9 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
     $p = f_login($_POST['password'] ?? '', $L);
     echo "<div class='muted' style='opacity:.55'>level: $L</div>";
     // SQL injection auth bypass: credentials concatenated straight into the query.
-    $sql = "SELECT * FROM users WHERE username='$u' AND password='$p'";
+    // password is stored SALTED (md5(pass.salt)), so the legit check hashes the input with the row's
+    // salt — but $u/$p are still concatenated, so the injection/bypass is unchanged.
+    $sql = "SELECT * FROM users WHERE username='$u' AND password=MD5(CONCAT('$p', salt))";
     try {
         $row = $db->query($sql)->fetch(PDO::FETCH_ASSOC);
         if ($row) {
