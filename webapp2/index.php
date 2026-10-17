@@ -42,10 +42,10 @@ in the URL (e.g. <code>fetch.php?url=…</code>, <code>search.php?q=…</code>) 
 
 <!-- 1. SQLi -->
 <div class="card"><h2>1 · <code>search.php?q=</code> <span class="flag-pill">🏁 UNION SQLi</span></h2>
-  <p class="muted">Product search. The query has 3 columns. Enumerate <code>information_schema</code> → dump
-     the <code>secrets</code> table (flags in escalating forms: plaintext, base64, unsalted sha256, salted md5)
-     and the <code>users</code> table (mixed password hashes + salts — <code>hashid</code> each, then crack:
-     md5/sha1/sha256/bcrypt).</p>
+  <p class="muted">A product search that concatenates your input into the query → UNION SQLi. <b>Goal:</b> enumerate
+     the database and dump its secrets. The <code>secrets</code> table holds flags in escalating encodings
+     (plaintext → base64 → unsalted → salted) and the <code>users</code> table holds password hashes in several
+     algorithms — recovering them is decode/crack + hash-ID practice. The expert level is blind.</p>
   <div class="levels" id="lv_q"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('q','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('q','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('q','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('q','expert')">Expert</button></div>
   <details><summary>💡 hint — <span class="note" id="note_q"></span></summary><code class="pl" id="pl_q"></code>
     <button type="button" class="ghost" onclick="fill('in_q','pl_q')">use this ▶</button>
@@ -58,8 +58,9 @@ in the URL (e.g. <code>fetch.php?url=…</code>, <code>search.php?q=…</code>) 
 
 <!-- 2. JWT -->
 <div class="card"><h2>2 · <code>login.php</code> → <code>account.php</code> <span class="flag-pill">🏁 JWT forgery</span></h2>
-  <p class="muted">Log in to get a <code>session</code> JWT, then make yourself <code>role=admin</code>
-     (<b>alg:none</b> or crack the weak HS256 secret). Edit the cookie in DevTools / jwt.io, then open account.</p>
+  <p class="muted">Logging in gives you a signed <code>session</code> JWT. The server's token verification is flawed,
+     so you can forge a token that makes you <code>role=admin</code> and unlock the admin panel. <b>Goal:</b> become
+     admin by tampering with the token. The verification gets stronger each level.</p>
   <div class="levels" id="lv_jwt"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('jwt','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('jwt','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('jwt','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('jwt','expert')">Expert</button></div>
   <details><summary>💡 hint — <span class="note" id="note_jwt"></span></summary><code class="pl" id="pl_jwt"></code></details>
   <form method="post" action="login.php" target="r_jwt" onsubmit="show('r_jwt')">
@@ -73,12 +74,11 @@ in the URL (e.g. <code>fetch.php?url=…</code>, <code>search.php?q=…</code>) 
 
 <!-- 3. SSRF -->
 <div class="card"><h2>3 · <code>fetch.php?url=</code> <span class="flag-pill">🏁 SSRF</span></h2>
-  <p class="muted">A link/image <b>preview proxy</b>: you give it a URL and the <b>server</b> fetches it for
-     you. Intended use is an <b>external</b> URL — the "main URL" — e.g. <code>https://example.com/logo.png</code>.
-     The bug: no allow-list, so you can aim it at things only the <b>server</b> can reach. Point it at the
-     internal <code>http://127.0.0.1:8001/metadata.php</code> (stands in for the cloud metadata endpoint
-     <code>169.254.169.254</code> — it leaks the instance's IAM role + keys), or at a local file with
-     <code>file:///etc/passwd</code>. <b>Task:</b> make the server fetch the internal metadata and hand you its secret.</p>
+  <p class="muted">A server-side <b>URL fetcher</b> — like a link/image-preview proxy: you give it a URL and the
+     <b>server</b> downloads it for you. Intended use is an external URL. The bug: no allow-list, so you can point
+     it at resources only the <b>server</b> can reach — internal-only services (e.g. a cloud instance-metadata
+     endpoint that hands out credentials) or local files. <b>Goal:</b> make the server reach an internal secret
+     and return it to you. Filter escalates per level.</p>
   <div class="levels" id="lv_url"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('url','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('url','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('url','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('url','expert')">Expert</button></div>
   <details><summary>💡 hint — <span class="note" id="note_url"></span></summary><code class="pl" id="pl_url"></code>
     <button type="button" class="ghost" onclick="fill('in_url','pl_url')">use this ▶</button></details>
@@ -89,7 +89,7 @@ in the URL (e.g. <code>fetch.php?url=…</code>, <code>search.php?q=…</code>) 
 
 <!-- 4. XXE -->
 <div class="card"><h2>4 · <code>import.php</code> (POST XML) <span class="flag-pill">🏁 XXE</span></h2>
-  <p class="muted">Imports an XML order. External entities are resolved → read local files. <i>(needs <code>php-xml</code>)</i></p>
+  <p class="muted">Accepts an XML document and parses it with external entities enabled → XXE. <b>Goal:</b> make the parser read a local file off the server and return its contents. The filter escalates per level. <i>(needs the <code>php-xml</code> extension.)</i></p>
   <div class="levels" id="lv_xml"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('xml','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('xml','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('xml','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('xml','expert')">Expert</button></div>
   <input type="hidden" id="lvl_xml" value="easy">
   <details><summary>💡 hint — <span class="note" id="note_xml"></span></summary><code class="pl" id="pl_xml"></code>
@@ -100,7 +100,7 @@ in the URL (e.g. <code>fetch.php?url=…</code>, <code>search.php?q=…</code>) 
 
 <!-- 5. Path traversal -->
 <div class="card"><h2>5 · <code>download.php?file=</code> <span class="flag-pill">🏁 path traversal</span></h2>
-  <p class="muted">Downloads a file from <code>docs/</code>. Escape it with <code>../</code>. The target dir also holds <code>secret_config.b64</code> (base64) and <code>secret_config.sha1salt</code> (salted SHA-1 → <code>hashcat -m 110</code> → shadow) — grab them with the same traversal to practice decoding/cracking.</p>
+  <p class="muted">Serves a file from the <code>docs/</code> folder, building the path from your input with no sanitisation → path traversal. <b>Goal:</b> climb out of <code>docs/</code> and read files you shouldn't (the secret config / flag). The filter escalates per level, and some targets are stored encoded (decode/crack what you retrieve).</p>
   <div class="levels" id="lv_file"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('file','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('file','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('file','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('file','expert')">Expert</button></div>
   <details><summary>💡 hint — <span class="note" id="note_file"></span></summary><code class="pl" id="pl_file"></code>
     <button type="button" class="ghost" onclick="fill('in_file','pl_file')">use this ▶</button></details>
@@ -111,7 +111,7 @@ in the URL (e.g. <code>fetch.php?url=…</code>, <code>search.php?q=…</code>) 
 
 <!-- 6. Filtered XSS -->
 <div class="card"><h2>6 · <code>greet.php?name=</code> <span class="flag-pill">🏁 filtered XSS</span></h2>
-  <p class="muted">Greeting with a naive filter that strips <code>&lt;script&gt;</code> once. Bypass it; the page sets a non-HttpOnly <code>flag</code> cookie.</p>
+  <p class="muted">Reflects your <code>name</code> back into the page through a naive blacklist filter → filtered reflected XSS. <b>Goal:</b> bypass the filter so your script runs, then steal the <b>non-HttpOnly</b> <code>flag</code> cookie. The filter gets stricter each level.</p>
   <div class="levels" id="lv_name"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('name','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('name','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('name','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('name','expert')">Expert</button></div>
   <details><summary>💡 hint — <span class="note" id="note_name"></span></summary><code class="pl" id="pl_name"></code>
     <button type="button" class="ghost" onclick="fill('in_name','pl_name')">use this ▶</button></details>
@@ -122,8 +122,9 @@ in the URL (e.g. <code>fetch.php?url=…</code>, <code>search.php?q=…</code>) 
 
 <!-- 7. OAuth -->
 <div class="card"><h2>7 · <code>oauth_authorize.php?redirect_uri=</code> <span class="flag-pill">🏁 OAuth</span></h2>
-  <p class="muted">OAuth authorize endpoint. The <code>redirect_uri</code> isn't validated, so the victim's
-     auth <code>code</code> can be sent to a host you control → replay it at <code>oauth_callback.php?code=</code>.</p>
+  <p class="muted">A simplified OAuth <b>authorize</b> endpoint. It doesn't validate <code>redirect_uri</code> against the
+     registered client, so the victim's authorization <code>code</code> can be delivered to a host <b>you</b> control —
+     and used to log in as them. <b>Goal:</b> steal the auth code and take over the account. Filter escalates per level.</p>
   <div class="levels" id="lv_rd"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('rd','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('rd','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('rd','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('rd','expert')">Expert</button></div>
   <details><summary>💡 hint — <span class="note" id="note_rd"></span></summary><code class="pl" id="pl_rd"></code>
     <button type="button" class="ghost" onclick="fill('in_rd','pl_rd')">use this ▶</button>
