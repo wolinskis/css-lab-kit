@@ -1,30 +1,30 @@
 <?php header('Cache-Control: no-store, max-age=0'); $self = $_SERVER['HTTP_HOST'] ?? 'localhost:8001'; ?><!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>VulnNexus — API Portal</title>
 <style>
-:root{--bg:#f4f6fb;--card:#fff;--ink:#1b2430;--muted:#5b6b7e;--line:#e3e8f0;--brand:#7a3df0;--brand2:#1f6feb;--ok:#1f9d57}
+:root{--bg:#0e1016;--card:#171a22;--ink:#e6edf3;--muted:#9aa4b2;--line:#2a2f3a;--brand:#9a6bff;--brand2:#58a6ff;--ok:#3fb950}
 *{box-sizing:border-box}body{font-family:system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink);margin:0;line-height:1.5}
 .topbar{position:sticky;top:0;z-index:5;background:linear-gradient(120deg,#2a1457,#7a3df0);color:#fff;padding:12px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(30,20,60,.18)}
 .brand{font-weight:700;font-size:1.15em}.badge{font-size:.72em;background:rgba(255,255,255,.18);padding:2px 9px;border-radius:20px}
 .nav{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}.nav a{color:#fff;text-decoration:none;font-size:.85em;background:rgba(255,255,255,.12);padding:5px 11px;border-radius:7px}.nav a:hover{background:rgba(255,255,255,.26)}
 .wrap{max-width:900px;margin:22px auto;padding:0 16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0;box-shadow:0 1px 3px rgba(20,40,80,.06)}
-.card h2{margin:0 0 8px;font-size:1.02em;color:#2a1457;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.card h2 code{background:#f0ecfb;color:#5b2bd6;padding:2px 7px;border-radius:5px;font-size:.92em}
-.flag-pill{font-size:.7em;font-weight:600;background:#fdebc6;color:#8a5a00;padding:2px 8px;border-radius:20px}
+.card h2{margin:0 0 8px;font-size:1.02em;color:#c7b3ff;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card h2 code{background:#20242e;color:#b79cff;padding:2px 7px;border-radius:5px;font-size:.92em}
+.flag-pill{font-size:.7em;font-weight:600;background:#2a2411;color:#e3b341;border:1px solid #e3b34140;padding:2px 8px;border-radius:20px}
 details{margin:6px 0 10px}summary{cursor:pointer;color:var(--brand2);font-size:.9em}
 details .pl{display:block;margin:8px 0;background:#0f1622;color:#9ce6a0;padding:8px 10px;border-radius:6px;font-family:ui-monospace,Consolas,monospace;font-size:.85em;white-space:pre-wrap;word-break:break-all}
 form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0}
-input[type=text],textarea{flex:1;min-width:220px;padding:8px 10px;border:1px solid var(--line);border-radius:7px;font-family:ui-monospace,Consolas,monospace;font-size:.9em}
+input[type=text],textarea{flex:1;min-width:220px;padding:8px 10px;background:#0b0f16;color:var(--ink);border:1px solid var(--line);border-radius:7px;font-family:ui-monospace,Consolas,monospace;font-size:.9em}
 textarea{min-height:92px;width:100%}
 button{background:var(--brand);color:#fff;border:0;border-radius:7px;padding:8px 13px;cursor:pointer;font-size:.88em}
-button.ghost{background:#eef2f9;color:var(--brand2)}button:hover{filter:brightness(1.06)}
-.levels{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap}.lvlbtn{background:#eef2f9;color:var(--muted);font-size:.8em;padding:4px 11px}.lvlbtn.on{background:#7a3df0;color:#fff}.note{color:var(--muted);font-size:.85em}
+button.ghost{background:#20242e;color:var(--brand2)}button:hover{filter:brightness(1.12)}
+.levels{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap}.lvlbtn{background:#20242e;color:var(--muted);font-size:.8em;padding:4px 11px}.lvlbtn.on{background:var(--brand);color:#fff}.note{color:var(--muted);font-size:.85em}
 .card.chal>.cbody{display:none}.card.chal.open>.cbody{display:block}.card.chal>h2{cursor:pointer}
 .card.chal>h2::before{content:"▸ ";opacity:.5;font-weight:400}.card.chal.open>h2::before{content:"▾ "}
 .urlprev{color:var(--brand2);font-size:.8em;font-family:ui-monospace,Consolas,monospace;margin:6px 0 0;word-break:break-all;opacity:.9}
-.res{width:100%;height:180px;border:1px solid var(--line);border-radius:8px;background:#fff;margin-top:8px;display:block}
+.res{width:100%;height:180px;border:1px solid var(--line);border-radius:8px;background:#0b0f16;margin-top:8px;display:block}
 .rx{white-space:pre-wrap;background:#0f1622;color:#dfe6ee;border-radius:8px;padding:10px;margin-top:8px;font-family:ui-monospace,Consolas,monospace;font-size:.85em;display:block;max-height:220px;overflow:auto}
-.muted{color:var(--muted);font-size:.92em}.ok{border-color:var(--ok);background:#eafaf0}
+.muted{color:var(--muted);font-size:.92em}.ok{border-color:var(--ok);background:#12351f}
 footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted);font-size:.85em;border-top:1px solid var(--line)}footer a{color:var(--brand2)}
 </style></head><body>
 <div class="topbar"><span class="brand">⬡ VulnNexus</span><span class="badge">app 2 · medium → hard</span>
