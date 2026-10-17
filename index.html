@@ -141,7 +141,7 @@ footer a{color:var(--brand2)}
         root→intermediate→leaf chain, <code>chain.pem</code> and a CRL.</li>
         <li><b>keys/</b> — ed25519, RSA, and a passphrase-protected <code>encrypted_rsa</code>.</li>
       </ul>
-      <div class="links"><a class="primary" href="certificates/README.md">▶ Certificates &amp; PKI exercise</a></div>
+      <div class="links"><a class="primary" href="certificates/index.html">▶ Certificates &amp; PKI exercise</a></div>
       <p class="muted" style="margin:8px 0 0">Ready-to-use (committed): inspect a flawed cert, validate a chain, check a CRL.</p>
     </div>
     <div class="card">
@@ -151,7 +151,7 @@ footer a{color:var(--brand2)}
         the MIME tree.</li>
         <li><b>network/*.pcap</b> — cleartext HTTP login (Follow TCP Stream).</li>
       </ul>
-      <div class="links"><a class="primary" href="pcap/README.md">▶ Network capture exercise</a></div>
+      <div class="links"><a class="primary" href="pcap/index.html">▶ Network capture exercise</a></div>
       <p class="muted" style="margin:8px 0 0">Ready-to-use (committed): recover a cleartext login from a PCAP.</p>
     </div>
     <div class="card">
@@ -171,6 +171,18 @@ footer a{color:var(--brand2)}
   <!-- DEDICATED LABS -->
   <h2 class="sec" id="labs">Dedicated labs</h2>
   <div class="grid">
+    <div class="card">
+      <h3>🔐 Certificates &amp; PKI <span class="lvl">4 levels</span></h3>
+      <a class="shotlink" href="certificates/index.html"><img class="shot" src="assets/preview-certs.png" alt="Certificates &amp; PKI hub" loading="lazy"></a>
+      <p>Inspect a flawed cert → validate a chain → check a CRL → CA constraints &amp; hostname matching. Offline, <code>openssl</code> only.</p>
+      <div class="links"><a class="primary" href="certificates/index.html">Open hub</a><a href="certificates/README.md">README</a><a href="certificates/solution.md">Solution</a></div>
+    </div>
+    <div class="card">
+      <h3>📡 Network capture <span class="lvl">4 levels</span></h3>
+      <a class="shotlink" href="pcap/index.html"><img class="shot" src="assets/preview-pcap.png" alt="Network capture hub" loading="lazy"></a>
+      <p>One plaintext HTTP capture that leaks three secrets: cleartext form → base64 Basic auth → a weak session token. Wireshark / <code>tshark</code>.</p>
+      <div class="links"><a class="primary" href="pcap/index.html">Open hub</a><a href="pcap/README.md">README</a><a href="pcap/solution.md">Solution</a></div>
+    </div>
     <div class="card">
       <h3>🔓 TLS decryption</h3>
       <p>An encrypted HTTPS PCAP + the server's RSA private key. Decrypt it (static-RSA, no forward

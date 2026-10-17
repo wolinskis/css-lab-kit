@@ -39,10 +39,18 @@ def eth(payload):
 def frame(seq,ack,flags,data=b""):
     return eth(ip(tcp(seq,ack,flags,data)))
 
-post=(b"POST /login HTTP/1.1\r\nHost: portal.vulncorp.local\r\n"
-      b"Content-Type: application/x-www-form-urlencoded\r\nContent-Length: 42\r\n\r\n"
-      b"username=admin&password=S3ntinel!Admin&tok=1")
-resp=b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nOK"
+import base64
+BASIC = base64.b64encode(b"svc_portal:Sup3rS3cret!").decode()        # a 2nd cred, base64 (not encryption)
+SESS  = base64.b64encode(b'{"user":"admin","role":"user"}').decode().rstrip("=")  # weak, unsigned token
+body  = b"username=admin&password=S3ntinel!Admin&tok=1j"
+post  = ("POST /login HTTP/1.1\r\nHost: portal.vulncorp.local\r\n"
+         f"Authorization: Basic {BASIC}\r\n"
+         "User-Agent: Mozilla/5.0\r\n"
+         "Content-Type: application/x-www-form-urlencoded\r\n"
+         f"Content-Length: {len(body)}\r\n\r\n").encode() + body
+resp  = ("HTTP/1.1 200 OK\r\n"
+         f"Set-Cookie: session={SESS}; Path=/; HttpOnly\r\n"
+         "Content-Length: 2\r\n\r\nOK").encode()
 
 pkts=[]
 ip.dir=1; pkts.append(frame(1000,0,0x02))                       # SYN

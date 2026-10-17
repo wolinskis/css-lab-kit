@@ -1,0 +1,63 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Certificates & PKI — Lab Kit</title>
+<style>
+:root{--bg:#0e1016;--card:#171a22;--ink:#e6edf3;--muted:#9aa4b2;--line:#2a2f3a;--brand:#9a6bff;--brand2:#58a6ff;--ok:#3fb950}
+*{box-sizing:border-box}body{font-family:system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink);margin:0;line-height:1.55}
+a{color:var(--brand2);text-decoration:none}a:hover{text-decoration:underline}
+code{background:#20242e;color:#b79cff;padding:2px 7px;border-radius:5px;font-family:ui-monospace,Consolas,monospace;font-size:.9em}
+.topbar{position:sticky;top:0;z-index:5;background:linear-gradient(120deg,#143b2a,#1f9d57);color:#fff;padding:12px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(20,60,40,.2)}
+.brand{font-weight:700;font-size:1.15em}.badge{font-size:.72em;background:rgba(255,255,255,.18);padding:2px 9px;border-radius:20px}
+.nav{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}.nav a{color:#fff;font-size:.85em;background:rgba(255,255,255,.14);padding:5px 11px;border-radius:7px}.nav a:hover{background:rgba(255,255,255,.28);text-decoration:none}
+.wrap{max-width:900px;margin:22px auto;padding:0 16px}
+.intro{color:var(--muted);font-size:.95em}
+.files{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 16px;margin:14px 0;font-size:.88em}
+.files b{color:var(--ink)}.files code{font-size:.85em}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0}
+.card h2{margin:0 0 6px;font-size:1.05em;color:#c7b3ff;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lvl{font-size:.72em;font-weight:700;padding:2px 9px;border-radius:20px}
+.l-easy{background:#122017;color:#3fb950;border:1px solid #3fb95033}.l-med{background:#1e2410;color:#d9c441;border:1px solid #d9c44133}
+.l-hard{background:#2a1c10;color:#e39b41;border:1px solid #e39b4133}.l-exp{background:#2a1620;color:#ff8bb0;border:1px solid #ff8bb033}
+.card p{margin:6px 0 10px;color:var(--muted);font-size:.92em}
+details{margin:4px 0}summary{cursor:pointer;color:var(--brand2);font-size:.9em}
+pre{background:#0f1622;color:#9ce6a0;padding:10px 12px;border-radius:7px;font-family:ui-monospace,Consolas,monospace;font-size:.84em;overflow:auto;margin:8px 0 0;white-space:pre-wrap;word-break:break-word}
+footer{color:var(--muted);font-size:.85em;border-top:1px solid var(--line);margin:26px 0 50px;padding:14px 0}
+</style></head><body>
+<div class="topbar"><span class="brand">🔐 Certificates &amp; PKI</span><span class="badge">offline · openssl</span>
+  <nav class="nav"><a href="../index.html">🏁 Lab Kit</a><a href="README.md">README</a><a href="solution.md">Solution</a></nav></div>
+<div class="wrap">
+  <p class="intro">Inspect a flawed certificate, validate a trust chain, and check revocation — all offline
+  with <code>openssl</code> against the files below. Four escalating levels. Full answers in
+  <a href="solution.md">solution.md</a>.</p>
+  <div class="files"><b>Files:</b> <code>bad-webmail.crt</code> · <code>root_ca.pem</code> ·
+    <code>intermediate_ca.pem</code> · <code>server.pem</code> · <code>chain.pem</code> ·
+    <code>revoked.pem</code> · <code>intermediate.crl</code> <span style="color:var(--muted)">(public certs only — no private keys)</span></div>
+
+  <div class="card"><h2>1 · Assess the bad certificate <span class="lvl l-easy">🟢 Easy</span></h2>
+    <p>Inspect <code>bad-webmail.crt</code> — would a browser trust it? Name every flaw (there are 4).</p>
+    <details><summary>💡 starter command</summary>
+      <pre>openssl x509 -in bad-webmail.crt -noout -text
+openssl x509 -in bad-webmail.crt -noout -subject -issuer -dates -ext subjectAltName</pre></details></div>
+
+  <div class="card"><h2>2 · Validate the chain <span class="lvl l-med">🟡 Medium</span></h2>
+    <p>Prove <code>server.pem</code> chains to the root through the intermediate.</p>
+    <details><summary>💡 starter command</summary>
+      <pre>openssl verify -CAfile root_ca.pem -untrusted intermediate_ca.pem server.pem</pre></details></div>
+
+  <div class="card"><h2>3 · Check revocation <span class="lvl l-hard">🟠 Hard</span></h2>
+    <p>Which serial does <code>intermediate.crl</code> revoke? Is <code>server.pem</code> among them? Re-validate with the CRL enforced.</p>
+    <details><summary>💡 starter command</summary>
+      <pre>openssl crl -in intermediate.crl -noout -text | grep -A1 'Serial Number'
+openssl x509 -in server.pem -noout -serial ; openssl x509 -in revoked.pem -noout -serial
+openssl verify -crl_check -CAfile &lt;(cat root_ca.pem intermediate_ca.pem) -CRLfile intermediate.crl server.pem</pre></details></div>
+
+  <div class="card"><h2>4 · Constraints, fingerprint, hostname <span class="lvl l-exp">🔴 Expert</span></h2>
+    <p>Read the intermediate's CA constraints (why can't it mint a sub-CA?); fingerprint the leaf; and
+    decide whether <code>bad-webmail.crt</code> is valid for the hostname <code>portal.lab.local</code>.</p>
+    <details><summary>💡 starter command</summary>
+      <pre>openssl x509 -in intermediate_ca.pem -noout -ext basicConstraints,keyUsage
+openssl x509 -in server.pem -noout -fingerprint -sha256
+openssl x509 -in bad-webmail.crt -noout -ext subjectAltName   # does a wildcard cover the bare domain?</pre></details></div>
+
+  <footer>⚠️ <b>Training only</b> — synthetic certs; throwaway CA keys; never use in production.</footer>
+</div>
+</body></html>
