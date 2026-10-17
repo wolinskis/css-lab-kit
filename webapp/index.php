@@ -88,10 +88,11 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
   <form method="get" action="profile.php" target="r_id" onsubmit="show('r_id')">
     <input type="hidden" name="level" id="lvl_id" value="easy"><input type="hidden" name="embed" value="1">
     <input type="text" id="in_id" name="id" placeholder="id (or encoded id)…" style="min-width:170px"><button>Run ▶</button></form>
-  <div class="muted" style="margin-top:4px">expert (cookie-trust, no DevTools needed):
+  <div id="id_expert" style="display:none">
+    <p class="muted"><b>Expert (cookie-trust):</b> the <code>?id</code> is ignored — the server trusts a <code>uid</code> cookie as your identity. Become another user without touching the URL:</p>
     <button type="button" class="ghost" onclick="setUid(1)">become uid=1 (admin) ▶</button>
     <button type="button" class="ghost" onclick="clearUid()">clear uid</button>
-    <span style="font-size:.82em">— sets a <code>uid</code> cookie <b>scoped to <code>/profile.php</code></b> (only this exercise, not the whole site), then reloads your "profile"</span>
+    <span class="muted" style="font-size:.82em">— sets <code>uid</code> <b>scoped to <code>/profile.php</code></b> (only this exercise, not the whole site), then reloads. Manual equivalent: DevTools → Application → Cookies → add <code>uid=1</code>.</span>
   </div>
   <iframe name="r_id" id="r_id" class="res"></iframe></div>
 
@@ -216,6 +217,7 @@ function setLvl(card,lvl){
   var nt=document.getElementById('note_'+card); if(nt) nt.textContent=d.n;
   var plx=document.getElementById('pl_'+card+'x'); if(plx && d.x) plx.textContent=d.x;
   if(card==='cmd'){ var s2=document.getElementById('cmd_step2'); if(s2) s2.style.display=(lvl==='expert')?'block':'none'; }
+  if(card==='id'){ var ie=document.getElementById('id_expert'); if(ie) ie.style.display=(lvl==='expert')?'block':'none'; }
   // no auto-fill on level change: the payload enters the input only via "use this ▶" (explicit ask);
   // collapse the hint on each switch so changing level never reveals the next level's answer.
   var _pl=document.getElementById('pl_'+card); if(_pl){ var _det=_pl.closest('details'); if(_det) _det.open=false; }
