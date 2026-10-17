@@ -28,7 +28,7 @@ button.ghost{background:#20242e;color:var(--brand2)}button:hover{filter:brightne
 footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted);font-size:.85em;border-top:1px solid var(--line)}footer a{color:var(--brand2)}
 </style></head><body>
 <div class="topbar"><span class="brand">⬡ VulnNexus</span><span class="badge">app 2 · medium → hard</span>
-<nav class="nav"><a href="index.php">Home</a><a href="progress.php">📊 Progress</a><a href="reset.php" title="drop &amp; reseed the DB">↺ Reset</a><a href="feedback.php">💬 Feedback</a></nav></div>
+<nav class="nav"><a href="index.php">🎯 Hub</a><a href="home.php">🏪 Store</a><a href="progress.php">📊 Progress</a><a href="reset.php" title="drop &amp; reseed the DB">↺ Reset</a><a href="feedback.php">💬 Feedback</a></nav></div>
 <div class="wrap">
 <?php if(isset($_GET['reset'])) echo "<div class='card ok'>✅ Lab reset to a clean state (DB reseeded).</div>"; ?>
 
