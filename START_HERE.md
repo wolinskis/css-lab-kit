@@ -61,4 +61,4 @@ cd Exercises/Lab_Kit
 4. Stuck? The answer (exact payload + command) is in `webapp/SOLUTIONS.md` / `webapp2/SOLUTIONS.md`.
 5. Reset a target anytime: `rm -rf webapp/.mariadb-data webapp/uploads/*` (or `webapp2/.mariadb-data2`).
 
-> Prereqs on Kali: `php`, `mariadb-server`, `openssl`, `ssh-keygen`, `python3`, `tshark` (+ `php-xml` for app 2's XXE). Install any missing: `sudo apt install <pkg>`.
+> Prereqs on Kali: `php`, `mariadb-server`, `openssl`, `ssh-keygen`, `python3`, `tshark` (+ `php-xml` for app 2's XXE). Install any missing with `sudo apt update && sudo apt install -y <pkg>` — always run `apt update` first, or a stale index can 404 on the current build (e.g. `php-xml`). Restart `run.sh` after installing `php-xml`.

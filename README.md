@@ -34,6 +34,10 @@ cd css-lab-kit
 Each `run.sh` spins up its own throwaway MariaDB (no system service, no root) and the PHP app together;
 Ctrl+C stops both. Reset a target: `rm -rf webapp/.mariadb-data webapp/uploads/*`.
 
+> App 2's XXE lab (`import.php`) needs PHP's XML extension: `sudo apt update && sudo apt install -y php-xml`,
+> then restart `run.sh`. Run `apt update` **first** — without it a stale package index can 404 on the
+> current `php-xml` build. `run.sh` prints a warning if it's missing; every other exercise works without it.
+
 ---
 
 ## Sharing with colleagues
