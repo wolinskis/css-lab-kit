@@ -162,6 +162,7 @@ function setLvl(card,lvl){
   // clicks "use this ▶", the hint collapses on each switch, and the input is cleared so the previous
   // level's command doesn't linger — so changing level never reveals (or keeps) an answer.
   var _in=document.getElementById('in_'+card); if(_in){ _in.value=''; _in.dispatchEvent(new Event('input')); }
+  var _rf=document.getElementById('r_'+card); if(_rf){ _rf.style.display='none'; try{_rf.src='about:blank';}catch(e){} }
   document.querySelectorAll('#lv_'+card+' .lvlbtn').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-l')===lvl); });
 }
 PAYLOADS.rd={

@@ -17,7 +17,16 @@ if (isset($_GET['q'])) {
     try {
         if ($L==='expert') {               // BLIND: reveal only match / no-match
             $n=0; foreach ($db->query($sql) as $row) { $n++; }
-            echo "<div class='muted'>".($n>0?"✓ match":"✗ no match")." — blind, no data returned</div>";
+            if ($n>0) {
+                echo "<div class='muted'><b>✓ TRUE</b> — your boolean condition held.</div>";
+                echo "<div class='muted' style='opacity:.8'>This endpoint is <b>blind</b>: it only ever answers TRUE/FALSE — it never prints rows. "
+                    ."You exfiltrate data <b>one character at a time</b> by asking yes/no questions, e.g.<br>"
+                    ."<code>' OR (SELECT SUBSTRING(private_note,1,1) FROM users WHERE username='admin')='F'-- -</code><br>"
+                    ."TRUE → char 1 is 'F'. Walk the position (1,2,3…) and the guessed letter to rebuild the value — "
+                    ."or let <code>sqlmap</code> automate the loop. (Want the data dumped directly? drop to a lower level and UNION it.)</div>";
+            } else {
+                echo "<div class='muted'><b>✗ FALSE</b> — condition not met. Blind SQLi: change the guessed character/position and watch TRUE/FALSE.</div>";
+            }
         } else {
             foreach ($db->query($sql) as $row) {
                 echo "<div class='muted'>".$row['username']." &lt;".$row['email']."&gt; — ".$row['role']."</div>";
