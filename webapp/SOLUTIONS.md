@@ -66,6 +66,10 @@ python3 -m http.server 9001
 **Answer:** no ownership check — any `id` reveals that user's note + API key.
 **Command:** `curl -s "$U/profile.php?id=1"`
 **Result:** admin's record → `FLAG{sql1_auth_byp4ss_and_1dor}` + API key. **Reason:** object id trusted straight from the URL.
+Per level the reference is obfuscated but always forgeable: `?id=1` (easy) · base64 `?id=MQ==` (medium) ·
+md5 `?id=c4ca4238a0b923820dcc509a6f75849b` (hard) · **expert** the `?id` is ignored and the server trusts a
+`uid` **cookie** — set `uid=1` (the Hub's "become uid=1" button sets it scoped to `/profile.php`, or add it
+by hand in DevTools → Application → Cookies) and reload → admin.
 
 ## 5. Command injection  (`tools.php?host=`)
 **Answer:** `host` is concatenated into a shell `ping`.

