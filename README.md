@@ -34,6 +34,10 @@ cd css-lab-kit
 Each `run.sh` spins up its own throwaway MariaDB (no system service, no root) and the PHP app together;
 Ctrl+C stops both. Reset a target: `rm -rf webapp/.mariadb-data webapp/uploads/*`.
 
+> **Run detached** (keep the apps up after the terminal closes): `nohup ./webapp/run.sh >/tmp/vc.log 2>&1 &`
+> and `nohup ./webapp2/run.sh >/tmp/vn.log 2>&1 &`. Stop a detached app with `pkill -f 'php -S 0.0.0.0:8000'`
+> (or `:8001`) — its MariaDB shuts down via `run.sh`'s trap. Restart an app after installing `php-xml` so PHP loads it.
+
 > App 2's XXE lab (`import.php`) needs PHP's XML extension: `sudo apt update && sudo apt install -y php-xml`,
 > then restart `run.sh`. Run `apt update` **first** — without it a stale package index can 404 on the
 > current `php-xml` build. `run.sh` prints a warning if it's missing; every other exercise works without it.

