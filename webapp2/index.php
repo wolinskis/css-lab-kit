@@ -159,7 +159,9 @@ function setLvl(card,lvl){
   var pl=document.getElementById('pl_'+card); if(pl){ pl.textContent=d.p; var _det=pl.closest('details'); if(_det) _det.open=false; }
   var nt=document.getElementById('note_'+card); if(nt) nt.textContent=d.n;
   // no auto-fill on level change: the payload enters the input only when the user opens the hint and
-  // clicks "use this ▶", and the hint collapses on each switch — so changing level never reveals the answer.
+  // clicks "use this ▶", the hint collapses on each switch, and the input is cleared so the previous
+  // level's command doesn't linger — so changing level never reveals (or keeps) an answer.
+  var _in=document.getElementById('in_'+card); if(_in) _in.value='';
   document.querySelectorAll('#lv_'+card+' .lvlbtn').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-l')===lvl); });
 }
 PAYLOADS.rd={

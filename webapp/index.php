@@ -223,8 +223,10 @@ function setLvl(card,lvl){
   if(card==='cmd'){ var s2=document.getElementById('cmd_step2'); if(s2) s2.style.display=(lvl==='expert')?'block':'none'; }
   if(card==='id'){ var ie=document.getElementById('id_expert'); if(ie) ie.style.display=(lvl==='expert')?'block':'none'; }
   // no auto-fill on level change: the payload enters the input only via "use this ▶" (explicit ask);
-  // collapse the hint on each switch so changing level never reveals the next level's answer.
+  // collapse the hint AND clear the input(s) on each switch so the previous level's answer doesn't linger.
   var _pl=document.getElementById('pl_'+card); if(_pl){ var _det=_pl.closest('details'); if(_det) _det.open=false; }
+  var _in=document.getElementById('in_'+card); if(_in) _in.value='';
+  if(card==='login'){ var _lu=document.getElementById('in_lu'); if(_lu)_lu.value=''; var _lp=document.getElementById('in_lp'); if(_lp)_lp.value=''; }
   document.querySelectorAll('#lv_'+card+' .lvlbtn').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-l')===lvl); });
 }
 PAYLOADS.login={easy:{p:"admin'-- -",n:"Easy — comment out the password check."},medium:{p:"admin' or '1'='1",n:"Medium — comments stripped -> self-closing OR (no comment)."},hard:{p:"admin' oorr '1'='1",n:"Hard — 'or' also stripped -> nest it (oorr -> or)."},expert:{p:"admin'/**/oorr/**/'1'='1",n:"Expert — spaces also stripped -> /**/ as spaces."}};
