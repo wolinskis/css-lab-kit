@@ -1,3 +1,0 @@
-# users table backup (pre-migration dump)  username:hash
-# hashing: legacy, unsalted
-admin:891c5feef171da85aadd3fdb8130ba509b03f5ea

