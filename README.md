@@ -61,15 +61,16 @@ Start with **app 1** for fundamentals, then **app 2** to level up. Default creds
 weak-creds and JWT labs — everything else you attack unauthenticated. Flags are `FLAG{...}`.
 
 ## Two ways to use each app
-Same vulnerable code behind both views — pick whichever fits:
+Same vulnerable code behind both views — pick whichever fits. (Both apps are **dark-themed**.)
 
 - 🎯 **Hub** (`index.php`, the landing page) — the fancy, guided console: pick a card, choose a level
-  (Easy → Expert), click **💡 hint → use this → Run**, and the answer shows in the panel. A live URL
-  preview shows exactly where your payload lands, and switching levels re-fills the input so you can
-  compare techniques side by side. Best for **learning and comparing levels**.
-- 🏠 **Home** (`home.php`, plus the raw endpoints like `login.php`, `profile.php`, `upload.php`) — the
-  plain app. Less pretty, but more direct/functional: you drive the real pages and craft payloads in
-  the URL yourself, like a real target. Use it when the hub feels fiddly.
+  (Easy → Expert), reveal the **💡 hint → use this → Run**, and the answer shows in the panel. A live
+  request preview shows exactly where your payload lands, and switching levels gives a **clean slate**
+  (clears the input, collapses the hint, blanks the result) so you tackle each level fresh. Best for
+  **learning and comparing levels**.
+- 🏠 **Home / 🏪 Store** (`home.php`, plus the raw endpoints) — the plain app (app 1 = *VulnCorp*
+  intranet, app 2 = *VulnNexus* store). Less pretty, but more direct/functional: you drive the real
+  pages and craft payloads in the URL/forms yourself, like a real target. Use it when the hub feels fiddly.
 
 Work out the payload yourself; stuck → reveal the **💡 hint**. Full walkthroughs in
 [`SOLUTIONS.md`](SOLUTIONS.md).
