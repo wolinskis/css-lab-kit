@@ -28,6 +28,8 @@ if (!function_exists('md_page')) {
     }
     function md_to_html($md) {
         $md = str_replace("\r\n", "\n", $md);
+        // strip a leading YAML frontmatter block (--- ... ---) so tags/metadata don't render as body
+        $md = preg_replace('/\A---\n.*?\n---\n/s', '', $md, 1);
         $codes = [];
         $md = preg_replace_callback('/```[^\n]*\n(.*?)\n?```/s', function ($m) use (&$codes) {
             $i = count($codes); $codes[$i] = '<pre><code>' . htmlspecialchars($m[1], ENT_QUOTES) . '</code></pre>';
