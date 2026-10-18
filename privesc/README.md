@@ -1,24 +1,44 @@
 ---
 tags: [css-exam, privesc, metasploit, lab]
 ---
-# Privilege Escalation Lab (Linux) — identify the vectors, then Metasploit
+# Privilege Escalation Lab (Linux) — spot the vectors, then Metasploit
 
-**Scenario:** you landed a low-privilege shell as `www-data` on `web01` (e.g. via the webshell
-upload or command injection in app 1). Escalate to **root** and read `/root/flag.txt`.
+## 🎯 The goal, in one line
 
-This lab is **self-contained for the identification half**: `enum/` holds real-shaped enumeration
-output (sudo, SUID, cron, capabilities, system). Your job is to spot **every** privesc vector in it
-and write the exact command that exploits each — that spotting skill is what the exam tests. The
-**Metasploit half** (turning a Meterpreter session into root) is a documented workflow you run
-against a practice VM.
+You have a **low-privilege shell** — you're the `www-data` web user on a Linux box called `web01`.
+**Become `root`** (the admin account) and read the protected file `/root/flag.txt`.
 
-## Tasks
-1. From `enum/sudo_l.txt`, `enum/suid.txt`, `enum/cron.txt`, `enum/capabilities.txt`, `enum/system.txt`,
-   list **every** path to root you can find (there are 5).
-2. For each, write the **exact one-liner** that gives you a root shell (use GTFOBins).
-3. Write the **Metasploit** steps to go from a Meterpreter session to root
-   (session → suggester → local exploit).
-4. Flag: the root-only `FLAG{...}` in `enum/root_flag.txt` (what `/root/flag.txt` would hold).
+## What this lab is (and what it isn't)
 
-Check yourself against `solution.md`. Reference: GTFOBins (gtfobins.github.io), the vault's
-Metasploit notes (`MSF_Index`).
+You don't attack a live machine here. In real life, the moment you break into a Linux box you
+**enumerate** it — run a few commands to see how it's (mis)configured. That output is already captured
+for you in the **`enum/`** folder. **Your only job is to read those files and recognise the
+misconfigurations that let a normal user turn into root.** Spotting them quickly is exactly the skill
+the exam grades — so this lab trains the *reading*, not the typing.
+
+## The files you're given — and the red flag to hunt in each
+
+| File | The command that produced it | What you're looking for |
+|---|---|---|
+| `enum/sudo_l.txt` | `sudo -l` | a command you may run **as root with no password** |
+| `enum/suid.txt` | `find / -perm -4000` | a program that **runs as its owner (root)** but shouldn't |
+| `enum/cron.txt` | `cat /etc/crontab` | a script **root runs on a schedule** that **you can edit** |
+| `enum/capabilities.txt` | `getcap -r /` | a binary given a **root-like capability** (e.g. `cap_setuid`) |
+| `enum/system.txt` | `id` / `uname -a` | the **OS version** → a known local/kernel exploit (e.g. PwnKit) |
+
+There are **5** independent ways to root hiding in there. Any **one** of them is enough to win.
+
+## Your tasks
+
+1. Read the 5 `enum/` files and **list every path to root** (there are 5).
+2. For each, write the **exact one-liner** that drops you a root shell. The site
+   [GTFOBins](https://gtfobins.github.io) gives the trick for almost any SUID/sudo/capability binary.
+3. Write the **Metasploit** steps to turn a Meterpreter session into root (session → suggester → local exploit).
+4. Get the flag: the root-only `FLAG{...}`. Here it lives in `enum/root_flag.txt` — that's what
+   `/root/flag.txt` would hold once you're root.
+
+## Stuck, or want to check your answers?
+
+Every vector is worked out — **with the "how did I spot it" for each** — in **`solution.md`**
+(or open this lab in the browser at **`/privesc/`**). References: GTFOBins, and the vault's Metasploit
+notes (`MSF_Index`).
