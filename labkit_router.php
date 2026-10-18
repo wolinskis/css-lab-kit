@@ -31,7 +31,7 @@ if (!function_exists('md_page')) {
         $codes = [];
         $md = preg_replace_callback('/```[^\n]*\n(.*?)\n?```/s', function ($m) use (&$codes) {
             $i = count($codes); $codes[$i] = '<pre><code>' . htmlspecialchars($m[1], ENT_QUOTES) . '</code></pre>';
-            return "\x00CODE$i\x00";
+            return "\x02CODE$i\x02";
         }, $md);
         $lines = explode("\n", $md); $n = count($lines); $i = 0; $out = [];
         $ul = false; $ol = false;
@@ -41,7 +41,7 @@ if (!function_exists('md_page')) {
         };
         while ($i < $n) {
             $t = rtrim($lines[$i]);
-            if (preg_match('/^\x00CODE\d+\x00$/', $t))         { $close(); $out[] = $t; $i++; continue; }
+            if (preg_match('/^\x02CODE\d+\x02$/', $t))         { $close(); $out[] = $t; $i++; continue; }
             if (trim($t) === '')                                { $close(); $i++; continue; }
             if (preg_match('/^\s*([-*_])(\s*\1){2,}\s*$/', $t)) { $close(); $out[] = '<hr>'; $i++; continue; }
             if (preg_match('/^(#{1,6})\s+(.*)$/', $t, $m))      { $close(); $lv = strlen($m[1]); $out[] = "<h$lv>" . md_inline(rtrim($m[2], ' #')) . "</h$lv>"; $i++; continue; }
@@ -75,7 +75,7 @@ if (!function_exists('md_page')) {
             while ($i < $n) {
                 $nx = rtrim($lines[$i]);
                 if (trim($nx) === '') break;
-                if (preg_match('/^(#{1,6})\s|^\s*[-*+]\s|^\s*\d+[.)]\s|^\s*>|^\x00CODE\d+\x00$/', $nx)) break;
+                if (preg_match('/^(#{1,6})\s|^\s*[-*+]\s|^\s*\d+[.)]\s|^\s*>|^\x02CODE\d+\x02$/', $nx)) break;
                 if (preg_match('/^\s*([-*_])(\s*\1){2,}\s*$/', $nx)) break;
                 // stop before a GFM table (pipe row + |---| separator) that follows a text line
                 if (strpos($nx, '|') !== false && isset($lines[$i + 1])
@@ -86,7 +86,7 @@ if (!function_exists('md_page')) {
         }
         $close();
         $html = implode("\n", $out);
-        return preg_replace_callback('/\x00CODE(\d+)\x00/', function ($m) use ($codes) { return $codes[$m[1]]; }, $html);
+        return preg_replace_callback('/\x02CODE(\d+)\x02/', function ($m) use ($codes) { return $codes[$m[1]]; }, $html);
     }
     function md_page($title, $body) {
         $t = htmlspecialchars($title, ENT_QUOTES);
