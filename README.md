@@ -2,8 +2,9 @@
 
 A **self-contained** kit to practise security-testing techniques against real targets on your own
 machine: two deliberately vulnerable web apps + generator scripts that produce real file artifacts
-(certificates, keys, PCAP, phishing `.eml`, datasets, hashes). Everything is reproducible — nothing to
-download. Great for exam prep and teaching.
+(certificates, keys, PCAP, phishing `.eml`, datasets, hashes). Everything is reproducible locally —
+no external downloads, nothing to install. Each lab also ships a one-file offline bundle if you'd
+rather grab it and go. Great for exam prep and teaching.
 
 > 🟢 **New here? Read [`START_HERE.md`](START_HERE.md) first** — the two apps explained + when you need a login.
 
@@ -152,6 +153,6 @@ MIT with an **educational / authorized-use clause** — see [LICENSE](LICENSE). 
 vulnerable by design; use it only for lawful, authorized, isolated training.
 
 ## Credits
-Built for Cyber Security Specialist (CSS) exam prep. **Special thanks to** `$2b$12$xVJlVMFSraP73TnaU9mZCumwkeKwp9QVmZfRyP0fqnymL6Zf/kgGC` 🙏
+Built for Cyber Security Specialist (CSS) exam prep. Thanks to the open security-training community — [HackTricks](https://book.hacktricks.xyz), [GTFOBins](https://gtfobins.github.io), and [malware-traffic-analysis.net](https://malware-traffic-analysis.net) — whose public material inspired these labs. 🙏
 
 Questions / feedback: open a [css-lab-kit issue](https://github.com/wolinskis/css-lab-kit/issues) or email `github.com.destiny581@passmail.com`.
