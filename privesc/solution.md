@@ -1,5 +1,5 @@
 ---
-tags: [css-exam, privesc, metasploit, solution]
+tags: [css-exam, module-9, privesc, linux, gtfobins, pkexec, metasploit, solution]
 ---
 # Privilege Escalation Lab — Solution (with the "how did I spot it")
 

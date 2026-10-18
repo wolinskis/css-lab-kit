@@ -1,5 +1,5 @@
 ---
-tags: [css-exam, privesc, metasploit, lab]
+tags: [css-exam, module-9, privesc, linux, gtfobins, pkexec, metasploit, lab]
 ---
 # Privilege Escalation Lab (Linux) — spot the vectors, then Metasploit
 

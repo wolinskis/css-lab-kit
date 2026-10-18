@@ -1,0 +1,11 @@
+record_id,age,zip,gender,diagnosis
+1,29,8001,F,Flu
+2,41,8004,M,Diabetes
+3,29,8001,F,Depression
+4,55,3011,M,Hypertension
+5,34,8001,F,Flu
+6,41,8004,M,Asthma
+7,67,3011,F,Cancer
+8,55,3011,M,Flu
+9,22,6003,F,Anxiety
+10,22,6003,M,Flu
