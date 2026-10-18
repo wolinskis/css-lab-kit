@@ -14,13 +14,24 @@ openssl x509 -in bad-webmail.crt -noout -text | grep -i 'Public-Key'
 
 **Reason:** a browser hard-fails on *any* of self-signed / expired alone.
 
-## 🟡 Medium — validate the chain
-**Command:**
+## 🟡 Medium — validate the chain (see it FAIL first, then fix it)
+**Commands — run in order so you see *why* it ends in `OK`:**
 ```
-openssl verify -CAfile root_ca.pem -untrusted intermediate_ca.pem server.pem
+openssl verify server.pem                                                     # 1. FAILS: error 20 (no issuer at all)
+openssl verify -CAfile root_ca.pem server.pem                                 # 2. STILL FAILS: error 20 (root didn't sign the leaf — the intermediate did)
+openssl verify -CAfile root_ca.pem -untrusted intermediate_ca.pem server.pem  # 3. OK: -untrusted supplies the missing intermediate
 ```
-**Result:** `server.pem: OK`. **Reason:** trust is transitive — root (anchor) → intermediate → leaf.
-`-untrusted` supplies the intermediate so openssl can build the path; `-CAfile` is the anchor you trust.
+**Result:** steps 1–2 → `error 20 ... unable to get local issuer certificate` → `verification failed`; step 3 → `server.pem: OK`.
+
+**See the chain you are building (subject ← issuer):**
+```
+openssl x509 -in server.pem          -noout -subject -issuer
+openssl x509 -in intermediate_ca.pem -noout -subject -issuer
+openssl x509 -in root_ca.pem         -noout -subject -issuer
+```
+→ `server.pem` (CN=portal.labkit.local) is issued by **LabKit Issuing CA** (= `intermediate_ca.pem`), issued by **LabKit Root CA** (= `root_ca.pem`, the self-signed anchor).
+
+**Reason / where the problem is:** Medium is **not** a flaw-hunt — the deliverable is a *valid* chain (`OK`). The lesson is the failure in steps 1–2: `error 20 — unable to get local issuer certificate` is what you get when the **intermediate is missing** — one of the most common real-world TLS misconfigurations (a server presenting only its leaf cert). `-untrusted` supplies the missing intermediate so openssl can build leaf → intermediate → root; `-CAfile` is the anchor you trust. In production the fix is to serve the full bundle (`chain.pem`).
 
 ## 🟠 Hard — revocation
 **Command:**

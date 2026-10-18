@@ -174,7 +174,10 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
   <p class="muted">You're handed certificates from a lab environment: a flawed cert, a CA chain, and a CRL. Inspect, validate and check revocation.</p>
   <p class="muted">📥 <b>Download:</b> <a href="/certificates/bad-webmail.crt" download>bad-webmail.crt</a> · <a href="/certificates/root_ca.pem" download>root_ca.pem</a> · <a href="/certificates/intermediate_ca.pem" download>intermediate_ca.pem</a> · <a href="/certificates/server.pem" download>server.pem</a> · <a href="/certificates/chain.pem" download>chain.pem</a> · <a href="/certificates/revoked.pem" download>revoked.pem</a> · <a href="/certificates/intermediate.crl" download>intermediate.crl</a></p>
   <details><summary>🟢 Easy — inspect <code>bad-webmail.crt</code>, name the 4 flaws</summary><code class="pl">openssl x509 -in bad-webmail.crt -noout -text</code></details>
-  <details><summary>🟡 Medium — validate the chain</summary><code class="pl">openssl verify -CAfile root_ca.pem -untrusted intermediate_ca.pem server.pem</code></details>
+  <details><summary>🟡 Medium — validate the chain (run it WITHOUT the intermediate first → watch it fail)</summary><code class="pl">openssl verify server.pem                                                     # FAILS: error 20 (no issuer)
+openssl verify -CAfile root_ca.pem server.pem                                 # STILL FAILS: root did not sign the leaf — the intermediate did
+openssl verify -CAfile root_ca.pem -untrusted intermediate_ca.pem server.pem  # OK: -untrusted supplies the missing intermediate
+openssl x509 -in server.pem -noout -subject -issuer                           # SEE the chain: issued by &quot;LabKit Issuing CA&quot; (the intermediate)</code></details>
   <details><summary>🟠 Hard — check revocation (which serial? is server.pem?)</summary><code class="pl">openssl crl -in intermediate.crl -noout -text | grep -A1 'Serial Number'
 openssl x509 -in server.pem -noout -serial ; openssl x509 -in revoked.pem -noout -serial</code></details>
   <details><summary>🔴 Expert — CA constraints, fingerprint, hostname match</summary><code class="pl">openssl x509 -in intermediate_ca.pem -noout -ext basicConstraints,keyUsage
