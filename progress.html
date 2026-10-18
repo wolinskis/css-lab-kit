@@ -29,9 +29,14 @@ a{color:var(--brand2);text-decoration:none}a:hover{text-decoration:underline}.hi
 
 <div class="section" id="s-app1"><h2>App 1 — VulnCorp <span class="tag">web · easy</span> <span class="hint">(served at /progress.php too)</span></h2><ul></ul></div>
 <div class="section" id="s-app2"><h2>App 2 — VulnNexus <span class="tag">web · medium→hard</span></h2><ul></ul></div>
-<div class="section" id="s-artifacts"><h2>File-artifact labs <span class="tag">offline · forensics/PKI</span></h2>
-<p class="hint">Here the "flag" is the <b>recovered value</b> — the password you cracked, the key you found, the number you proved. Capture = you produced it yourself.</p><ul></ul></div>
-<div class="section" id="s-tls"><h2>TLS decryption lab <span class="tag">pcap + private key</span></h2><ul></ul></div>
+<div class="section" id="s-certs"><h2>Certificates &amp; PKI <span class="tag">offline · openssl</span></h2>
+<p class="hint">Four escalating levels against the certs in <code>certificates/</code> — the "flag" is the finding you prove yourself.</p><ul></ul></div>
+<div class="section" id="s-network"><h2>Network capture <span class="tag">offline · Wireshark/tshark</span></h2>
+<p class="hint">Three secrets in <code>http_login_cleartext.pcap</code> (easy→expert) plus the three <code>cases/</code> scenarios.</p><ul></ul></div>
+<div class="section" id="s-tls"><h2>TLS decryption lab <span class="tag">pcap + key / keylog</span></h2>
+<p class="hint">Part 1 = static RSA (server key decrypts). Part 2 = ECDHE/PFS (key useless → SSLKEYLOGFILE).</p><ul></ul></div>
+<div class="section" id="s-artifacts"><h2>Other offline artifacts <span class="tag">keys · email · data · hashes</span></h2>
+<p class="hint">The "flag" is the <b>recovered value</b> — the password you cracked, the key you found, the number you proved. Capture = you produced it yourself.</p><ul></ul></div>
 <div class="section" id="s-privesc"><h2>Privilege-escalation lab <span class="tag">post-exploitation</span></h2><ul></ul></div>
 </div>
 <script>
@@ -53,19 +58,32 @@ const DATA={
   ["Path traversal","FLAG{tr4versed_out_of_the_docs_directory}"],
   ["Filtered XSS bypass","FLAG{xss_filter_byp4ss_c00kie}"],
   ["OAuth — redirect_uri not validated","FLAG{oauth_redirect_uri_not_validated}"]],
+ "s-certs":[
+  ["Easy — name every flaw in bad-webmail.crt (max 4)","self-signed · 1024-bit key · expired · over-broad SAN (wildcard + IP)"],
+  ["Medium — verify server.pem chains to the root","openssl verify -CAfile root -untrusted intermediate → OK"],
+  ["Hard — CRL: which cert is revoked?","revoked.pem (serial …477C) revoked; server.pem (…477B) NOT revoked"],
+  ["Expert — constraints · fingerprint · hostname match","pathlen:0 = leaf-only · pin leaf SHA-256 · bad-webmail invalid for portal.lab.local"]],
+ "s-network":[
+  ["Easy — cleartext HTTP form login","admin / S3ntinel!Admin (POST /login, port 80)"],
+  ["Medium — decode the Authorization: Basic header","svc_portal / Sup3rS3cret! (base64, not encryption)"],
+  ["Hard — decode the Set-Cookie session token","unsigned base64 JSON: user=admin, role=user (tamperable)"],
+  ["Expert — reconstruct the exchange + impact/fix","192.168.56.10→.20; all 3 secrets; fix = TLS + signed token"],
+  ["Case 1 — busy LAN: cleartext FTP login","bmaint / Ftp!Lan2026 (filter: ftp)"],
+  ["Case 2 — DNS exfiltration (base32 over subdomains)","FLAG{dns_exfil_base32}"],
+  ["Case 3 — SSH brute force: who / how many / success","src 10.0.0.66 · 15 attempts · client port 40014 got in"]],
+ "s-tls":[
+  ["Part 1 (static RSA) — cipher + no forward secrecy","TLS_RSA_WITH_AES_128_CBC_SHA256 (0x003c)"],
+  ["Part 1 — decrypt with server.key → credentials","admin / Autumn#2025"],
+  ["Part 1 — flag","FLAG{tls_rsa_no_pfs_is_decryptable}"],
+  ["Part 2 (ECDHE/PFS) — server.key fails → SSLKEYLOGFILE","0xc02f; decrypt via portal_pfs.keys"],
+  ["Part 2 — credentials from the decrypted request","admin / Winter#2026"],
+  ["Part 2 — flag","FLAG{ecdhe_pfs_needs_the_sslkeylogfile}"]],
  "s-artifacts":[
-  ["certs/bad-webmail.crt — name the 3 flaws","self-signed · 1024-bit · expired / SAN mismatch"],
-  ["certs chain — openssl verify OK (root→int→leaf)","chain.pem verifies against root_ca.pem"],
-  ["certs/intermediate.crl — end-entity status","leaf serial appears in the CRL = revoked"],
   ["keys/encrypted_rsa — crack the passphrase","Summer2024!"],
   ["email/phishing.eml — recover the hidden key","OpenSSH key appended outside the MIME tree"],
-  ["network/http_login_cleartext.pcap — recover the login","cleartext user:pass via Follow TCP Stream"],
   ["data/*.csv — re-identify by linkage","the non-k-anonymous rows (age+zip+gender)"],
   ["data/kpi_audit.db — true DAU vs claimed","real DAU ≈130 (claim 24500); decoys excluded"],
   ["hashes/*.txt — crack them all","password · dragon · summer · hunter2"]],
- "s-tls":[
-  ["Decrypt the HTTPS session with the private key","FLAG{tls_rsa_no_pfs_is_decryptable}"],
-  ["Recover the login from the decrypted request","admin:Autumn#2025"]],
  "s-privesc":[
   ["Find all 5 privesc vectors + reach root","FLAG{r00t_via_sudo_find_suid_env_cron_cap_or_pkexec}"]]
 };
