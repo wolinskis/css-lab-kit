@@ -1,77 +1,58 @@
-# Network capture — recover secrets from plaintext HTTP
+# Network capture — four protocols, one Wireshark skill
 
-A self-contained **offline** lab: one packet capture from a flat network. No server needed — open it in
-**Wireshark** or read it with **`tshark`**. Four escalating levels; work each yourself first, then check
-`solution.md`.
+> 🎯 **Goal:** practise **network forensics in Wireshark** — one capture per level, each a *different protocol*, so the real skill is choosing the right **display filter** to pull the secret out of a busy capture. Recover the credential/flag at each level.
 
-**File:** `http_login_cleartext.pcap` — a TCP handshake + one HTTP `POST /login` and its response. It
-leaks **three** different secrets, each one level harder to read.
+A self-contained **offline** lab: four small packet captures, no server needed. Open each one in **Wireshark** (`File ▸ Open`) and work it with the display-filter bar, **right-click packet ▸ Follow ▸ TCP/HTTP Stream** and the **Statistics** menu. Work each level yourself first, then check `solution.md`.
 
-| Level | Goal |
-|---|---|
-| 🟢 **Easy** | identify the protocol/port and recover the **cleartext form login** |
-| 🟡 **Medium** | decode the **`Authorization: Basic`** header → a second credential |
-| 🟠 **Hard** | decode the server's **`Set-Cookie` session token** and explain why it's weak |
-| 🔴 **Expert** | reconstruct the whole exchange + list every secret + state the impact/fix |
+| Level | Capture | Protocol | What you recover |
+|---|---|---|---|
+| 🟢 **Easy** | `http_login_cleartext.pcap` | HTTP | the form username/password (bonus: a Basic-auth header and a decodable session cookie) |
+| 🟡 **Medium** | `cases/case1_busy_lan_ftp.pcap` | FTP | one cleartext login hidden in ~81 frames of LAN noise |
+| 🟠 **Hard** | `cases/case2_dns_exfil.pcap` | DNS | a flag smuggled out as base32 subdomain labels |
+| 🔴 **Expert** | `cases/case3_ssh_bruteforce.pcap` | SSH | attacker IP, attempt count and the one successful connection — from the pattern, not the password |
+
+**Start every capture with** **Statistics ▸ Protocol Hierarchy** to see the protocol mix, then narrow with a filter.
 
 ---
-## 🟢 Easy — the cleartext form login
-What application protocol is this, on which port, and what username/password were submitted in the form body?
+
+## 🟢 Easy — cleartext HTTP login
+Recover the username and password submitted to `portal.vulncorp.local`.
+
 <details><summary>💡 hint</summary>
 
-`tshark -r http_login_cleartext.pcap` lists the packets (look at the dest port + the `POST` line).
-Then Wireshark → right-click → **Follow → TCP Stream**, or `tshark ... -z follow,tcp,ascii,0 -q`.
-The body is `username=…&password=…`.
+Filter `http`, then right-click the `POST /login` ▸ **Follow ▸ HTTP Stream** — the form body is the last line of the request. Bonus: `http.authorization` and `http.set_cookie` each hide another base64 secret; decode them outside Wireshark (CyberChef or `base64 -d`).
 </details>
 
-## 🟡 Medium — the Basic-auth header
-The same request carries an `Authorization: Basic …` header. Recover the credential inside it.
+## 🟡 Medium — FTP login in a busy LAN
+Find the FTP server and the username/password among DNS, mDNS, NBNS, SSDP, ARP and HTTP chatter. `http` is a decoy.
+
 <details><summary>💡 hint</summary>
 
-HTTP **Basic** auth is `base64(user:pass)` — **encoding, not encryption**. Pull the header and
-base64-decode it: `… -T fields -e http.authorization` → `echo <b64> | base64 -d`.
+Filter `ftp` (or `tcp.port==21`), then `ftp.request.command` to see only `USER` / `PASS` — or **Follow ▸ TCP Stream** on any FTP packet.
 </details>
 
-## 🟠 Hard — the session token
-The response sets a cookie: `Set-Cookie: session=…`. Decode it. What is inside, and why is this token design insecure?
+## 🟠 Hard — DNS exfiltration
+Spot the attacker domain among ~51 DNS queries, extract the data from the subdomain labels and decode the flag.
+
 <details><summary>💡 hint</summary>
 
-The value is base64 too. Decode it (append `==` padding if needed). It's a **JSON blob with no
-signature** — so a client can change `role`/`user` and the server has no way to detect tampering.
+Filter `dns` and look for high-entropy labels under one domain, then `dns.qry.name contains "evil-exfil"`. Join the left-most labels in order; uppercase + digits 2–7 is **base32** — decode with CyberChef or `base32 -d`.
 </details>
 
-## 🔴 Expert — full reconstruction & impact
-Produce the complete picture: client IP, server IP, `Host`, URL, **all three** recovered secrets, and a
-one-line risk statement + the fix.
+## 🔴 Expert — SSH brute force
+SSH is encrypted. Identify the attacker, count the attempts, and find the one connection that succeeded.
+
 <details><summary>💡 hint</summary>
 
-`tshark … -T fields -e ip.src -e ip.dst -e http.host -e http.request.uri`. Everything here crossed the
-wire in the clear (or in reversible base64), so anyone on-path has it all — the fix is TLS + a signed/opaque session token.
+Filter `tcp.port==22 && tcp.flags.syn==1 && tcp.flags.ack==0` to count attempts and read the source. Then **Statistics ▸ Conversations ▸ TCP**, sort by Bytes — the failed attempts are tiny and reset after the banner; the odd-one-out with far more data is the successful login. *Encrypted ≠ invisible.*
 </details>
 
-## Case studies — 3 more scenarios
-Once you've done the levels above, try **[`cases/`](cases/README.md)** — three small, focused captures,
-each teaching one classic move:
-1. **Busy LAN** — filter past the noise to a cleartext **FTP** login.
-2. **DNS exfiltration** — recover a base32 secret smuggled over DNS subdomains.
-3. **SSH brute force** — identify the attacker, count attempts, and spot the one that succeeded (pattern analysis — SSH is encrypted).
-
-Scenarios + hints in [`cases/README.md`](cases/README.md); answers in [`cases/solution.md`](cases/solution.md).
+---
 
 ## Want more practice? (real-world captures)
-This lab's capture is synthetic and tiny. For large, realistic traffic to sharpen your filtering and
-analysis, a great free resource is **[malware-traffic-analysis.net](https://malware-traffic-analysis.net/)**
-(Brad Duncan's PCAP exercises — infection chains, C2, exfiltration, etc.).
+These captures are synthetic and tiny. For large, realistic traffic, see **[malware-traffic-analysis.net](https://malware-traffic-analysis.net/)**.
 
-> ⚠️ **Safety — read before you touch it.** That is an **external, third-party** site hosting **real
-> malicious traffic and malware samples**. Only open its PCAPs inside an **isolated analysis VM** (no
-> internet access, no sensitive data on it); **never execute** any payload you extract, and don't open the
-> samples on your normal machine. This kit is not affiliated with that site — it's just a good place to
-> practise once you're comfortable with the basics here.
-
-**Skills to practise next (what real captures add over this one):** using **display filters** to cut
-through background noise (mDNS/SSDP/NBNS/QUIC/DNS), spotting cleartext creds in **Telnet/FTP/SMTP**, DNS
-tunnelling/exfiltration, and recognising C2 beacons.
+> ⚠️ **Safety.** That is an **external, third-party** site hosting **real malicious traffic and malware samples**. Only open its PCAPs inside an **isolated analysis VM** (no internet, no sensitive data); **never execute** any payload you extract. This kit is not affiliated with that site.
 
 ---
-> ⚠️ Training only — synthetic capture with lab credentials.
+> ⚠️ Training only — intentionally vulnerable, synthetic captures with fictional hosts and lab credentials.

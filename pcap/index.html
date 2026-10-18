@@ -10,62 +10,101 @@ code{background:#20242e;color:#b79cff;padding:2px 7px;border-radius:5px;font-fam
 .nav{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}.nav a{color:#fff;font-size:.85em;background:rgba(255,255,255,.14);padding:5px 11px;border-radius:7px}.nav a:hover{background:rgba(255,255,255,.28);text-decoration:none}
 .wrap{max-width:900px;margin:22px auto;padding:0 16px}
 .intro{color:var(--muted);font-size:.95em}
+.goal{background:#101c2e;border:1px solid #2f72c9;border-left:5px solid var(--brand2);border-radius:12px;padding:12px 16px;margin:14px 0;font-size:.95em}
+.goal b{color:#8ab4ff}
 .files{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 16px;margin:14px 0;font-size:.88em}
-.files b{color:var(--ink)}
+.files b{color:var(--ink)}.files code{font-size:.85em}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0}
 .card h2{margin:0 0 6px;font-size:1.05em;color:#8ab4ff;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .lvl{font-size:.72em;font-weight:700;padding:2px 9px;border-radius:20px}
 .l-easy{background:#122017;color:#3fb950;border:1px solid #3fb95033}.l-med{background:#1e2410;color:#d9c441;border:1px solid #d9c44133}
 .l-hard{background:#2a1c10;color:#e39b41;border:1px solid #e39b4133}.l-exp{background:#2a1620;color:#ff8bb0;border:1px solid #ff8bb033}
 .card p{margin:6px 0 10px;color:var(--muted);font-size:.92em}
+.dl{display:inline-block;background:#20242e;border:1px solid var(--line);padding:4px 10px;border-radius:7px;font-size:.88em;margin:0 0 8px}
 details{margin:4px 0}summary{cursor:pointer;color:var(--brand2);font-size:.9em}
+details ol{margin:8px 0 0;padding-left:22px;color:var(--ink);font-size:.9em}details li{margin:4px 0}
 pre{background:#0f1622;color:#9ce6a0;padding:10px 12px;border-radius:7px;font-family:ui-monospace,Consolas,monospace;font-size:.84em;overflow:auto;margin:8px 0 0;white-space:pre-wrap;word-break:break-word}
 footer{color:var(--muted);font-size:.85em;border-top:1px solid var(--line);margin:26px 0 50px;padding:14px 0}
 </style></head><body>
-<div class="topbar"><span class="brand">📡 Network Capture</span><span class="badge">offline · wireshark / tshark</span>
+<div class="topbar"><span class="brand">📡 Network Capture</span><span class="badge">offline · wireshark</span>
   <nav class="nav"><a href="../index.html">🏁 Lab Kit</a><a href="README.md">README</a><a href="solution.md">Solution</a></nav></div>
 <div class="wrap">
-  <p class="intro">One capture of a plaintext HTTP login that leaks <b>three</b> secrets — each a level
-  harder to read. Open it in Wireshark or read it with <code>tshark</code>. Full answers in
+  <div class="goal">🎯 <b>Goal:</b> practise <b>network forensics in Wireshark</b> — one capture per level, each a
+  <i>different protocol</i>, so the real skill is choosing the right <b>display filter</b> to pull the secret out
+  of a busy capture. Recover the credential/flag at each level.</div>
+
+  <p class="intro">Four small captures, four protocols: cleartext <b>HTTP</b>, <b>FTP</b> buried in LAN noise,
+  <b>DNS</b> exfiltration, and an encrypted <b>SSH</b> brute force. Everything is solved in the Wireshark GUI —
+  the display-filter bar, <b>Follow ▸ Stream</b> and <b>Statistics</b>. Full answers in
   <a href="solution.md">solution.md</a>.</p>
-  <div class="files"><b>File:</b> <code>http_login_cleartext.pcap</code> — TCP handshake + a <code>POST /login</code> and its response.</div>
+  <div class="files"><b>Files:</b> <code>http_login_cleartext.pcap</code> · <code>cases/case1_busy_lan_ftp.pcap</code> ·
+    <code>cases/case2_dns_exfil.pcap</code> · <code>cases/case3_ssh_bruteforce.pcap</code>
+    <span style="color:var(--muted)">(open each with <b>File ▸ Open</b>; <b>Statistics ▸ Protocol Hierarchy</b> shows the protocol mix)</span></div>
 
-  <div class="card"><h2>1 · The cleartext form login <span class="lvl l-easy">🟢 Easy</span></h2>
-    <p>Identify the protocol/port and recover the username &amp; password from the form body.</p>
-    <details><summary>💡 starter command</summary>
-      <pre>tshark -r http_login_cleartext.pcap
-tshark -r http_login_cleartext.pcap -z follow,tcp,ascii,0 -q   # or Wireshark: Follow → TCP Stream</pre></details></div>
+  <div class="card"><h2>1 · Cleartext HTTP login <span class="lvl l-easy">🟢 Easy</span></h2>
+    <a class="dl" href="http_login_cleartext.pcap" download>📥 http_login_cleartext.pcap</a>
+    <p>A user logs in to <code>portal.vulncorp.local</code> over plain HTTP. Recover the form username &amp; password.
+    Bonus (same capture): there is a second credential in a request header and a decodable session cookie in the response.</p>
+    <details><summary>💡 Wireshark steps</summary>
+      <ol>
+        <li>Display-filter bar: <code>http</code> — the capture shrinks to the request/response pair.</li>
+        <li>Right-click the <code>POST /login</code> packet ▸ <b>Follow ▸ HTTP Stream</b> — read the form body at the bottom of the request.</li>
+        <li>Bonus header: filter <code>http.authorization</code>; expand <b>Hypertext Transfer Protocol</b> in the packet details — the value after <code>Basic</code> is base64, decode it outside Wireshark (CyberChef, or <code>echo '…' | base64 -d</code>).</li>
+        <li>Bonus cookie: filter <code>http.set_cookie</code>; the <code>session=</code> value is base64 JSON — decode it the same way and look at the <code>role</code> field.</li>
+      </ol>
+      <pre>http
+http.authorization
+http.set_cookie</pre></details></div>
 
-  <div class="card"><h2>2 · The Basic-auth header <span class="lvl l-med">🟡 Medium</span></h2>
-    <p>The request also carries <code>Authorization: Basic …</code> — recover the credential inside it.</p>
-    <details><summary>💡 starter command</summary>
-      <pre>tshark -r http_login_cleartext.pcap -Y http.request -T fields -e http.authorization
-echo '&lt;the base64&gt;' | base64 -d        # Basic auth = base64(user:pass), not encryption</pre></details></div>
+  <div class="card"><h2>2 · FTP login in a busy LAN <span class="lvl l-med">🟡 Medium</span></h2>
+    <a class="dl" href="cases/case1_busy_lan_ftp.pcap" download>📥 cases/case1_busy_lan_ftp.pcap</a>
+    <p>About 81 frames of DNS, mDNS, NBNS, SSDP, ARP and HTTP chatter hide one plaintext login. Find the FTP server,
+    the username and the password. Hint: <code>http</code> is a decoy here.</p>
+    <details><summary>💡 Wireshark steps</summary>
+      <ol>
+        <li><b>Statistics ▸ Protocol Hierarchy</b> — spot the one small plaintext login protocol among the noise.</li>
+        <li>Display-filter bar: <code>ftp</code> (or <code>tcp.port==21</code>) — only the control channel remains.</li>
+        <li>Narrow to the login lines with <code>ftp.request.command</code> — the <code>USER</code> and <code>PASS</code> rows are the answer.</li>
+        <li>Or right-click any FTP packet ▸ <b>Follow ▸ TCP Stream</b> to read the whole conversation (server greeting, USER, PASS, 230 Login successful).</li>
+      </ol>
+      <pre>ftp
+tcp.port==21
+ftp.request.command</pre></details></div>
 
-  <div class="card"><h2>3 · The session token <span class="lvl l-hard">🟠 Hard</span></h2>
-    <p>Decode the server's <code>Set-Cookie: session=…</code>. What's inside, and why is it insecure?</p>
-    <details><summary>💡 starter command</summary>
-      <pre>tshark -r http_login_cleartext.pcap -Y http.response -T fields -e http.set_cookie
-echo '&lt;the base64&gt;' | base64 -d        # base64 JSON, no signature → forgeable</pre></details></div>
+  <div class="card"><h2>3 · DNS exfiltration <span class="lvl l-hard">🟠 Hard</span></h2>
+    <a class="dl" href="cases/case2_dns_exfil.pcap" download>📥 cases/case2_dns_exfil.pcap</a>
+    <p>About 51 DNS frames of ordinary browsing — and a few queries that are not browsing at all. Find the attacker
+    domain, pull the data out of the subdomain labels and decode the flag.</p>
+    <details><summary>💡 Wireshark steps</summary>
+      <ol>
+        <li>Display-filter bar: <code>dns</code>, then scroll the <b>Info</b> column — most names are readable, a few are high-entropy gibberish under one domain. That is the tell-tale.</li>
+        <li>Narrow to that domain: <code>dns.qry.name contains "evil-exfil"</code> — five queries remain.</li>
+        <li>Write down the <b>left-most label</b> of each query name, in packet order, and join them into one string.</li>
+        <li>Upper-case letters plus digits 2–7 = <b>base32</b>. Decode outside Wireshark (CyberChef "From Base32", or <code>printf '…' | base32 -d</code>).</li>
+      </ol>
+      <pre>dns
+dns.qry.name contains "evil-exfil"</pre></details></div>
 
-  <div class="card"><h2>4 · Full reconstruction &amp; impact <span class="lvl l-exp">🔴 Expert</span></h2>
-    <p>Client/server IPs, host, URL, all three secrets, and a one-line risk + fix.</p>
-    <details><summary>💡 starter command</summary>
-      <pre>tshark -r http_login_cleartext.pcap -Y http.request -T fields -e ip.src -e ip.dst -e http.host -e http.request.uri</pre></details></div>
-
-  <div class="card"><h2>📂 Case studies <span class="lvl l-med">3 scenarios</span></h2>
-    <p>Three small focused captures: a cleartext <b>FTP</b> login in a busy LAN, <b>DNS exfiltration</b> (base32), and an <b>SSH brute-force</b> (pattern analysis).</p>
-    <p class="muted">📥 <a href="cases/case1_busy_lan_ftp.pcap">case1_busy_lan_ftp.pcap</a> · <a href="cases/case2_dns_exfil.pcap">case2_dns_exfil.pcap</a> · <a href="cases/case3_ssh_bruteforce.pcap">case3_ssh_bruteforce.pcap</a></p>
-    <p class="muted">Scenarios → <a href="cases/README.md">cases/README.md</a> · answers → <a href="cases/solution.md">cases/solution.md</a></p></div>
+  <div class="card"><h2>4 · SSH brute force <span class="lvl l-exp">🔴 Expert</span></h2>
+    <a class="dl" href="cases/case3_ssh_bruteforce.pcap" download>📥 cases/case3_ssh_bruteforce.pcap</a>
+    <p>SSH is encrypted, so you cannot read the password — analyse the <b>pattern</b> instead. Who is the attacker,
+    how many attempts were made, and which connection is the one that succeeded?</p>
+    <details><summary>💡 Wireshark steps</summary>
+      <ol>
+        <li>Display-filter bar: <code>tcp.port==22 &amp;&amp; tcp.flags.syn==1 &amp;&amp; tcp.flags.ack==0</code> — one row per connection attempt; count them and read the <b>Source</b> column.</li>
+        <li><b>Statistics ▸ Conversations ▸ TCP</b> tab — sort by <b>Bytes</b>. Almost every conversation is tiny (reset right after the version banner = failed auth); one is much bigger and ends with a clean FIN.</li>
+        <li>Right-click that odd-one-out ▸ <b>Follow ▸ TCP Stream</b> (or filter on its client port) to confirm it carries a full session.</li>
+      </ol>
+      <pre>tcp.port==22 &amp;&amp; tcp.flags.syn==1 &amp;&amp; tcp.flags.ack==0
+tcp.flags.reset==1 &amp;&amp; tcp.port==22</pre></details></div>
 
   <div class="card"><h2>➕ Want more practice? <span class="lvl l-hard">real-world</span></h2>
-    <p>This capture is synthetic and small. For large, realistic traffic (infection chains, C2, exfiltration):
+    <p>These captures are synthetic and small. For large, realistic traffic (infection chains, C2, exfiltration):
     <a href="https://malware-traffic-analysis.net/" target="_blank" rel="noopener">malware-traffic-analysis.net</a>.</p>
-    <p class="muted">⚠️ External third-party site hosting <b>real malware traffic &amp; samples</b> — only open its
-    PCAPs inside an <b>isolated analysis VM</b> (no internet, no sensitive data); never execute extracted
-    payloads. Not affiliated with this kit. Next skills: display filters to cut through mDNS/SSDP/QUIC noise,
-    cleartext creds in Telnet/FTP/SMTP, DNS tunnelling, C2 beacons.</p></div>
+    <p>⚠️ External third-party site hosting <b>real malware traffic &amp; samples</b> — only open its PCAPs inside an
+    <b>isolated analysis VM</b> (no internet, no sensitive data); never execute extracted payloads. Not affiliated
+    with this kit.</p></div>
 
-  <footer>⚠️ <b>Training only</b> — synthetic capture with lab credentials.</footer>
+  <footer>⚠️ <b>Training only</b> — intentionally vulnerable, synthetic captures with fictional hosts and lab credentials.</footer>
 </div>
 </body></html>

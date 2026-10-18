@@ -1,3 +1,6 @@
+---
+tags: [css-exam, labs, solution, web]
+---
 # VulnCorp (app 1) — Solutions
 > ↑ Lab Kit · method: Web Penetration Test Checklist
 
@@ -244,7 +247,7 @@ from it; protect sensitive paths with auth (not `robots.txt`); rotate the expose
 - **chain** → `openssl verify -CAfile root_ca.pem -untrusted intermediate_ca.pem server.pem` = OK; CRL: `openssl crl -in intermediate.crl -noout -text` (revoked list contains `revoked.pem`, not `server.pem`).
 - **keys/encrypted_rsa** → crack passphrase: `ssh2john encrypted_rsa > h; john h --wordlist=rockyou.txt` → `Summer2024!`; derive pub: `ssh-keygen -y -f id_ed25519`.
 - **email/phishing.eml** → `grep -aboF 'LS0tLS1CRUdJTiBPUEVOU1NI' phishing.eml` finds the key appended outside MIME; decode the trailing base64 → OpenSSH key. Headers: SPF=fail, dkim=none, Reply-To to a different domain.
-- **network/*.pcap** → `tshark -r http_login_cleartext.pcap -z follow,tcp,ascii,0 -q` → `username=admin&password=S3ntinel!Admin`.
+- **network/*.pcap** (Wireshark, one capture per level) → Easy `http` ▸ Follow HTTP Stream → `admin:S3ntinel!Admin`; Medium `ftp` → `bmaint:Ftp!Lan2026`; Hard `dns` (`dns.qry.name contains "evil-exfil"`) → base32 → `FLAG{dns_exfil_base32}`; Expert `tcp.port==22 && tcp.flags.syn==1` + Statistics ▸ Conversations → 15 attempts from 10.0.0.66. Full steps in `pcap/solution.md`.
 - **data/kpi_audit.db** → `sqlite3 kpi_audit.db "SELECT COUNT(DISTINCT user_id) FROM sessions WHERE substr(started_at,1,10)='2026-06-30'"` ≈ 130 vs claimed 24500 (overstated); exclude out-of-window July rows + decoy models/internal users.
 - **data/medical_release.csv + voter_list.csv** → join on age+zip+gender: rows unique on those 3 quasi-identifiers (e.g. age 29/zip 8001/F appears >1 but 55/3011/M links to one name) → re-identify.
 - **hashes/** → identify first (`hashid '<hash>'` / `hash-identifier`), then crack with the matching mode

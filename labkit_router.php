@@ -142,6 +142,9 @@ if (!$isKit) {
 }
 
 $target = realpath($root . $uri);
+if ($target !== false && is_dir($target) && is_file($target . DIRECTORY_SEPARATOR . 'index.html')) {
+    $target = $target . DIRECTORY_SEPARATOR . 'index.html';   // directory index: /pcap/ -> /pcap/index.html
+}
 if ($target === false
     || strncmp($target, $root . DIRECTORY_SEPARATOR, strlen($root) + 1) !== 0   // stay inside the kit root
     || !is_file($target)) {

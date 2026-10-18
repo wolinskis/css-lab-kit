@@ -32,7 +32,7 @@ a{color:var(--brand2);text-decoration:none}a:hover{text-decoration:underline}.hi
 <div class="section" id="s-certs"><h2>Certificates &amp; PKI <span class="tag">offline · openssl</span></h2>
 <p class="hint">Four escalating levels against the certs in <code>certificates/</code> — the "flag" is the finding you prove yourself.</p><ul></ul></div>
 <div class="section" id="s-network"><h2>Network capture <span class="tag">offline · Wireshark/tshark</span></h2>
-<p class="hint">Three secrets in <code>http_login_cleartext.pcap</code> (easy→expert) plus the three <code>cases/</code> scenarios.</p><ul></ul></div>
+<p class="hint">One capture per level, solved in Wireshark with the right display filter: 🟢 HTTP login (<code>http</code>) · 🟡 FTP in noise (<code>ftp</code>) · 🟠 DNS exfil (<code>dns</code>) · 🔴 SSH brute-force (<code>tcp.port==22</code>, Statistics ▸ Conversations).</p><ul></ul></div>
 <div class="section" id="s-tls"><h2>TLS decryption lab <span class="tag">pcap + key / keylog</span></h2>
 <p class="hint">Part 1 = static RSA (server key decrypts). Part 2 = ECDHE/PFS (key useless → SSLKEYLOGFILE).</p><ul></ul></div>
 <div class="section" id="s-artifacts"><h2>Other offline artifacts <span class="tag">keys · email · data · hashes</span></h2>
