@@ -1,0 +1,21 @@
+<!doctype html><meta charset=utf-8><title>Recon Lab — nested discovery</title>
+<h1>🗂️ Recon Lab — Nested Directory Discovery</h1>
+<p><b>Goal:</b> four admin-credential artifacts are hidden in a <b>nested directory tree</b>, one per level.
+Every directory name is a <b>common word</b>, so a small wordlist finds them — you just have to <b>recurse</b>.</p>
+<ul>
+<li><b>Level 1 (easy)</b> — a plaintext credential.</li>
+<li><b>Level 2 (medium)</b> — a Base64 login (decode it).</li>
+<li><b>Level 3 (hard)</b> — a password hash <i>plus an ops-notes file with cracking tips</i>.</li>
+<li><b>Level 5 (expert)</b> — a salted hash, deeper still.</li>
+</ul>
+<p><b>Recommended list (small, already on Kali):</b> <code>/usr/share/wordlists/dirb/common.txt</code></p>
+<pre>
+# recursive (feroxbuster) — --add-slash makes it descend 200-dirs; link-extraction grabs the files:
+feroxbuster -u http://localhost:8000/recon_lab/ \
+  -w /usr/share/wordlists/dirb/common.txt --add-slash -C 404 -d 5
+
+# or ffuf, one level at a time (append each dir you find; the page links its artifact):
+ffuf -ic -u http://localhost:8000/recon_lab/FUZZ -w /usr/share/wordlists/dirb/common.txt -mc 200
+ffuf -ic -u http://localhost:8000/recon_lab/backup/FUZZ -w /usr/share/wordlists/dirb/common.txt -mc 200
+</pre>
+<p class=muted>Each level page links its own artifact — the skill being practised is <b>discovering the directories</b>.</p>

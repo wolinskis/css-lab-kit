@@ -415,3 +415,21 @@ not `robots.txt`; rotate any leaked secret.
 **Mechanism.** Real accounts use guessable passwords (`admin:S3ntinel!Admin`, `alice:password123`, …),
 so an online guess / Hydra run (or the config leak in §9) gets you in — no "exploit" required.
 **Fix:** strong password policy, rate-limiting/lockout, MFA; never ship default or reused credentials.
+
+---
+
+## Recon Lab — nested directory discovery (/recon_lab/)
+
+Skill: recursive content discovery with a **small** list (`/usr/share/wordlists/dirb/common.txt`). All level names
+(`backup/data/config/old/logs`) are in that list, so size is irrelevant — recursion is the point.
+
+```bash
+# one-shot recursive solve:
+feroxbuster -u http://localhost:8000/recon_lab/ -w /usr/share/wordlists/dirb/common.txt --add-slash -C 404 -d 5
+```
+
+Levels & artifacts (each level page links its file):
+- L1 easy  /recon_lab/backup/creds.txt                      -> admin:letmein  (plaintext)
+- L2 med   /recon_lab/backup/data/login.b64                 -> base64 -d       -> admin:dragon
+- L3 hard  /recon_lab/backup/data/config/hash.txt (+notes)  -> SHA-1 unsalted  -> hashcat -m 100 rockyou -> monkey
+- L5 exp   /recon_lab/backup/data/config/old/logs/vault.txt -> md5(pass+salt)  -> hashcat -m 10  rockyou -> football

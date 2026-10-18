@@ -1,0 +1,9 @@
+VulnCorp ops notes — credential handling (do not expose)
+  - hash.txt (this level): admin password stored as an UNSALTED hash.
+      * Identify it:  hashid '<hash>'    (40 hex chars = SHA-1)
+      * Crack it:     hashcat -m 100 hash.txt /usr/share/wordlists/rockyou.txt
+        (strip the 'admin:' prefix so the file is just the hash, or use --username)
+  - The newer SALTED vault dump was archived deeper, under the old config's logs.
+      * Format there is  hash:salt  (salted MD5 = md5(password + salt)).
+      * Crack it:     hashcat -m 10 vault.txt /usr/share/wordlists/rockyou.txt
+        (-m 10 = md5($pass.$salt); feed one 'hash:salt' line)
