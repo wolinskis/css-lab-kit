@@ -76,7 +76,7 @@ foreach ($db->query("SELECT author, body, created FROM comments ORDER BY id DESC
     <ul style="line-height:1.8">
       <li>Normal use: <code>?page=about.html</code></li>
       <li>Traversal to the flag (outside the web root): <code>?page=../../lfi_secret/flag.txt</code> — only <b>2 ../</b> needed; extra <code>../</code> are harmless.</li>
-      <li>System file (bonus): <code>?page=../../../../../../../etc/passwd</code> — needs enough <code>../</code> to reach <code>/</code> for your install (depth varies).</li>
+      <li>System file (bonus): <code>?page=../../../etc/passwd</code> — add more <code>../</code> if your install is deeper. On <b>medium</b> (the filter strips one <code>../</code>) use the doubled-dot bypass: <code>?page=....//....//....//etc/passwd</code>.</li>
     </ul>
   </details>
 <?php
