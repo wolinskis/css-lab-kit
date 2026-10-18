@@ -223,6 +223,26 @@ head -1 recovered_key.pem ; tail -1 recovered_key.pem ; wc -l recovered_key.pem
 
 Clean BEGIN/END markers and `base64 -d` exiting 0 confirm the carve started on the right byte; an off-by-one would have produced garbage or an "invalid input" error.
 
+### What you'd do with a recovered key (and why it fails here)
+
+On a real case you would now **use** the key, so these are the reflex next steps:
+
+```
+chmod 600 recovered_key.pem            # ssh refuses a world/group-readable key
+ssh-keygen -l -f recovered_key.pem     # fingerprint it (match against authorized_keys / IOC lists)
+ssh-keygen -y -f recovered_key.pem     # derive the public key
+# then: ssh -i recovered_key.pem user@host
+```
+
+On **this** lab the last two deliberately fail:
+
+```
+ssh-keygen -l -f recovered_key.pem  ->  is not a key file.
+ssh-keygen -y -f recovered_key.pem  ->  error in libcrypto: unsupported
+```
+
+That is expected, not a mistake. The block is correctly *shaped* (so `base64 -d` succeeds and it looks real), but the key material is the placeholder `KITtraining0keyNOTrealDOTdecodeME…`, so OpenSSH will not load it. There is nothing to connect to — recovering the block was the whole objective.
+
 ### The lesson
 
 **Data appended outside the MIME tree is invisible to parsers and mail clients.** The rendered view is what the *attacker* wants you to see; the raw bytes are what is actually there. Always `grep -a` / `strings` / `tail` the raw file, and check that the file size matches what you were given.
@@ -234,6 +254,12 @@ Triage order for a hidden artifact (key, payload, flag, IOC) in an email — che
 3. **Grep the raw bytes** — `-----BEGIN`, its base64 `LS0tLS1CRUdJTi…`, `MZ`, `PK`, `ssh-rsa`/`ssh-ed25519`, long base64 runs (`grep -aboE '[A-Za-z0-9+/=]{60,}'`).
 4. **Read the headers** — `Received` chain (origin IP, per-hop TLS), `Authentication-Results`, `Reply-To`, link targets; check each part's declared `Content-Type` against its real magic bytes (`file`).
 5. **Last resort, only if asked** — steganography on images, PDF object internals. Here the PDF is a decoy, and that is the point.
+
+## Gotchas you'll actually hit
+
+- **`sed -n '/…/,$p'` won't run → use single quotes.** In `,$p` the `$` means "last line" to `sed`, but inside *double* quotes the shell expands `$p` to nothing and `sed` errors with ``unexpected `,'``. Single quotes `'…'` pass it through untouched. (A copy-paste that turns `'` into a curly `'` breaks it the same way — retype plain quotes.) To skip the ugly boundary string entirely, carve by offset instead: `tail -c +1507 phishing.eml | base64 -d`.
+- **Decoding the attachment returns nothing → use `-A2`, not `-A1`.** MIME puts a blank line between a part's headers and its body, so `grep -A1 '^Content-Disposition' | tail -1` lands on that blank line and decodes nothing. `-A2` reaches the base64 — or grab it by its magic prefix: `grep '^JVBER' phishing.eml | base64 -d`.
+- **"No such file" → you're in the wrong directory.** `cd` to where `phishing.eml` lives and confirm with `ls phishing.eml` before running anything.
 
 ## Answer sheet
 
