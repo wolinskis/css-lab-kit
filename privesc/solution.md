@@ -8,6 +8,8 @@ Five independent ways to go from `www-data` to `root`. Any **one** is enough. Fo
 
 > Exam reflex: after any foothold, check these five in order — **sudo → SUID → capabilities → cron → kernel/OS**. That order maps 1-to-1 onto the files below.
 
+> **How to open the files:** they're plain text in the `enum/` folder — `cat enum/sudo_l.txt` (or `cd enum` first). `enum/` is a folder name, not a command.
+
 ## Vector 1 — a sudo command you can run as root — `enum/sudo_l.txt`
 
 **What you see:**

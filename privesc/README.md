@@ -16,6 +16,10 @@ for you in the **`enum/`** folder. **Your only job is to read those files and re
 misconfigurations that let a normal user turn into root.** Spotting them quickly is exactly the skill
 the exam grades — so this lab trains the *reading*, not the typing.
 
+> **How to read these files:** they're plain text inside the **`enum/`** folder — open them with `cat`,
+> e.g. `cat enum/sudo_l.txt` (or `cd enum` first, then `cat sudo_l.txt`). `enum/` is just a folder name;
+> **don't type `enum` as a command** — on Kali that's an unrelated number-range generator.
+
 ## The files you're given — and the red flag to hunt in each
 
 | File | The command that produced it | What you're looking for |
