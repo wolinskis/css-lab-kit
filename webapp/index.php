@@ -182,7 +182,7 @@ openssl verify -verbose -show_chain -CAfile root_ca.pem -untrusted intermediate_
 openssl x509 -in server.pem -noout -serial ; openssl x509 -in revoked.pem -noout -serial</code></details>
   <details><summary>🔴 Expert — CA constraints, fingerprint, hostname match</summary><code class="pl">openssl x509 -in intermediate_ca.pem -noout -ext basicConstraints,keyUsage
 openssl x509 -in server.pem -noout -fingerprint -sha256</code></details>
-  <p class="muted">Full console + answers → <a href="/certificates/index.html">Certificates hub</a> · <a href="/certificates/solution.md">solution.md</a></p></div>
+  <p class="muted">📦 Download the lab → <a href="/certificates/certificates_lab.tar.gz" download>tar.gz</a> · <a href="/certificates/certificates_lab.zip" download>zip</a> &nbsp;|&nbsp; full console + answers → <a href="/certificates/index.html">Certificates hub</a> · <a href="/certificates/solution.md">solution.md</a></p></div>
 
 <div class="card"><h2>📡 Network capture <span class="flag-pill">offline · Wireshark</span></h2>
   <p class="muted">🎯 <b>Goal:</b> recover the hidden credential/flag in each capture using <b>Wireshark</b> — the challenge is choosing the right <b>display filter</b> for the protocol in play.</p>
@@ -196,7 +196,7 @@ Right-click ▸ Follow ▸ TCP Stream  →  USER bmaint / PASS Ftp!Lan2026     (
 dns.qry.name contains "evil-exfil"   →  high-entropy subdomain labels; take each left-most label, join, base32-decode → FLAG{...}</code></details>
   <details><summary>🔴 Expert — <a href="/pcap/cases/case3_ssh_bruteforce.pcap" download>case3_ssh_bruteforce.pcap</a> · brute force on encrypted SSH</summary><code class="pl">Filter:  tcp.port==22 &amp;&amp; tcp.flags.syn==1 &amp;&amp; tcp.flags.ack==0    →  15 connection attempts, all from 10.0.0.66
 Statistics ▸ Conversations ▸ TCP  →  14 tiny (reset after the banner) + 1 that transfers data &amp; closes cleanly = the success. Encrypted ≠ invisible.</code></details>
-  <p class="muted">Full Wireshark walkthrough → <a href="/pcap/solution.md">solution.md</a> · <a href="/pcap/index.html">Network hub</a></p></div>
+  <p class="muted">📦 Download the lab → <a href="/pcap/pcap_lab.tar.gz" download>tar.gz</a> · <a href="/pcap/pcap_lab.zip" download>zip</a> &nbsp;|&nbsp; full Wireshark walkthrough → <a href="/pcap/solution.md">solution.md</a> · <a href="/pcap/index.html">Network hub</a></p></div>
 
 <div class="card"><h2>🔓 TLS decryption <span class="flag-pill">🏁 decrypt HTTPS</span></h2>
   <p class="muted">🎯 <b>Goal:</b> decrypt an HTTPS capture in <b>Wireshark</b> with the server's RSA key and read the login/flag — then decrypt a second capture whose key is useless (forward secrecy) using a TLS key log instead. Start → <a href="/tls_decrypt_lab/">/tls_decrypt_lab/</a></p>
@@ -210,7 +210,7 @@ Statistics ▸ Conversations ▸ TCP  →  14 tiny (reset after the banner) + 1 
 # 0xc02f = ECDHE → forward secrecy → the private key can't recover the session keys</code></details>
   <details><summary>🔴 Expert — decrypt the ECDHE capture with the key log</summary><code class="pl">tshark -r portal_pfs.pcap -o 'tls.keylog_file:portal_pfs.keys' -q -z follow,tls,ascii,0
 # the SSLKEYLOGFILE holds the per-session secrets — the only way against ECDHE</code></details>
-  <p class="muted">Answers → <a href="/tls_decrypt_lab/README.md">README</a> · <a href="/tls_decrypt_lab/solution.md">solution.md</a> · <a href="/tls_decrypt_lab/solution_pfs.md">solution (PFS)</a></p></div>
+  <p class="muted">📦 Download the lab → <a href="/tls_decrypt_lab/tls_lab.tar.gz" download>tar.gz</a> · <a href="/tls_decrypt_lab/tls_lab.zip" download>zip</a> &nbsp;|&nbsp; answers → <a href="/tls_decrypt_lab/README.md">README</a> · <a href="/tls_decrypt_lab/solution.md">solution.md</a> · <a href="/tls_decrypt_lab/solution_pfs.md">solution (PFS)</a></p></div>
 
 <div class="card"><h2>🗂️ Recon Lab — nested discovery <span class="flag-pill">content discovery</span></h2>
   <p class="muted">Four admin-credential artifacts hidden <b>one per level</b> in a nested directory tree. Every directory name is a <b>common word</b>, so the skill is <b>recursive discovery with a small list</b> — not a bigger one. Start here → <a href="/recon_lab/">/recon_lab/</a></p>
