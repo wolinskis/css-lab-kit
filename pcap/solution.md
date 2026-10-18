@@ -184,10 +184,18 @@ tcp.port==22 && tcp.flags.syn==1 && tcp.flags.ack==0
 
 **Result:** **15** packets, all **Source 10.0.0.66** → **Destination 10.0.0.10**, port 22. One client, 15 new connections to the same SSH server in a short window = brute force.
 
-**Find the successful one:** **Statistics ▸ Conversations ▸ TCP** tab, sort by **Bytes** (or by **Packets**):
+**Find the successful one — you don't know the port in advance, you *derive* it.** The SYN filter above only shows the *attempts*; the per-connection totals that reveal the winner live in a separate window:
 
-- **14** conversations are tiny — a handful of packets each, the client is reset (RST) right after the SSH version banner exchange = authentication failed.
-- **1** conversation, client port **40014**, transfers much more data and closes cleanly with FIN = the **successful** login.
+- Open **Statistics ▸ Conversations**, then click the **TCP** tab — one row per connection, with **Packets / Bytes / Duration** columns.
+- **First clear the SYN display filter** (or untick **"Limit to display filter"** at the bottom of that window). Otherwise every row counts only its single SYN and they all look identical — this is the step most people miss.
+- Click the **Packets** (or **Bytes**) column header to **sort**. Exactly one row stands out:
+
+| Client port | Packets | Closes with | Verdict |
+|---|:---:|:---:|---|
+| 40000–40013 (×14) | ~6 each | **RST** | fail — reset right after the SSH version banner (auth rejected) |
+| **40014** | **18** | **FIN** | ⭐ **success** — a real key-exchange + session, closed cleanly |
+
+So `40014` is the **result** of the sort, not a port you picked: it's the single connection that did far more than swap banners. A failed login is dropped (**RST**) the instant auth fails; a successful one continues into the encrypted session and ends gracefully (**FIN**). That difference in **packets / bytes / close flag** is visible even though the payload is encrypted.
 
 To confirm, filter on that port and read it:
 
