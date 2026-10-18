@@ -17,7 +17,14 @@ $dirs  = ['/certificates/', '/pcap/', '/assets/', '/tls_decrypt_lab/', '/privesc
 
 $isKit = in_array($uri, $files, true);
 foreach ($dirs as $d) { if (strncmp($uri, $d, strlen($d)) === 0) { $isKit = true; break; } }
-if (!$isKit) return false;                          // not a kit path -> normal app serving
+if (!$isKit) {
+    // Not a Lab-Kit path: let the built-in server serve/execute the app's own file IF it exists.
+    // But a plain `return false` makes php -S fall back to the docroot index.php for a MISSING path,
+    // which rendered the hub ("main page") inside result iframes (e.g. an un-uploaded webshell). 404 instead.
+    $fs = ($_SERVER['DOCUMENT_ROOT'] ?? '') . $uri;
+    if ($uri === '/' || is_file($fs) || is_dir($fs)) return false;    // real app file/dir -> serve as normal
+    http_response_code(404); header('Content-Type: text/plain'); echo "404 Not Found: $uri\n"; return true;
+}
 
 $target = realpath($root . $uri);
 if ($target === false
