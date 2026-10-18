@@ -206,6 +206,16 @@ echo '&lt;base64&gt;' | base64 -d        # unsigned JSON → forgeable</code></d
 # the SSLKEYLOGFILE holds the per-session secrets — the only way against ECDHE</code></details>
   <p class="muted">Answers → <a href="/tls_decrypt_lab/README.md">README</a> · <a href="/tls_decrypt_lab/solution.md">solution.md</a> · <a href="/tls_decrypt_lab/solution_pfs.md">solution (PFS)</a></p></div>
 
+<div class="card"><h2>🗂️ Recon Lab — nested discovery <span class="flag-pill">content discovery</span></h2>
+  <p class="muted">Four admin-credential artifacts hidden <b>one per level</b> in a nested directory tree. Every directory name is a <b>common word</b>, so the skill is <b>recursive discovery with a small list</b> — not a bigger one. Start here → <a href="/recon_lab/">/recon_lab/</a></p>
+  <details><summary>🟢 Easy — map the whole tree (recommended list: <code>dirb/common.txt</code>)</summary><code class="pl">feroxbuster -u http://localhost:8000/recon_lab/ -w /usr/share/wordlists/dirb/common.txt --add-slash -C 404 -d 5</code></details>
+  <details><summary>🟡 Medium — or walk it level by level with ffuf (append each dir you find)</summary><code class="pl">ffuf -ic -u http://localhost:8000/recon_lab/FUZZ -w /usr/share/wordlists/dirb/common.txt -mc 200
+ffuf -ic -u http://localhost:8000/recon_lab/backup/FUZZ -w /usr/share/wordlists/dirb/common.txt -mc 200</code></details>
+  <details><summary>🟠 Hard — L3 leaks an unsalted hash (+ <code>notes.txt</code> with cracking tips)</summary><code class="pl">curl -s http://localhost:8000/recon_lab/backup/data/config/hash.txt
+hashcat -m 100 hash.txt /usr/share/wordlists/rockyou.txt   # SHA-1, unsalted</code></details>
+  <details><summary>🔴 Expert — L5 salted vault dump (<code>hash:salt</code>)</summary><code class="pl">hashcat -m 10 vault.txt /usr/share/wordlists/rockyou.txt   # md5(pass+salt)</code></details>
+  <p class="muted">The chain: recurse <code>common.txt</code> → decode the <code>.b64</code> login → crack the two hashes. Lab index → <a href="/recon_lab/">/recon_lab/</a></p></div>
+
 </div>
 <footer>⚠️ <b>Intentionally vulnerable — training only.</b> Run locally / isolated lab; never expose it.</footer>
 <script>
