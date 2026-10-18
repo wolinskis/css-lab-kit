@@ -176,8 +176,8 @@ footer{max-width:900px;margin:10px auto 50px;padding:14px 16px;color:var(--muted
   <details><summary>🟢 Easy — inspect <code>bad-webmail.crt</code>, name the 4 flaws</summary><code class="pl">openssl x509 -in bad-webmail.crt -noout -text</code></details>
   <details><summary>🟡 Medium — validate the chain (run it WITHOUT the intermediate first → watch it fail)</summary><code class="pl">openssl verify server.pem                                                     # FAILS: error 20 (no issuer)
 openssl verify -CAfile root_ca.pem server.pem                                 # STILL FAILS: root did not sign the leaf — the intermediate did
-openssl verify -CAfile root_ca.pem -untrusted intermediate_ca.pem server.pem  # OK: -untrusted supplies the missing intermediate
-openssl x509 -in server.pem -noout -subject -issuer                           # SEE the chain: issued by &quot;LabKit Issuing CA&quot; (the intermediate)</code></details>
+openssl verify -verbose -show_chain -CAfile root_ca.pem -untrusted intermediate_ca.pem server.pem  # OK — and -show_chain PRINTS the path it built:
+#   Chain: depth=0 portal.labkit.local (untrusted) ← depth=1 LabKit Issuing CA (untrusted) ← depth=2 LabKit Root CA (anchor)</code></details>
   <details><summary>🟠 Hard — check revocation (which serial? is server.pem?)</summary><code class="pl">openssl crl -in intermediate.crl -noout -text | grep -A1 'Serial Number'
 openssl x509 -in server.pem -noout -serial ; openssl x509 -in revoked.pem -noout -serial</code></details>
   <details><summary>🔴 Expert — CA constraints, fingerprint, hostname match</summary><code class="pl">openssl x509 -in intermediate_ca.pem -noout -ext basicConstraints,keyUsage

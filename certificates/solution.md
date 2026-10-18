@@ -16,28 +16,33 @@ openssl x509 -in bad-webmail.crt -noout -text | grep -i 'Public-Key'
 
 **Reason:** a browser hard-fails on *any* of self-signed / expired alone.
 
-## 🟡 Medium — validate the chain (see it FAIL first, then fix it)
+## 🟡 Medium — validate the chain (see it FAIL first, then prove it with the path)
+
 **Commands — run in order so you see *why* it ends in `OK`:**
 
 ```
-openssl verify server.pem                                                     # 1. FAILS: error 20 (no issuer at all)
-openssl verify -CAfile root_ca.pem server.pem                                 # 2. STILL FAILS: error 20 (root didn't sign the leaf — the intermediate did)
-openssl verify -CAfile root_ca.pem -untrusted intermediate_ca.pem server.pem  # 3. OK: -untrusted supplies the missing intermediate
+openssl verify server.pem                                                                          # 1. FAILS: error 20 (no issuer at all)
+openssl verify -CAfile root_ca.pem server.pem                                                      # 2. STILL FAILS: error 20 (root didn't sign the leaf — the intermediate did)
+openssl verify -verbose -show_chain -CAfile root_ca.pem -untrusted intermediate_ca.pem server.pem  # 3. OK — and -show_chain prints the path it built
 ```
 
-**Result:** steps 1–2 → `error 20 ... unable to get local issuer certificate` → `verification failed`; step 3 → `server.pem: OK`.
-
-**See the chain you are building (subject ← issuer):**
+**Result — step 3 doesn't just say `OK`, it shows the path it assembled, which is the real justification:**
 
 ```
-openssl x509 -in server.pem          -noout -subject -issuer
-openssl x509 -in intermediate_ca.pem -noout -subject -issuer
-openssl x509 -in root_ca.pem         -noout -subject -issuer
+server.pem: OK
+Chain:
+depth=0: C=CH, O=LabKit, CN=portal.labkit.local (untrusted)
+depth=1: C=CH, O=LabKit, CN=LabKit Issuing CA   (untrusted)
+depth=2: C=CH, O=LabKit, CN=LabKit Root CA
 ```
 
-→ `server.pem` (CN=portal.labkit.local) is issued by **LabKit Issuing CA** (= `intermediate_ca.pem`), issued by **LabKit Root CA** (= `root_ca.pem`, the self-signed anchor).
+Read it as the path openssl built, leaf → anchor:
+- **depth 0 — `portal.labkit.local`** = the leaf (`server.pem`) being validated.
+- **depth 1 — `LabKit Issuing CA`** = the intermediate you handed in with `-untrusted`.
+- **depth 2 — `LabKit Root CA`** = the trust anchor from `-CAfile` (no `(untrusted)` tag — the one you decided to trust).
+- `(untrusted)` on depths 0–1 only means "supplied on the command line, not pre-trusted" — the chain is valid because each cert is signed by the one at the next depth, terminating at the anchor.
 
-**Reason / where the problem is:** Medium is **not** a flaw-hunt — the deliverable is a *valid* chain (`OK`). The lesson is the failure in steps 1–2: `error 20 — unable to get local issuer certificate` is what you get when the **intermediate is missing** — one of the most common real-world TLS misconfigurations (a server presenting only its leaf cert). `-untrusted` supplies the missing intermediate so openssl can build leaf → intermediate → root; `-CAfile` is the anchor you trust. In production the fix is to serve the full bundle (`chain.pem`).
+**Reason / where the problem is:** Medium is **not** a flaw-hunt — the deliverable is a *valid* chain. The lesson is the failure in steps 1–2: `error 20 — unable to get local issuer certificate` is what you get when the **intermediate is missing** — one of the most common real-world TLS misconfigurations (a server presenting only its leaf cert). `-untrusted` supplies the missing intermediate so openssl can build leaf → intermediate → root; `-CAfile` is the anchor you trust; `-show_chain` proves the path. In production the fix is to serve the full bundle (`chain.pem`).
 
 ## 🟠 Hard — revocation
 **Command:**
