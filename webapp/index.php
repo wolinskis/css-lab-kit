@@ -199,6 +199,7 @@ Statistics ▸ Conversations ▸ TCP  →  14 tiny (reset after the banner) + 1 
   <p class="muted">Full Wireshark walkthrough → <a href="/pcap/solution.md">solution.md</a> · <a href="/pcap/index.html">Network hub</a></p></div>
 
 <div class="card"><h2>🔓 TLS decryption <span class="flag-pill">🏁 decrypt HTTPS</span></h2>
+  <p class="muted">🎯 <b>Goal:</b> decrypt an HTTPS capture in <b>Wireshark</b> with the server's RSA key and read the login/flag — then decrypt a second capture whose key is useless (forward secrecy) using a TLS key log instead. Start → <a href="/tls_decrypt_lab/">/tls_decrypt_lab/</a></p>
   <p class="muted">An encrypted HTTPS capture + the server's recovered <b>RSA private key</b>: add the key, decrypt the session, read the login and flag — then meet a second capture where the key is useless (forward secrecy).</p>
   <p class="muted">📥 <b>Download:</b> <a href="/tls_decrypt_lab/portal_tls.pcap" download>portal_tls.pcap</a> · <a href="/tls_decrypt_lab/server.key" download>server.key</a> · <a href="/tls_decrypt_lab/server.crt" download>server.crt</a> · <a href="/tls_decrypt_lab/portal_pfs.pcap" download>portal_pfs.pcap</a> · <a href="/tls_decrypt_lab/portal_pfs.keys" download>portal_pfs.keys</a> <span class="muted">(run the commands from the folder you saved them in)</span></p>
   <details><summary>🟢 Easy — which cipher / key exchange? why decryptable?</summary><code class="pl">tshark -r portal_tls.pcap -Y "tls.handshake.type==2" -T fields -e tls.handshake.ciphersuite

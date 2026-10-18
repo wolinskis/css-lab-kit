@@ -1,0 +1,134 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>TLS Decryption — Lab Kit</title>
+<style>
+:root{--bg:#0e1016;--card:#171a22;--ink:#e6edf3;--muted:#9aa4b2;--line:#2a2f3a;--brand:#9a6bff;--brand2:#58a6ff;--ok:#3fb950}
+*{box-sizing:border-box}body{font-family:system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink);margin:0;line-height:1.55}
+a{color:var(--brand2);text-decoration:none}a:hover{text-decoration:underline}
+code{background:#20242e;color:#b79cff;padding:2px 7px;border-radius:5px;font-family:ui-monospace,Consolas,monospace;font-size:.9em}
+.topbar{position:sticky;top:0;z-index:5;background:linear-gradient(120deg,#143b2a,#1f9d57);color:#fff;padding:12px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(20,60,40,.2)}
+.brand{font-weight:700;font-size:1.15em}.badge{font-size:.72em;background:rgba(255,255,255,.18);padding:2px 9px;border-radius:20px}
+.nav{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}.nav a{color:#fff;font-size:.85em;background:rgba(255,255,255,.14);padding:5px 11px;border-radius:7px}.nav a:hover{background:rgba(255,255,255,.28);text-decoration:none}
+.wrap{max-width:900px;margin:22px auto;padding:0 16px}
+.intro{color:var(--muted);font-size:.95em}
+.goal{background:#13172a;border:1px solid #3b3f6b;border-left:5px solid var(--brand);border-radius:12px;padding:14px 18px;margin:14px 0;font-size:.95em}
+.goal b.t{color:#c7b3ff;font-size:1.05em}
+.files{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 16px;margin:14px 0;font-size:.88em}
+.files b{color:var(--ink)}.files code{font-size:.85em}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0}
+.card h2{margin:0 0 6px;font-size:1.05em;color:#c7b3ff;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lvl{font-size:.72em;font-weight:700;padding:2px 9px;border-radius:20px}
+.l-easy{background:#122017;color:#3fb950;border:1px solid #3fb95033}.l-med{background:#1e2410;color:#d9c441;border:1px solid #d9c44133}
+.l-hard{background:#2a1c10;color:#e39b41;border:1px solid #e39b4133}.l-exp{background:#2a1620;color:#ff8bb0;border:1px solid #ff8bb033}
+.card p{margin:6px 0 10px;color:var(--muted);font-size:.92em}
+.part{margin:22px 0 8px;font-size:1.15em;color:var(--ink);border-bottom:1px solid var(--line);padding-bottom:4px}
+.part small{color:var(--muted);font-weight:400;font-size:.78em;margin-left:8px}
+details{margin:4px 0}summary{cursor:pointer;color:var(--brand2);font-size:.9em}
+pre{background:#0f1622;color:#9ce6a0;padding:10px 12px;border-radius:7px;font-family:ui-monospace,Consolas,monospace;font-size:.84em;overflow:auto;margin:8px 0 0;white-space:pre-wrap;word-break:break-word}
+.lesson{background:#0f1a14;border:1px solid #1f9d5744;border-left:5px solid var(--ok);border-radius:12px;padding:12px 18px;margin:14px 0;font-size:.92em}
+table{border-collapse:collapse;width:100%;font-size:.88em;margin:8px 0 0}th,td{border:1px solid var(--line);padding:6px 9px;text-align:left}th{color:#c7b3ff;background:#1c1f2a}
+footer{color:var(--muted);font-size:.85em;border-top:1px solid var(--line);margin:26px 0 50px;padding:14px 0}
+</style></head><body>
+<div class="topbar"><span class="brand">🔓 TLS Decryption</span><span class="badge">offline · Wireshark</span>
+  <nav class="nav"><a href="../index.html">🏁 Lab Kit</a><a href="README.md">README</a><a href="solution.md">Solution 1</a><a href="solution_pfs.md">Solution 2</a></nav></div>
+<div class="wrap">
+
+  <div class="goal"><b class="t">🎯 Goal:</b> decrypt a captured HTTPS session in <b>Wireshark</b> using the server's recovered
+  <b>RSA private key</b>, read the login + flag — then meet a second capture where the <b>same key fails</b>
+  (forward secrecy / ECDHE) and you must decrypt it with a <b>TLS key log (<code>SSLKEYLOGFILE</code>)</b> instead.</div>
+
+  <p class="intro">Scenario: an incident-response capture of a user reaching the internal portal
+  <code>portal.lab.local</code>. The server's private key was later recovered from a backup. Everything is solved
+  in the Wireshark GUI — open the pcap, set one TLS preference, <b>Follow ▸ TLS Stream</b>. Two parts, four levels.
+  Full answers in <a href="solution.md">solution.md</a> (Part 1) and <a href="solution_pfs.md">solution_pfs.md</a> (Part 2).</p>
+
+  <div class="files"><b>Files:</b>
+    <a href="portal_tls.pcap" download><code>portal_tls.pcap</code></a> ·
+    <a href="server.key" download><code>server.key</code></a> ·
+    <a href="server.crt" download><code>server.crt</code></a> ·
+    <a href="portal_pfs.pcap" download><code>portal_pfs.pcap</code></a> ·
+    <a href="portal_pfs.keys" download><code>portal_pfs.keys</code></a>
+    <span style="color:var(--muted)">(Part 1: first three · Part 2: last two + the same key/cert, deliberately useless)</span></div>
+
+  <h3 class="part">Part 1 — static RSA <small>decryptable with the private key · <code>portal_tls.pcap</code> + <code>server.key</code></small></h3>
+
+  <div class="card"><h2>1 · Identify the cipher suite <span class="lvl l-easy">🟢 Easy</span></h2>
+    <p>Open <code>portal_tls.pcap</code> in Wireshark. Which cipher suite did the server pick, and what key exchange does it imply?
+    Why does that decide whether the private key can decrypt anything?</p>
+    <details><summary>💡 Wireshark steps</summary>
+      <pre>Display filter:  tls.handshake.type == 2          # Server Hello
+Packet Details ▸ Transport Layer Security ▸ Handshake Protocol: Server Hello ▸ Cipher Suite
+→ TLS_RSA_WITH_AES_128_CBC_SHA256 (0x003c)
+  TLS_RSA_*  =  static RSA key exchange, NO forward secrecy
+  The client encrypts the pre-master secret with the server's PUBLIC key,
+  so the matching PRIVATE key recovers it → session keys → full plaintext.</pre></details></div>
+
+  <div class="card"><h2>2 · Decrypt with the private key — request, login, flag <span class="lvl l-med">🟡 Medium</span></h2>
+    <p>Add <code>server.key</code> and read the plaintext. What HTTP request was made? Which credentials were sent?
+    What flag (and what other secret) is in the response?</p>
+    <details><summary>💡 Wireshark steps</summary>
+      <pre>Edit ▸ Preferences ▸ Protocols ▸ TLS ▸ RSA keys list ▸ Edit… ▸ +
+   Key File = server.key        (IP Address / Port / Protocol: leave blank, or Protocol = http)
+   OK ▸ OK   → the "Application Data" rows now decode as HTTP
+Right-click any packet of the session ▸ Follow ▸ TLS Stream   → plaintext request + response</pre></details>
+    <details><summary>✅ what you should see</summary>
+      <pre>GET /portal.html HTTP/1.0
+Host: portal.lab.local
+Authorization: Basic YWRtaW46QXV0dW1uIzIwMjU=      → admin : Autumn#2025
+Cookie: SESSIONID=9f2c1a7b4e; role=admin
+
+Response body:  FLAG{tls_rsa_no_pfs_is_decryptable}
+Bonus leak:     Server=db01;Uid=svc_portal;Pwd=Autumn#2025;   (DB connection string)
+
+Decode the Basic header: Packet Details ▸ Hypertext Transfer Protocol ▸ Authorization ▸ Credentials
+(Wireshark decodes it for you), or Analyze ▸ Follow ▸ TLS Stream and read it in the clear.</pre></details></div>
+
+  <h3 class="part">Part 2 — ECDHE / forward secrecy <small>the key is useless · <code>portal_pfs.pcap</code> + <code>portal_pfs.keys</code></small></h3>
+
+  <div class="card"><h2>3 · Identify — and watch the private key fail <span class="lvl l-hard">🟠 Hard</span></h2>
+    <p>Open <code>portal_pfs.pcap</code>. Same portal, same <code>server.key</code>. Read the cipher suite, then add the key
+    exactly as in Part 1 and explain why nothing decrypts this time.</p>
+    <details><summary>💡 Wireshark steps</summary>
+      <pre>Display filter:  tls.handshake.type == 2          # Server Hello
+Server Hello ▸ Cipher Suite
+→ TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 (0xc02f)
+  ECDHE  =  ephemeral elliptic-curve Diffie-Hellman  →  FORWARD SECRECY
+  RSA here only SIGNS the handshake (authentication); it does not carry the secret.
+
+Now try the Part-1 trick:
+Edit ▸ Preferences ▸ Protocols ▸ TLS ▸ RSA keys list ▸ + ▸ Key File = server.key
+→ Application Data stays "Encrypted Application Data"; Follow ▸ TLS Stream shows only garbage.
+  The session keys come from an ephemeral DH exchange that never travels on the wire,
+  so the RSA private key cannot reconstruct them.</pre></details></div>
+
+  <div class="card"><h2>4 · Decrypt the right way — TLS key log <span class="lvl l-exp">🔴 Expert</span></h2>
+    <p>Use the client-side key log <code>portal_pfs.keys</code> (an <code>SSLKEYLOGFILE</code> captured at handshake time) instead.
+    Report the request, the credentials and the flag.</p>
+    <details><summary>💡 Wireshark steps</summary>
+      <pre>Edit ▸ Preferences ▸ Protocols ▸ TLS ▸ (Pre)-Master-Secret log filename ▸ Browse… ▸ portal_pfs.keys ▸ OK
+Right-click a packet of the session ▸ Follow ▸ TLS Stream   → plaintext
+
+How you get such a file for real: run the CLIENT with the env var set, e.g.
+  SSLKEYLOGFILE=keys.log curl https://portal.lab.local/   (same variable works for Firefox and Chrome)</pre></details>
+    <details><summary>✅ what you should see</summary>
+      <pre>GET /portal.html HTTP/1.1
+Authorization: Basic YWRtaW46V2ludGVyIzIwMjY=      → admin : Winter#2026
+Cookie: SESSIONID=aa11bb22; role=admin
+
+Response body:  FLAG{ecdhe_pfs_needs_the_sslkeylogfile}
+Bonus leak:     Server=db02;Uid=svc_portal;Pwd=…   (DB connection string)</pre></details></div>
+
+  <div class="lesson"><b>Lesson:</b> a leaked server key decrypts every past <i>static-RSA</i> session ever captured
+  (Part 1) but <b>nothing</b> that is forward-secret (Part 2). ECDHE is why — to decrypt forward-secret TLS you need key
+  material from an endpoint at capture time (<code>SSLKEYLOGFILE</code>), not the server's private key. This is why modern
+  TLS is ECDHE-only, and why a key log — not the private key — is how you decrypt your own traffic for debugging.
+    <table>
+      <tr><th></th><th>Part 1 · <code>portal_tls.pcap</code></th><th>Part 2 · <code>portal_pfs.pcap</code></th></tr>
+      <tr><td>Key exchange</td><td>static RSA (<code>TLS_RSA_*</code>)</td><td>ECDHE (<code>TLS_ECDHE_*</code>)</td></tr>
+      <tr><td>Forward secrecy</td><td>no</td><td><b>yes</b></td></tr>
+      <tr><td>Decrypts with <code>server.key</code></td><td><b>yes</b></td><td>no</td></tr>
+      <tr><td>Decrypts with key log</td><td>yes</td><td><b>yes (only option)</b></td></tr>
+    </table></div>
+
+  <footer>⚠️ <b>Intentionally vulnerable — training only.</b> Synthetic captures, throwaway key; fake credentials and flags. Never reuse any of it.</footer>
+</div>
+</body></html>
