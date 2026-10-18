@@ -114,7 +114,7 @@ $uri  = rawurldecode(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? 
 if ($uri === '/labkit' || $uri === '/labkit/') $uri = '/index.html';   // friendly alias
 
 $files = ['/index.html', '/progress.html', '/README.md', '/START_HERE.md', '/LICENSE'];
-$dirs  = ['/certificates/', '/pcap/', '/assets/', '/tls_decrypt_lab/', '/privesc/'];
+$dirs  = ['/certificates/', '/pcap/', '/assets/', '/tls_decrypt_lab/', '/privesc/', '/email/'];
 
 $isKit = in_array($uri, $files, true);
 foreach ($dirs as $d) { if (strncmp($uri, $d, strlen($d)) === 0) { $isKit = true; break; } }

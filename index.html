@@ -149,8 +149,8 @@ footer a{color:var(--brand2)}
         the MIME tree.</li>
         <li><b>network/*.pcap</b> — cleartext HTTP login (Follow TCP Stream).</li>
       </ul>
-      <div class="links"><a class="primary" href="pcap/index.html">▶ Network capture exercise</a></div>
-      <p class="muted" style="margin:8px 0 0">Ready-to-use (committed): recover a cleartext login from a PCAP.</p>
+      <div class="links"><a class="primary" href="email/index.html">▶ Email forensics exercise</a> <a class="primary" href="pcap/index.html">▶ Network capture exercise</a></div>
+      <p class="muted" style="margin:8px 0 0">Ready-to-use (committed): spot the phishing tells &amp; recover the hidden key; recover a cleartext login from a PCAP.</p>
     </div>
     <div class="card">
       <h3>📊 Data</h3>
@@ -178,20 +178,25 @@ footer a{color:var(--brand2)}
     <div class="card">
       <h3>📡 Network capture <span class="lvl">4 levels</span></h3>
       <a class="shotlink" href="pcap/index.html"><img class="shot" src="assets/preview-pcap.png" alt="Network capture hub" loading="lazy"></a>
-      <p>One plaintext HTTP capture that leaks three secrets: cleartext form → base64 Basic auth → a weak session token. Wireshark / <code>tshark</code>.</p>
+      <p>Four captures, one per level — HTTP login, FTP in noise, DNS exfiltration, SSH brute force. The skill is picking the right <b>Wireshark</b> display filter.</p>
       <div class="links"><a class="primary" href="pcap/index.html">Open hub</a><a href="pcap/README.md">README</a><a href="pcap/solution.md">Solution</a></div>
+    </div>
+    <div class="card">
+      <h3>📧 Email forensics <span class="lvl">4 levels</span></h3>
+      <p>Analyse a phishing <code>.eml</code>: SPF/DKIM/DMARC &amp; look-alike-domain checks, the real reply-to/link — then recover an OpenSSH key <b>appended outside the MIME tree</b> (raw-byte search, not a mail client).</p>
+      <div class="links"><a class="primary" href="email/index.html">Open hub</a><a href="email/README.md">README</a><a href="email/solution.md">Solution</a></div>
     </div>
     <div class="card">
       <h3>🔓 TLS decryption</h3>
       <p>An encrypted HTTPS PCAP + the server's RSA private key. Decrypt it (static-RSA, no forward
-      secrecy) to recover the login and flag — and learn why ECDHE would not be decryptable.</p>
-      <div class="links"><a href="tls_decrypt_lab/README.md">Open lab</a></div>
+      secrecy) to recover the login and flag — then a second capture where ECDHE/PFS defeats the key.</p>
+      <div class="links"><a class="primary" href="tls_decrypt_lab/index.html">Open hub</a><a href="tls_decrypt_lab/README.md">README</a><a href="tls_decrypt_lab/solution.md">Solution</a></div>
     </div>
     <div class="card">
       <h3>⬆️ Privilege escalation</h3>
       <p>From a low-priv shell to root: analyse the provided enumeration, find all five privesc vectors
       (GTFOBins), and chain a Meterpreter session with <code>local_exploit_suggester</code>.</p>
-      <div class="links"><a href="privesc/README.md">Open lab</a></div>
+      <div class="links"><a class="primary" href="privesc/index.html">Open hub</a><a href="privesc/README.md">README</a><a href="privesc/solution.md">Solution</a></div>
     </div>
     <div class="card">
       <h3>🏁 Progress tracker</h3>

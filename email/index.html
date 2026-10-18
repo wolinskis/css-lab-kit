@@ -1,0 +1,96 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Email Forensics — Lab Kit</title>
+<style>
+:root{--bg:#0e1016;--card:#171a22;--ink:#e6edf3;--muted:#9aa4b2;--line:#2a2f3a;--brand:#9a6bff;--brand2:#58a6ff;--ok:#3fb950}
+*{box-sizing:border-box}body{font-family:system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink);margin:0;line-height:1.55}
+a{color:var(--brand2);text-decoration:none}a:hover{text-decoration:underline}
+code{background:#20242e;color:#b79cff;padding:2px 7px;border-radius:5px;font-family:ui-monospace,Consolas,monospace;font-size:.9em}
+.topbar{position:sticky;top:0;z-index:5;background:linear-gradient(120deg,#143b2a,#1f9d57);color:#fff;padding:12px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(20,60,40,.2)}
+.brand{font-weight:700;font-size:1.15em}.badge{font-size:.72em;background:rgba(255,255,255,.18);padding:2px 9px;border-radius:20px}
+.nav{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}.nav a{color:#fff;font-size:.85em;background:rgba(255,255,255,.14);padding:5px 11px;border-radius:7px}.nav a:hover{background:rgba(255,255,255,.28);text-decoration:none}
+.wrap{max-width:900px;margin:22px auto;padding:0 16px}
+.intro{color:var(--muted);font-size:.95em}
+.goal{background:#15202b;border:1px solid var(--brand2);border-left:5px solid var(--brand2);border-radius:12px;padding:14px 18px;margin:14px 0;font-size:.95em}
+.goal b{color:#9ad1ff}.goal .key{color:#ff8bb0;font-weight:700}
+.files{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 16px;margin:14px 0;font-size:.88em}
+.files b{color:var(--ink)}.files code{font-size:.85em}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0}
+.card h2{margin:0 0 6px;font-size:1.05em;color:#c7b3ff;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lvl{font-size:.72em;font-weight:700;padding:2px 9px;border-radius:20px}
+.l-easy{background:#122017;color:#3fb950;border:1px solid #3fb95033}.l-med{background:#1e2410;color:#d9c441;border:1px solid #d9c44133}
+.l-hard{background:#2a1c10;color:#e39b41;border:1px solid #e39b4133}.l-exp{background:#2a1620;color:#ff8bb0;border:1px solid #ff8bb033}
+.card p{margin:6px 0 10px;color:var(--muted);font-size:.92em}
+.see{margin:8px 0 0;font-size:.88em;color:var(--muted)}.see b{color:var(--ok)}
+details{margin:4px 0}summary{cursor:pointer;color:var(--brand2);font-size:.9em}
+pre{background:#0f1622;color:#9ce6a0;padding:10px 12px;border-radius:7px;font-family:ui-monospace,Consolas,monospace;font-size:.84em;overflow:auto;margin:8px 0 0;white-space:pre-wrap;word-break:break-word}
+footer{color:var(--muted);font-size:.85em;border-top:1px solid var(--line);margin:26px 0 50px;padding:14px 0}
+</style></head><body>
+<div class="topbar"><span class="brand">📧 Email Forensics</span><span class="badge">offline · grep · base64</span>
+  <nav class="nav"><a href="../index.html">🏁 Lab Kit</a><a href="README.md">README</a><a href="solution.md">Solution</a></nav></div>
+<div class="wrap">
+  <div class="goal">🎯 <b>Goal:</b> analyse a phishing email (<code>phishing.eml</code>). Confirm from the headers that it's
+    spoofed, trace where it really comes from / leads, and — the main lesson — <span class="key">recover a secret hidden
+    OUTSIDE the MIME tree that no mail client will ever show you.</span></div>
+
+  <p class="intro">Everything is done with plain command-line tools on the raw file: <code>grep</code>, <code>base64</code>,
+  <code>strings</code>, <code>head</code>/<code>tail</code> and an editor — <b>not</b> Wireshark, not a mail client.
+  Four escalating levels. Full answers in <a href="solution.md">solution.md</a>.</p>
+  <div class="files"><b>📦 Download the whole lab:</b> <a href="email_lab.tar.gz" download><code>email_lab.tar.gz</code></a> · <a href="email_lab.zip" download><code>email_lab.zip</code></a> <span style="color:var(--muted)">— one file, includes the .eml + README + solution</span></div>
+  <div class="files"><b>Files:</b> <a href="phishing.eml" download><code>phishing.eml</code></a> <span style="color:var(--muted)">(1795 bytes · md5 <code>51cdac3f55eee4a124babcaca00959c5</code> — check it first: a truncated copy hides the whole point of level 4)</span>
+    · <a href="README.md"><code>README.md</code></a> · <a href="solution.md"><code>solution.md</code></a></div>
+
+  <div class="card"><h2>1 · Is this legit? Header &amp; authentication analysis <span class="lvl l-easy">🟢 Easy</span></h2>
+    <p>Read the headers only. Does the message pass SPF / DKIM / DMARC? Compare the <code>From:</code> domain with the
+    recipient's real domain (<code>vulncorp.local</code>). Verdict?</p>
+    <details><summary>💡 starter command</summary>
+      <pre>grep -iE '^(from|authentication-results|dkim|received):' phishing.eml
+head -n 14 phishing.eml          # the whole header block, nothing else</pre>
+      <p class="see"><b>What you should see:</b> <code>spf=fail</code>, <code>dkim=none</code>, <code>dmarc=fail</code> —
+      every sender check fails. <code>From:</code> is <code>it-support@vulncorp-secure.com</code>, a look-alike of
+      <code>vulncorp.local</code>. Verdict: phishing.</p></details></div>
+
+  <div class="card"><h2>2 · Where does it really go / come from? <span class="lvl l-med">🟡 Medium</span></h2>
+    <p>Three questions: where do replies land, where does the "Reverify" link really point, and which IP handed the
+    message to our mail server (the first external hop in the <code>Received</code> chain)?</p>
+    <details><summary>💡 starter command</summary>
+      <pre>grep -i '^reply-to:' phishing.eml
+grep -oE 'href="[^"]+"' phishing.eml
+grep -i '^received:' phishing.eml          # read bottom-up: the LAST one is the origin hop
+grep -oE '\[[0-9.]+\]' phishing.eml</pre>
+      <p class="see"><b>What you should see:</b> <code>Reply-To: &lt;credentials@evil-collector.ru&gt;</code> (replies go to
+      the attacker, not to the From). Link = <code>http://vulncorp-secure.com.evil-collector.ru/login</code> — the registrable
+      domain is <code>evil-collector.ru</code>; <code>vulncorp-secure.com</code> is just a sub-label to fool the eye.
+      Origin IP = <code>185.165.240.54</code> (external, reverse DNS "unknown").</p></details></div>
+
+  <div class="card"><h2>3 · Don't trust the MIME tree <span class="lvl l-hard">🟠 Hard</span></h2>
+    <p>Map the MIME structure: how many parts, what are they, and what does the attachment really contain? Then look
+    <b>past the closing boundary</b> — is the file really finished where the message ends?</p>
+    <details><summary>💡 starter command</summary>
+      <pre>grep -n -- '--===============LABKIT==' phishing.eml           # 2 openers + 1 closer (ends in --)
+grep -n -iE '^content-(type|disposition)' phishing.eml
+grep -A1 '^Content-Disposition' phishing.eml | tail -1 | base64 -d ; echo     # the "invoice"
+sed -n '/^--===============LABKIT==--/,$p' phishing.eml              # everything AFTER the closing boundary
+strings -n 20 phishing.eml | tail -8</pre>
+      <p class="see"><b>What you should see:</b> <code>multipart/mixed</code> with an HTML part and a PDF attachment
+      <code>invoice.pdf</code> that decodes to <code>%PDF-1.4 decoy invoice - nothing useful here</code> — a red herring.
+      After <code>--===============LABKIT==--</code> there is a fake <code>X-Note: archival blob below (not part of the message)</code>
+      header followed by a long base64 run. A MIME parser / mail client stops at the closing boundary and never renders it —
+      only the raw bytes show it.</p></details></div>
+
+  <div class="card"><h2>4 · Recover the hidden key <span class="lvl l-exp">🔴 Expert</span></h2>
+    <p>Prove what the appended blob is, locate it by byte offset, carve it out and decode it. No flag — <b>recovering the
+    key is the objective.</b></p>
+    <details><summary>💡 starter command</summary>
+      <pre>echo -n '-----BEGIN OPENSSH' | base64        # -> LS0tLS1CRUdJTiBPUEVOU1NI  (what to grep for)
+grep -aboF 'LS0tLS1CRUdJTiBPUEVOU1NI' phishing.eml   # -> 1506:LS0tLS1CRUdJTiBPUEVOU1NI  (0-based byte offset)
+tail -c +1507 phishing.eml | base64 -d            # tail -c +N is 1-based: offset+1
+# or, boundary-driven instead of offset-driven:
+sed -n '/^--===============LABKIT==--/,$p' phishing.eml | grep -v -e '^--' -e '^X-Note' | base64 -d</pre>
+      <p class="see"><b>What you should see:</b> a <code>-----BEGIN OPENSSH PRIVATE KEY-----</code> … <code>-----END OPENSSH PRIVATE KEY-----</code>
+      block (a training placeholder key). <b>Lesson:</b> data appended outside the MIME tree is invisible to parsers and
+      mail clients — always grep / <code>strings</code> the raw bytes, never trust the rendered view. Triage order for a hidden
+      artifact in an email: boundaries → raw bytes → headers; steganography and PDF internals are last resorts, not first.</p></details></div>
+
+  <footer>⚠️ <b>Intentionally vulnerable — training only.</b> Synthetic headers, fake domains and IPs, placeholder key; the "private key" is not a real credential. Never use in production.</footer>
+</div>
+</body></html>
