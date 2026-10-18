@@ -121,8 +121,12 @@ So: `multipart/mixed` → part 1 `text/html` (the lure), part 2 `application/pdf
 
 ### Decode the attachment
 
+MIME puts a **blank line** between a part's headers and its body, so grab the line **two** after `Content-Disposition` (`-A2`), not one — `-A1` would hand you that blank line and decode nothing:
+
 ```
-grep -A1 '^Content-Disposition' phishing.eml | tail -1 | base64 -d ; echo
+grep -A2 '^Content-Disposition' phishing.eml | tail -1 | base64 -d ; echo
+# robust alternative (the PDF part is the only base64 starting with the %PDF magic "JVBER"):
+grep '^JVBER' phishing.eml | base64 -d ; echo
 ```
 
 ```
