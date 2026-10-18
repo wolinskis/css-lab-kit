@@ -39,9 +39,12 @@ footer{color:var(--muted);font-size:.85em;border-top:1px solid var(--line);margi
 openssl x509 -in bad-webmail.crt -noout -subject -issuer -dates -ext subjectAltName</pre></details></div>
 
   <div class="card"><h2>2 · Validate the chain <span class="lvl l-med">🟡 Medium</span></h2>
-    <p>Prove <code>server.pem</code> chains to the root through the intermediate.</p>
+    <p>Prove <code>server.pem</code> chains to the root through the intermediate — see it <b>fail</b> without the intermediate first, then make <code>-show_chain</code> print the path it built (that path is the justification, not just <code>OK</code>).</p>
     <details><summary>💡 starter command</summary>
-      <pre>openssl verify -CAfile root_ca.pem -untrusted intermediate_ca.pem server.pem</pre></details></div>
+      <pre>openssl verify server.pem                                                                          # FAILS: error 20 (no issuer)
+openssl verify -CAfile root_ca.pem server.pem                                                      # STILL FAILS: root didn't sign the leaf
+openssl verify -verbose -show_chain -CAfile root_ca.pem -untrusted intermediate_ca.pem server.pem  # OK + prints the chain
+# Chain: depth=0 portal.labkit.local (untrusted) &larr; depth=1 LabKit Issuing CA (untrusted) &larr; depth=2 LabKit Root CA (anchor)</pre></details></div>
 
   <div class="card"><h2>3 · Check revocation <span class="lvl l-hard">🟠 Hard</span></h2>
     <p>Which serial does <code>intermediate.crl</code> revoke? Is <code>server.pem</code> among them? Re-validate with the CRL enforced.</p>
