@@ -16,9 +16,12 @@ for you in the **`enum/`** folder. **Your only job is to read those files and re
 misconfigurations that let a normal user turn into root.** Spotting them quickly is exactly the skill
 the exam grades — so this lab trains the *reading*, not the typing.
 
-> **How to read these files:** they're plain text inside the **`enum/`** folder — open them with `cat`,
-> e.g. `cat enum/sudo_l.txt` (or `cd enum` first, then `cat sudo_l.txt`). `enum/` is just a folder name;
-> **don't type `enum` as a command** — on Kali that's an unrelated number-range generator.
+> **How to read these files** (they're plain text — just `cat` them). If you downloaded the **bundle**
+> `privesc_lab.zip` and extracted it, the files sit in an **`enum/`** subfolder → `cat enum/sudo_l.txt`.
+> If you grabbed the **individual files**, they land loose wherever you saved them (e.g. `~/Downloads`) →
+> `cat sudo_l.txt`, with no `enum/` prefix. The content is identical either way. `enum/` is just a folder
+> name — **don't type `enum` as a command** (on Kali that's an unrelated number-range generator). Paths
+> below use the `enum/` prefix; drop it if your files are loose.
 
 ## The files you're given — and the red flag to hunt in each
 
