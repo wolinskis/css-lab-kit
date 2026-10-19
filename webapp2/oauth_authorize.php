@@ -7,9 +7,9 @@ $redirect = $_GET['redirect_uri'] ?? '';
 $state    = $_GET['state'] ?? '';
 // Escalating (and still-bypassable) redirect_uri validation:
 //  easy   : none.
-//  medium : must start with 'http://localhost'  -> bypass with the @ trick: http://localhost@attacker.test/cb
-//  hard   : + '@' blocked               -> bypass with a subdomain: http://localhost.attacker.test/cb
-//  expert : + no extra '.' in the host  -> same subdomain idea needs a parser differential (advanced)
+//  medium : must CONTAIN 'localhost'          -> bypass: http://attacker.test/?x=localhost
+//  hard   : must START WITH http://localhost  -> bypass with a subdomain: http://localhost.attacker.test/
+//  expert : start-with + NO dots in host      -> bypass: http://localhost@attacker/  (@ userinfo, dotless host)
 if ($redirect !== '') {
     $bad='';
     //  medium : must CONTAIN 'localhost'         -> http://attacker.test/?x=localhost

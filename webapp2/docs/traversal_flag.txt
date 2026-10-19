@@ -1,1 +1,2 @@
-FLAG{path_tr4versal_download_endpoint}
+This is just a normal document in the web-exposed docs/ folder.
+The real loot is OUTSIDE this directory - climb up with ../ to reach private2/ (see SOLUTIONS #5).

